@@ -5,39 +5,29 @@ app:
   licensing:
     enabled: true
 modules:
+  # One Jira admin menu entry; in-app navigation (side navigation) lives inside the Custom UI.
+  # Mirrors MarginRadar: three adminPage modules on one resource, layout blank (the app owns its padding).
   jira:adminPage:
     - key: accessradar-admin
-      resource: accessradar-ui
+      resource: custom-ui
       resolver:
         function: ar-resolver
       title: AccessRadar
-      layout: native
-      sections:
-        - header: AccessRadar
-          pages:
-            - title: Overview
-              route: overview
-            - title: Explore – Projects
-              route: explore-projects
-            - title: Explore – Groups
-              route: explore-groups
-            - title: Explore – People
-              route: explore-people
-            - title: Changes
-              route: changes
-            - title: Reviews
-              route: reviews
-            - title: Snapshots
-              route: snapshots
-            - title: Settings
-              route: settings
-    - key: accessradar-get-started
-      resource: accessradar-ui
+      layout: blank
+    - key: accessradar-config
+      resource: custom-ui
       resolver:
         function: ar-resolver
-      title: AccessRadar – Get started
-      layout: native
+      title: AccessRadar configuration
+      useAsConfig: true
+      layout: blank
+    - key: accessradar-get-started
+      resource: custom-ui
+      resolver:
+        function: ar-resolver
+      title: Get started with AccessRadar
       useAsGetStarted: true
+      layout: blank
   scheduledTrigger:
     - key: accessradar-snapshot-tick
       function: ar-tick
@@ -73,9 +63,12 @@ modules:
     - key: ar-lifecycle
       handler: index.lifecycle
 resources:
-  - key: accessradar-ui
-    path: static/accessradar-ui/build
+  - key: custom-ui
+    path: static/app/dist
 permissions:
+  content:
+    styles:
+      - unsafe-inline
   scopes:
     read:project:jira:
       allowImpersonation: true

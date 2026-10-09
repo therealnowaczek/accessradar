@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { collectPages } from '../src/lib/paginate';
 import { retryAfterSeconds } from '../src/lib/jira';
 import { MIGRATIONS } from '../src/db/migrations';
+import { toProjectRow } from '../src/ui/projects';
 
 describe('collectPages', () => {
   it('follows startAt until isLast', async () => {
@@ -34,5 +35,38 @@ describe('migrations', () => {
       expect(ddl.includes(';')).toBe(false);
       expect(/FOREIGN\s+KEY|REFERENCES/i.test(ddl)).toBe(false);
     }
+  });
+});
+
+describe('toProjectRow', () => {
+  it('maps company- and team-managed projects', () => {
+    expect(
+      toProjectRow({
+        id: '1',
+        key: 'ABC',
+        name: 'Alpha',
+        projectTypeKey: 'software',
+        style: 'classic',
+        projectCategory: { name: 'Ops' },
+      }),
+    ).toEqual({
+      id: '1',
+      key: 'ABC',
+      name: 'Alpha',
+      typeKey: 'software',
+      managed: 'company',
+      category: 'Ops',
+    });
+    expect(toProjectRow({ id: '2', key: 'KAN', simplified: true })).toEqual({
+      id: '2',
+      key: 'KAN',
+      name: 'KAN',
+      typeKey: 'unknown',
+      managed: 'team',
+    });
+  });
+  it('drops malformed entries', () => {
+    expect(toProjectRow({ key: 'X' })).toBeNull();
+    expect(toProjectRow({ id: 3, key: 'X' })).toBeNull();
   });
 });

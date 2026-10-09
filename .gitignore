@@ -1,6 +1,5 @@
 node_modules/
-static/*/node_modules/
-static/*/build/
+static/app/dist/
 .vitest/
 coverage/
 .env

@@ -1,0 +1,9 @@
+node_modules
+coverage
+package-lock.json
+dist
+**/dist
+.vitest
+docs/spike-results
+docs
+*.md

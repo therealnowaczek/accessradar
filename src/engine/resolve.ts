@@ -40,26 +40,62 @@ export type PathStep =
 export interface EffectiveAccess {
   projectId: string;
   permission: string;
-  subject: { type: 'user'; accountId: string } | { type: 'conditional'; holderType: string } | { type: 'anonymous' };
+  subject:
+    | { type: 'user'; accountId: string }
+    | { type: 'conditional'; holderType: string }
+    | { type: 'anonymous' };
   path: PathStep[];
   /** true when part of the path could not be expanded (e.g. unreadable group membership). */
   partial?: boolean;
 }
 
-export const CONDITIONAL_HOLDERS = new Set(['reporter', 'assignee', 'userCustomField', 'groupCustomField', 'reporterWithCreatePermission', 'assigneeWithAssignablePermission']);
+export const CONDITIONAL_HOLDERS = new Set([
+  'reporter',
+  'assignee',
+  'userCustomField',
+  'groupCustomField',
+  'reporterWithCreatePermission',
+  'assigneeWithAssignablePermission',
+]);
 
-function expandGroup(groupId: string, dir: DirectoryFacts, base: PathStep[], projectId: string, permission: string): EffectiveAccess[] {
+function expandGroup(
+  groupId: string,
+  dir: DirectoryFacts,
+  base: PathStep[],
+  projectId: string,
+  permission: string,
+): EffectiveAccess[] {
   const members = dir.groupMembers[groupId];
   const path: PathStep[] = [...base, { kind: 'group', groupId }];
-  if (!members) return [{ projectId, permission, subject: { type: 'conditional', holderType: 'group-unreadable' }, path, partial: true }];
-  return members.map((accountId) => ({ projectId, permission, subject: { type: 'user', accountId }, path }));
+  if (!members)
+    return [
+      {
+        projectId,
+        permission,
+        subject: { type: 'conditional', holderType: 'group-unreadable' },
+        path,
+        partial: true,
+      },
+    ];
+  return members.map((accountId) => ({
+    projectId,
+    permission,
+    subject: { type: 'user', accountId },
+    path,
+  }));
 }
 
-export function resolveProject(grants: Grant[], project: ProjectFacts, dir: DirectoryFacts): EffectiveAccess[] {
+export function resolveProject(
+  grants: Grant[],
+  project: ProjectFacts,
+  dir: DirectoryFacts,
+): EffectiveAccess[] {
   const out: EffectiveAccess[] = [];
   for (const g of grants) {
     if (g.schemeId !== project.schemeId) continue;
-    const base: PathStep[] = [{ kind: 'scheme', schemeId: g.schemeId, grantId: g.grantId, permission: g.permission }];
+    const base: PathStep[] = [
+      { kind: 'scheme', schemeId: g.schemeId, grantId: g.grantId, permission: g.permission },
+    ];
     const { projectId } = project;
     const { permission } = g;
     const h = g.holder;
@@ -68,32 +104,63 @@ export function resolveProject(grants: Grant[], project: ProjectFacts, dir: Dire
         const actors = project.roleActors[h.parameter ?? ''];
         if (!actors) break;
         const rolePath: PathStep[] = [...base, { kind: 'role', roleId: h.parameter! }];
-        for (const accountId of actors.users) out.push({ projectId, permission, subject: { type: 'user', accountId }, path: rolePath });
-        for (const groupId of actors.groups) out.push(...expandGroup(groupId, dir, rolePath, projectId, permission));
+        for (const accountId of actors.users)
+          out.push({ projectId, permission, subject: { type: 'user', accountId }, path: rolePath });
+        for (const groupId of actors.groups)
+          out.push(...expandGroup(groupId, dir, rolePath, projectId, permission));
         break;
       }
       case 'group':
         if (h.parameter) out.push(...expandGroup(h.parameter, dir, base, projectId, permission));
         break;
       case 'user':
-        if (h.parameter) out.push({ projectId, permission, subject: { type: 'user', accountId: h.parameter }, path: [...base, { kind: 'direct' }] });
+        if (h.parameter)
+          out.push({
+            projectId,
+            permission,
+            subject: { type: 'user', accountId: h.parameter },
+            path: [...base, { kind: 'direct' }],
+          });
         break;
       case 'projectLead':
         if (project.leadAccountId)
-          out.push({ projectId, permission, subject: { type: 'user', accountId: project.leadAccountId }, path: [...base, { kind: 'projectLead' }] });
+          out.push({
+            projectId,
+            permission,
+            subject: { type: 'user', accountId: project.leadAccountId },
+            path: [...base, { kind: 'projectLead' }],
+          });
         break;
       case 'applicationRole': {
         // No parameter = "any logged-in user with access to any Jira application".
         const appKey = h.parameter ?? '*';
-        const groups = appKey === '*' ? [...new Set(Object.values(dir.appRoleGroups).flat())] : (dir.appRoleGroups[appKey] ?? []);
-        for (const groupId of groups) out.push(...expandGroup(groupId, dir, [...base, { kind: 'appRole', appKey }], projectId, permission));
+        const groups =
+          appKey === '*'
+            ? [...new Set(Object.values(dir.appRoleGroups).flat())]
+            : (dir.appRoleGroups[appKey] ?? []);
+        for (const groupId of groups)
+          out.push(
+            ...expandGroup(
+              groupId,
+              dir,
+              [...base, { kind: 'appRole', appKey }],
+              projectId,
+              permission,
+            ),
+          );
         break;
       }
       case 'anyone':
         out.push({ projectId, permission, subject: { type: 'anonymous' }, path: base });
         break;
       default:
-        out.push({ projectId, permission, subject: { type: 'conditional', holderType: h.type }, path: base, partial: !CONDITIONAL_HOLDERS.has(h.type) });
+        out.push({
+          projectId,
+          permission,
+          subject: { type: 'conditional', holderType: h.type },
+          path: base,
+          partial: !CONDITIONAL_HOLDERS.has(h.type),
+        });
     }
   }
   return out;

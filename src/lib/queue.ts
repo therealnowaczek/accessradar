@@ -2,7 +2,8 @@ import { Queue } from '@forge/events';
 
 export const COLLECT_QUEUE = 'accessradar-collect';
 
-export type CollectStep = 'MIGRATE' | 'PLAN' | 'SCHEMES' | 'ROLES' | 'GROUPS' | 'FINALIZE' | 'SPIKE';
+export type CollectStep =
+  'MIGRATE' | 'PLAN' | 'SCHEMES' | 'ROLES' | 'GROUPS' | 'FINALIZE' | 'SPIKE';
 
 export interface CollectEvent extends Record<string, unknown> {
   step: CollectStep;

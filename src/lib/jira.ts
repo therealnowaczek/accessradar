@@ -3,9 +3,7 @@ import api, { route } from '@forge/api';
 /** Identity used for a Jira REST call. `user` = interactive caller (UI resolver),
  *  `impersonate` = offline impersonation of a stored accountId, `app` = app user. */
 export type CallIdentity =
-  | { kind: 'app' }
-  | { kind: 'user' }
-  | { kind: 'impersonate'; accountId: string };
+  { kind: 'app' } | { kind: 'user' } | { kind: 'impersonate'; accountId: string };
 
 export function client(identity: CallIdentity) {
   switch (identity.kind) {
@@ -32,7 +30,9 @@ export const RATE_LIMIT_HEADERS = [
   'ratelimit',
 ];
 
-export function pickRateLimitHeaders(headers: { get(name: string): string | null }): Record<string, string> {
+export function pickRateLimitHeaders(headers: {
+  get(name: string): string | null;
+}): Record<string, string> {
   const out: Record<string, string> = {};
   for (const h of RATE_LIMIT_HEADERS) {
     const v = headers.get(h);

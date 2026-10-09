@@ -5,6 +5,7 @@ import { push, type CollectEvent } from './lib/queue';
 import { runMigrations } from './db/migrations';
 import { formatProbeLog, runProbes, spikeEnabled } from './spike/probe';
 import { ENGINE_VERSION } from './engine/resolve';
+import { listProjectsAsUser } from './ui/projects';
 
 // ---------- UI resolver (jira:adminPage) ----------
 const resolver = new Resolver();
@@ -15,12 +16,22 @@ resolver.define('getStatus', async () => {
   return { engineVersion: ENGINE_VERSION, spike: spikeEnabled() };
 });
 
+resolver.define('listProjects', async () => {
+  await assertJiraAdmin();
+  const result = await listProjectsAsUser();
+  console.log('[ui] listProjects ok', { count: result.projects.length, complete: result.complete });
+  return result;
+});
+
 /** Dev-only spike: probes as interactive user + as app, and enqueues an offline-impersonation probe
  *  for the caller (accountId taken from the server-side context, never from the payload). */
 resolver.define('runSpike', async ({ context }) => {
   if (!spikeEnabled()) throw new Error('Spike disabled');
   await assertJiraAdmin();
-  const [asUser, asApp] = await Promise.all([runProbes({ kind: 'user' }), runProbes({ kind: 'app' })]);
+  const [asUser, asApp] = await Promise.all([
+    runProbes({ kind: 'user' }),
+    runProbes({ kind: 'app' }),
+  ]);
   console.log(formatProbeLog('asUser', asUser));
   console.log(formatProbeLog('asApp', asApp));
   const accountId = (context as { accountId?: string }).accountId;
@@ -44,7 +55,10 @@ export async function lifecycleHandler(event: LifecycleEvent) {
     await push({ step: 'SPIKE' }, 120);
     if (who) await push({ step: 'SPIKE', impersonateAccountId: who }, 150);
   }
-  console.log('[lifecycle] enqueued migrations', { spike: spikeEnabled(), hasAccount: Boolean(who) });
+  console.log('[lifecycle] enqueued migrations', {
+    spike: spikeEnabled(),
+    hasAccount: Boolean(who),
+  });
 }
 
 // ---------- scheduled triggers ----------
@@ -72,14 +86,19 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
         console.log('[migrate] applied', applied.length);
       } catch (e) {
         console.error('[migrate] failed', String((e as Error)?.message ?? e));
-        return new InvocationError({ retryAfter: 60, retryReason: InvocationErrorCode.FUNCTION_RETRY_REQUEST });
+        return new InvocationError({
+          retryAfter: 60,
+          retryReason: InvocationErrorCode.FUNCTION_RETRY_REQUEST,
+        });
       }
       return;
     }
     case 'SPIKE': {
       if (!spikeEnabled()) return;
       const imp = body.impersonateAccountId;
-      const results = await runProbes(imp ? { kind: 'impersonate', accountId: imp } : { kind: 'app' });
+      const results = await runProbes(
+        imp ? { kind: 'impersonate', accountId: imp } : { kind: 'app' },
+      );
       console.log(formatProbeLog(imp ? 'asUser(accountId) offline' : 'asApp (async)', results));
       return;
     }
