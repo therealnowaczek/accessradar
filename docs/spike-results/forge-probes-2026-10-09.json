@@ -1,0 +1,425 @@
+{
+ "asApp (async)": {
+  "loggedAtUtc": "2026-10-09T16:09:47.728Z",
+  "results": [
+   {
+    "name": "GET myself",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3015, \"jira-burst-based\";r=349;t=1"
+    },
+    "data": {
+     "accountType": "app"
+    }
+   },
+   {
+    "name": "GET mypermissions (global)",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3014, \"jira-burst-based\";r=349;t=1"
+    },
+    "data": {
+     "BROWSE_PROJECTS": true,
+     "ADMINISTER": true,
+     "USER_PICKER": true,
+     "ADMINISTER_PROJECTS": true,
+     "SYSTEM_ADMIN": false
+    }
+   },
+   {
+    "name": "GET project/search",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3014, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 5,
+    "data": {
+     "total": 5,
+     "styles": [
+      "classic",
+      "next-gen"
+     ]
+    }
+   },
+   {
+    "name": "GET project/{key}/permissionscheme",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3014, \"jira-burst-based\";r=349;t=1"
+    }
+   },
+   {
+    "name": "GET project/{key}/role",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3014, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 5
+   },
+   {
+    "name": "GET project/{key}/role/{id}",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "500",
+     "x-ratelimit-remaining": "499",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=200;w=1",
+     "ratelimit": "\"global-app-quota\";t=3014, \"jira-burst-based\";r=499;t=1"
+    },
+    "count": 12
+   },
+   {
+    "name": "GET permissionscheme?expand=all",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3014, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 3
+   },
+   {
+    "name": "GET permissions (catalog)",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3013, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 49
+   },
+   {
+    "name": "GET role (all)",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3013, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 10
+   },
+   {
+    "name": "GET group/bulk",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3013, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 34,
+    "data": {
+     "total": 34
+    }
+   },
+   {
+    "name": "GET group/bulk?accessType=admin",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "348",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3013, \"jira-burst-based\";r=348;t=1"
+    },
+    "count": 2
+   },
+   {
+    "name": "GET group/bulk?accessType=site-admin",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "347",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3013, \"jira-burst-based\";r=347;t=1"
+    },
+    "count": 1
+   },
+   {
+    "name": "GET group/member",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3012, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 13,
+    "data": {
+     "total": 13
+    }
+   },
+   {
+    "name": "GET applicationrole",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3012, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 3
+   },
+   {
+    "name": "POST permissions/check (self, global)",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "200",
+     "x-ratelimit-remaining": "199",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3012, \"jira-burst-based\";r=199;t=1"
+    },
+    "data": {
+     "globalPermissions": [
+      "USER_PICKER",
+      "ADMINISTER"
+     ]
+    }
+   },
+   {
+    "name": "GET users/search",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=3012, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 47
+   },
+   {
+    "name": "GET search/jql (negative control)",
+    "status": 401,
+    "rl": {},
+    "error": "Unauthorized; scope does not match"
+   }
+  ]
+ },
+ "asUser(accountId) offline": {
+  "loggedAtUtc": "2026-10-09T16:10:19.435Z",
+  "results": [
+   {
+    "name": "GET myself",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2983, \"jira-burst-based\";r=349;t=1"
+    },
+    "data": {
+     "accountType": "atlassian"
+    }
+   },
+   {
+    "name": "GET mypermissions (global)",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2982, \"jira-burst-based\";r=349;t=1"
+    },
+    "data": {
+     "BROWSE_PROJECTS": true,
+     "ADMINISTER": true,
+     "USER_PICKER": true,
+     "ADMINISTER_PROJECTS": true,
+     "SYSTEM_ADMIN": false
+    }
+   },
+   {
+    "name": "GET project/search",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2982, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 5,
+    "data": {
+     "total": 5,
+     "styles": [
+      "classic",
+      "next-gen"
+     ]
+    }
+   },
+   {
+    "name": "GET project/{key}/permissionscheme",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2982, \"jira-burst-based\";r=349;t=1"
+    }
+   },
+   {
+    "name": "GET project/{key}/role",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2982, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 5
+   },
+   {
+    "name": "GET project/{key}/role/{id}",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "500",
+     "x-ratelimit-remaining": "499",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=200;w=1",
+     "ratelimit": "\"global-app-quota\";t=2982, \"jira-burst-based\";r=499;t=1"
+    },
+    "count": 12
+   },
+   {
+    "name": "GET permissionscheme?expand=all",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2982, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 3
+   },
+   {
+    "name": "GET permissions (catalog)",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2982, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 49
+   },
+   {
+    "name": "GET role (all)",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2981, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 10
+   },
+   {
+    "name": "GET group/bulk",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2981, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 34,
+    "data": {
+     "total": 34
+    }
+   },
+   {
+    "name": "GET group/bulk?accessType=admin",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "348",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2981, \"jira-burst-based\";r=348;t=1"
+    },
+    "count": 2
+   },
+   {
+    "name": "GET group/bulk?accessType=site-admin",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "347",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2981, \"jira-burst-based\";r=347;t=1"
+    },
+    "count": 1
+   },
+   {
+    "name": "GET group/member",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2981, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 13,
+    "data": {
+     "total": 13
+    }
+   },
+   {
+    "name": "GET applicationrole",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2980, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 3
+   },
+   {
+    "name": "POST permissions/check (self, global)",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "200",
+     "x-ratelimit-remaining": "199",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2980, \"jira-burst-based\";r=199;t=1"
+    },
+    "data": {
+     "globalPermissions": [
+      "USER_PICKER",
+      "ADMINISTER"
+     ]
+    }
+   },
+   {
+    "name": "GET users/search",
+    "status": 200,
+    "rl": {
+     "x-ratelimit-limit": "350",
+     "x-ratelimit-remaining": "349",
+     "ratelimit-policy": "\"global-app-quota\";q=65000;w=3600, \"jira-burst-based\";q=100;w=1",
+     "ratelimit": "\"global-app-quota\";t=2980, \"jira-burst-based\";r=349;t=1"
+    },
+    "count": 47
+   },
+   {
+    "name": "GET search/jql (negative control)",
+    "status": -1,
+    "error": "Authentication Required"
+   }
+  ]
+ }
+}
