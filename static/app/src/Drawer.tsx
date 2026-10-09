@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { IconButton } from '@atlaskit/button/new';
+import Button, { IconButton } from '@atlaskit/button/new';
 import Heading from '@atlaskit/heading';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
@@ -125,8 +125,29 @@ export function DrawerBody({ children }: { children: React.ReactNode }) {
   return <div className="drawer-body">{children}</div>;
 }
 
-export function DrawerFooter({ children }: { children: React.ReactNode }) {
-  return <div className="drawer-footer">{children}</div>;
+/**
+ * Pinned footer. Buttons are left-aligned, so the primary action comes FIRST and Cancel follows
+ * it as a subtle button (MarginRadar convention). Pass `onCancel` instead of rendering Cancel.
+ */
+export function DrawerFooter({
+  children,
+  onCancel,
+  cancelLabel = 'Cancel',
+}: {
+  children: React.ReactNode;
+  onCancel?: () => void;
+  cancelLabel?: string;
+}) {
+  return (
+    <div className="drawer-footer">
+      {children}
+      {onCancel ? (
+        <Button appearance="subtle" onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+      ) : null}
+    </div>
+  );
 }
 
 /** Large navigational tile used on the settings home level. */

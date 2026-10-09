@@ -350,8 +350,7 @@ function CreateReview({
           ) : null}
         </div>
       </DrawerBody>
-      <DrawerFooter>
-        <Button onClick={onCancel}>Cancel</Button>
+      <DrawerFooter onCancel={onCancel}>
         <Button appearance="primary" isLoading={busy} onClick={() => void submit()}>
           Start review
         </Button>
@@ -497,8 +496,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                 reviews cannot be deleted.
               </p>
             </DrawerBody>
-            <DrawerFooter>
-              <Button onClick={() => setDrawer([])}>Cancel</Button>
+            <DrawerFooter onCancel={() => setDrawer([])}>
               <Button
                 appearance="danger"
                 onClick={async () => {
@@ -869,8 +867,7 @@ function ItemDrawer({
         )}
       </DrawerBody>
       {readOnly ? null : (
-        <DrawerFooter>
-          <Button onClick={onCancel}>Cancel</Button>
+        <DrawerFooter onCancel={onCancel}>
           <Button
             appearance="primary"
             isLoading={busy}
@@ -949,8 +946,7 @@ function SignDrawer({
           </SectionMessage>
         ) : null}
       </DrawerBody>
-      <DrawerFooter>
-        <Button onClick={onCancel}>Cancel</Button>
+      <DrawerFooter onCancel={onCancel}>
         <Button
           appearance="primary"
           isDisabled={!attest}

@@ -69,8 +69,7 @@ function EditForm({
           ) : null}
         </div>
       </DrawerBody>
-      <DrawerFooter>
-        <Button onClick={onCancel}>Cancel</Button>
+      <DrawerFooter onCancel={onCancel}>
         <Button
           appearance="primary"
           isLoading={busy}
