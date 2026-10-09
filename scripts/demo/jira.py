@@ -1,4 +1,4 @@
-"""Minimal Jira REST helper (modelled on /workspace/mr-assets/jira.py). Token from JIRA_API_TOKEN (never printed)."""
+"""Minimal Jira REST helper (modelled on /workspace/mr-assets/jira.py). Token from JIRA_API_TOKEN or JIRA_WRITE_TOKEN (never printed)."""
 import os, time
 import requests
 
@@ -10,7 +10,7 @@ _last = [0.0]
 
 
 def connect():
-    S.auth = (EMAIL, os.environ['JIRA_API_TOKEN'])
+    S.auth = (EMAIL, os.environ.get('JIRA_API_TOKEN') or os.environ['JIRA_WRITE_TOKEN'])
 
 
 def req(method, path, **kw):

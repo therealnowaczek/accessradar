@@ -1,8 +1,10 @@
 # AccessRadar demo data plan (marginradar.atlassian.net)
 
 Script: `scripts/demo/seed.py` (+ `data.py`, `jira.py`), modelled on `/workspace/mr-assets/seed.py` and `jira.py`.
-**Not run yet.** Default mode is a dry run without network calls; `--apply` needs `JIRA_API_TOKEN` of an account that
-is site admin (invites, groups, memberships) and Jira admin (roles, schemes, projects).
+**Phase 1 applied on 2026-10-09** (accountIds and ids in `docs/demo-people.json`); phase 2 not run yet. Default mode is a
+dry run without network calls; `--apply` needs `JIRA_API_TOKEN` or `JIRA_WRITE_TOKEN` of an account that is site admin
+(invites, groups, memberships) and Jira admin (roles, schemes, projects). Re-running is idempotent; invites stop if the
+user count would exceed `MAX_USERS` (10); WEB/MOB/RET/INT are guarded (only WEB / Administrators <- Jordan Pike).
 
 ## Story on the screens
 - **Contractors with broad access:** group `contractors` (Riley Novak, Casey Brandt) has direct grants in OPS

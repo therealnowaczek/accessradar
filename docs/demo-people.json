@@ -1,0 +1,109 @@
+{
+  "site": "https://marginradar.atlassian.net",
+  "admin_group": "jira-admins-marginradar",
+  "people": {
+    "avery": {
+      "name": "Avery Lin",
+      "email": "marcin+ar-avery@radrly.com",
+      "accountId": "712020:9241af35-c60f-45a6-98f3-66a33e07e053",
+      "groups": [
+        "developers"
+      ]
+    },
+    "jordan": {
+      "name": "Jordan Pike",
+      "email": "marcin+ar-jordan@radrly.com",
+      "accountId": "712020:b3698581-70d7-40e4-b278-299578a380f1",
+      "groups": [
+        "developers",
+        "ops-leads"
+      ]
+    },
+    "ellis": {
+      "name": "Ellis Ward",
+      "email": "marcin+ar-ellis@radrly.com",
+      "accountId": "712020:ac18eb3d-885a-4455-b12e-044529c0cca2",
+      "groups": [
+        "developers"
+      ]
+    },
+    "riley": {
+      "name": "Riley Novak",
+      "email": "marcin+ar-riley@radrly.com",
+      "accountId": "712020:5c6695c6-f200-43b1-b35c-27689a567abc",
+      "groups": [
+        "contractors"
+      ]
+    },
+    "casey": {
+      "name": "Casey Brandt",
+      "email": "marcin+ar-casey@radrly.com",
+      "accountId": "712020:ece4167c-1ab6-4f59-a81b-3b11fa46908d",
+      "groups": [
+        "contractors",
+        "jira-admins-marginradar"
+      ]
+    },
+    "sam": {
+      "name": "Sam Ortega",
+      "email": "marcin+ar-sam@radrly.com",
+      "accountId": "712020:8350adb5-84bf-4883-a02a-b504d560346c",
+      "groups": [
+        "hr-team"
+      ]
+    },
+    "morgan": {
+      "name": "Morgan Hale",
+      "email": "marcin+ar-morgan@radrly.com",
+      "accountId": "712020:14ff8c59-8bcc-48ad-96a1-0a45ac16cf6d",
+      "groups": [
+        "auditors"
+      ]
+    },
+    "taylor": {
+      "name": "Taylor Quinn",
+      "email": "marcin+ar-taylor@radrly.com",
+      "accountId": "712020:45ffc649-97a0-46af-8d36-3d28cdfade75",
+      "groups": [
+        "ops-leads",
+        "jira-admins-marginradar"
+      ]
+    }
+  },
+  "groups": {
+    "developers": "3ab4d72e-7527-4b01-bf97-09c638413418",
+    "contractors": "168b4933-352b-4c62-9cca-9b9c91311a52",
+    "auditors": "a5af24a8-d9c0-4c15-950c-25a13b793d3e",
+    "hr-team": "6e98e008-eaca-49bb-a3b5-325c192682b4",
+    "ops-leads": "215d9cb2-f72f-4fc5-b059-9874716f0c1a"
+  },
+  "roles": {
+    "Administrators": 10002,
+    "Developers": 10044,
+    "Auditors": 10045
+  },
+  "schemes": {
+    "AR Demo · Standard": 10066,
+    "AR Demo · Operations": 10067,
+    "AR Demo · Public roadmap": 10068
+  },
+  "projects": {
+    "PAY": "10069",
+    "HR": "10070",
+    "OPS": "10071",
+    "PUB": "10072"
+  },
+  "role_actors_phase1": [
+    "PAY / Administrators <- user Jordan Pike",
+    "PAY / Developers <- group developers",
+    "PAY / Auditors <- group auditors",
+    "HR / Administrators <- user Sam Ortega",
+    "HR / Administrators <- user Jordan Pike",
+    "HR / Developers <- group hr-team",
+    "HR / Auditors <- group auditors",
+    "OPS / Administrators <- group ops-leads",
+    "OPS / Developers <- group developers",
+    "PUB / Administrators <- user Jordan Pike",
+    "WEB / Administrators <- user Jordan Pike"
+  ]
+}
