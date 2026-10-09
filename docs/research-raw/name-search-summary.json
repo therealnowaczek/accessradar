@@ -1,0 +1,2645 @@
+{
+ "AccessRadar|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AccessRadar&limit=50",
+  "count": 0,
+  "first_results": []
+ },
+ "AccessRadar|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AccessRadar&limit=50&hosting=cloud",
+  "count": 0,
+  "first_results": []
+ },
+ "AccessRadar|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AccessRadar&limit=50&hosting=server",
+  "count": 0,
+  "first_results": []
+ },
+ "AccessRadar|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AccessRadar&limit=50&hosting=datacenter",
+  "count": 0,
+  "first_results": []
+ },
+ "Access Radar|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Radar&limit=50",
+  "count": 1885,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ]
+  ]
+ },
+ "Access Radar|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Radar&limit=50&hosting=cloud",
+  "count": 1556,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "ba3acbfa-7520-4101-b492-abd4a8c3202f",
+    "JSM Queue Radar",
+    "https://marketplace.atlassian.com/apps/646853047/jsm-queue-radar",
+    4
+   ],
+   [
+    "plugin.jira.field-radar",
+    "Field Radar",
+    "https://marketplace.atlassian.com/apps/2298684988/field-radar",
+    2
+   ]
+  ]
+ },
+ "Access Radar|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Radar&limit=50&hosting=server",
+  "count": 449,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ],
+   [
+    "com.jira.admanagerplus",
+    "ADManager Plus - Identity and Access Management Solution",
+    "https://marketplace.atlassian.com/apps/1224224/admanager-plus-identity-and-access-management-solution",
+    22
+   ],
+   [
+    "at.kervehrt.jira.restapiacl",
+    "REST-AccessControl for Jira",
+    "https://marketplace.atlassian.com/apps/1213637/rest-accesscontrol-for-jira",
+    0
+   ]
+  ]
+ },
+ "Access Radar|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Radar&limit=50&hosting=datacenter",
+  "count": 383,
+  "first_results": [
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ],
+   [
+    "com.medeuit.jira.project-administration-access",
+    "Project Administration Access",
+    "https://marketplace.atlassian.com/apps/1237576/project-administration-access",
+    1
+   ],
+   [
+    "com.medeuit.jira.jira-user-management",
+    "Advanced User Management for licenses and access control",
+    "https://marketplace.atlassian.com/apps/1237103/advanced-user-management-for-licenses-and-access-control",
+    3
+   ],
+   [
+    "com.jira.admanagerplus",
+    "ADManager Plus - Identity and Access Management Solution",
+    "https://marketplace.atlassian.com/apps/1224224/admanager-plus-identity-and-access-management-solution",
+    22
+   ],
+   [
+    "de.accxia.jira.addon.access.AccxiaGenericJiraAccess",
+    "Generic Access for Jira",
+    "https://marketplace.atlassian.com/apps/1237017/generic-access-for-jira",
+    0
+   ],
+   [
+    "com.cps.lastLog",
+    "Last Log for Jira",
+    "https://marketplace.atlassian.com/apps/1211604/last-log-for-jira",
+    1332
+   ]
+  ]
+ },
+ "accessradar|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=accessradar&limit=50",
+  "count": 0,
+  "first_results": []
+ },
+ "accessradar|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=accessradar&limit=50&hosting=cloud",
+  "count": 0,
+  "first_results": []
+ },
+ "accessradar|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=accessradar&limit=50&hosting=server",
+  "count": 0,
+  "first_results": []
+ },
+ "accessradar|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=accessradar&limit=50&hosting=datacenter",
+  "count": 0,
+  "first_results": []
+ },
+ "access-radar|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=access-radar&limit=50",
+  "count": 0,
+  "first_results": []
+ },
+ "access-radar|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=access-radar&limit=50&hosting=cloud",
+  "count": 0,
+  "first_results": []
+ },
+ "access-radar|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=access-radar&limit=50&hosting=server",
+  "count": 0,
+  "first_results": []
+ },
+ "access-radar|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=access-radar&limit=50&hosting=datacenter",
+  "count": 0,
+  "first_results": []
+ },
+ "Access Radar Jira|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Radar+Jira&limit=50",
+  "count": 5934,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ]
+  ]
+ },
+ "Access Radar Jira|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Radar+Jira&limit=50&hosting=cloud",
+  "count": 4939,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "ac32f68c-7a05-483a-83bc-906cf05c0d53",
+    "Workload Radar for Jira",
+    "https://marketplace.atlassian.com/apps/344194779/workload-radar-for-jira",
+    3
+   ],
+   [
+    "com.accessibleweb.ramp",
+    "Accessible Web for Jira",
+    "https://marketplace.atlassian.com/apps/1231503/accessible-web-for-jira",
+    39
+   ]
+  ]
+ },
+ "Access Radar Jira|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Radar+Jira&limit=50&hosting=server",
+  "count": 1446,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ],
+   [
+    "com.jira.admanagerplus",
+    "ADManager Plus - Identity and Access Management Solution",
+    "https://marketplace.atlassian.com/apps/1224224/admanager-plus-identity-and-access-management-solution",
+    22
+   ],
+   [
+    "at.kervehrt.jira.restapiacl",
+    "REST-AccessControl for Jira",
+    "https://marketplace.atlassian.com/apps/1213637/rest-accesscontrol-for-jira",
+    0
+   ]
+  ]
+ },
+ "Access Radar Jira|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Radar+Jira&limit=50&hosting=datacenter",
+  "count": 1133,
+  "first_results": [
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ],
+   [
+    "com.medeuit.jira.project-administration-access",
+    "Project Administration Access",
+    "https://marketplace.atlassian.com/apps/1237576/project-administration-access",
+    1
+   ],
+   [
+    "com.medeuit.jira.jira-user-management",
+    "Advanced User Management for licenses and access control",
+    "https://marketplace.atlassian.com/apps/1237103/advanced-user-management-for-licenses-and-access-control",
+    3
+   ],
+   [
+    "com.jira.admanagerplus",
+    "ADManager Plus - Identity and Access Management Solution",
+    "https://marketplace.atlassian.com/apps/1224224/admanager-plus-identity-and-access-management-solution",
+    22
+   ],
+   [
+    "de.accxia.jira.addon.access.AccxiaGenericJiraAccess",
+    "Generic Access for Jira",
+    "https://marketplace.atlassian.com/apps/1237017/generic-access-for-jira",
+    0
+   ],
+   [
+    "com.onresolve.jira.groovy.groovyrunner",
+    "ScriptRunner for Jira",
+    "https://marketplace.atlassian.com/apps/6820/scriptrunner-for-jira",
+    33444
+   ]
+  ]
+ },
+ "AccessRadar Access Review|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AccessRadar+Access+Review&limit=50",
+  "count": 2739,
+  "first_results": [
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.applifare.apps.srfj",
+    "Sprint Review for Jira",
+    "https://marketplace.atlassian.com/apps/1234085/sprint-review-for-jira",
+    67
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "atlassian.jira.plugins.accesswarden",
+    "Access Reviewer360 - Project Access, Roles & Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3827910812/access-reviewer360-project-access-roles-audit-for-jira",
+    13
+   ],
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ]
+  ]
+ },
+ "AccessRadar Access Review|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AccessRadar+Access+Review&limit=50&hosting=cloud",
+  "count": 2311,
+  "first_results": [
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.applifare.apps.srfj",
+    "Sprint Review for Jira",
+    "https://marketplace.atlassian.com/apps/1234085/sprint-review-for-jira",
+    67
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "atlassian.jira.plugins.accesswarden",
+    "Access Reviewer360 - Project Access, Roles & Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3827910812/access-reviewer360-project-access-roles-audit-for-jira",
+    13
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "com.miniorange.jsm.accessgovernance.access-governance",
+    "Automate Access Request & Review for AWS, Entra & Okta",
+    "https://marketplace.atlassian.com/apps/1238274/automate-access-request-review-for-aws-entra-okta",
+    11
+   ],
+   [
+    "com.flowtimeapps.access-review",
+    "Access Review for Jira",
+    "https://marketplace.atlassian.com/apps/2749172492/access-review-for-jira",
+    1
+   ]
+  ]
+ },
+ "AccessRadar Access Review|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AccessRadar+Access+Review&limit=50&hosting=server",
+  "count": 617,
+  "first_results": [
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.mohamicorp.bitbucket.plugin.crucible-review-hook",
+    "Crucible Review Hook for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1215395/crucible-review-hook-for-bitbucket",
+    17
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ]
+  ]
+ },
+ "AccessRadar Access Review|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AccessRadar+Access+Review&limit=50&hosting=datacenter",
+  "count": 507,
+  "first_results": [
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "com.mohamicorp.bitbucket.plugin.crucible-review-hook",
+    "Crucible Review Hook for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1215395/crucible-review-hook-for-bitbucket",
+    17
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ],
+   [
+    "com.medeuit.jira.project-administration-access",
+    "Project Administration Access",
+    "https://marketplace.atlassian.com/apps/1237576/project-administration-access",
+    1
+   ]
+  ]
+ },
+ "Access Review & Permission Audit|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+%26+Permission+Audit&limit=50",
+  "count": 4387,
+  "first_results": [
+   [
+    "de.arrayplatforms.jira.group-permission-audit",
+    "Group Permission Audit for Jira (Access Review & Tracking)",
+    "https://marketplace.atlassian.com/apps/411335795/group-permission-audit-for-jira-access-review-tracking",
+    3
+   ],
+   [
+    "atlassian.jira.plugins.accesswarden",
+    "Access Reviewer360 - Project Access, Roles & Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3827910812/access-reviewer360-project-access-roles-audit-for-jira",
+    13
+   ],
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.ricksoft-inc.plugins.secure-custom-fields-for-jira",
+    "Secure Custom Fields for Jira (Security & Permission)",
+    "https://marketplace.atlassian.com/apps/1226365/secure-custom-fields-for-jira-security-permission",
+    512
+   ],
+   [
+    "io.github.piran777.clearance",
+    "Clearance for Jira (Permission Audit & Access Review)",
+    "https://marketplace.atlassian.com/apps/2391606881/clearance-for-jira-permission-audit-access-review",
+    1
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "f1f26a9b-0e68-43a1-b626-cfd039368ca7",
+    "AccessLens \u2014 Permission Audit & Access Review for Jira",
+    "https://marketplace.atlassian.com/apps/4182244448/accesslens-permission-audit-access-review-for-jira",
+    1
+   ]
+  ]
+ },
+ "Access Review & Permission Audit|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+%26+Permission+Audit&limit=50&hosting=cloud",
+  "count": 3681,
+  "first_results": [
+   [
+    "de.arrayplatforms.jira.group-permission-audit",
+    "Group Permission Audit for Jira (Access Review & Tracking)",
+    "https://marketplace.atlassian.com/apps/411335795/group-permission-audit-for-jira-access-review-tracking",
+    3
+   ],
+   [
+    "atlassian.jira.plugins.accesswarden",
+    "Access Reviewer360 - Project Access, Roles & Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3827910812/access-reviewer360-project-access-roles-audit-for-jira",
+    13
+   ],
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.ricksoft-inc.plugins.secure-custom-fields-for-jira",
+    "Secure Custom Fields for Jira (Security & Permission)",
+    "https://marketplace.atlassian.com/apps/1226365/secure-custom-fields-for-jira-security-permission",
+    512
+   ],
+   [
+    "io.github.piran777.clearance",
+    "Clearance for Jira (Permission Audit & Access Review)",
+    "https://marketplace.atlassian.com/apps/2391606881/clearance-for-jira-permission-audit-access-review",
+    1
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "f1f26a9b-0e68-43a1-b626-cfd039368ca7",
+    "AccessLens \u2014 Permission Audit & Access Review for Jira",
+    "https://marketplace.atlassian.com/apps/4182244448/accesslens-permission-audit-access-review-for-jira",
+    1
+   ]
+  ]
+ },
+ "Access Review & Permission Audit|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+%26+Permission+Audit&limit=50&hosting=server",
+  "count": 1090,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "de.stagil.silcm.stagil-incoming-links-confluence-macro",
+    "Link Tools - Bulk Editor, Graphs, Audit, Structure",
+    "https://marketplace.atlassian.com/apps/1215391/link-tools-bulk-editor-graphs-audit-structure",
+    533
+   ],
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ],
+   [
+    "com.atlassian.labs.bitbucket.bitbucket-permissions-lockdown-plugin",
+    "Permission Lockdown for Bitbucket Data Center",
+    "https://marketplace.atlassian.com/apps/1217941/permission-lockdown-for-bitbucket-data-center",
+    117
+   ]
+  ]
+ },
+ "Access Review & Permission Audit|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+%26+Permission+Audit&limit=50&hosting=datacenter",
+  "count": 952,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "ai.appforge.jira.plugins.doctorproforjira",
+    "Doctor Pro: Audit, Optimize & Manage Configuration for Jira",
+    "https://marketplace.atlassian.com/apps/1231705/doctor-pro-audit-optimize-manage-configuration-for-jira",
+    182
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "de.stagil.silcm.stagil-incoming-links-confluence-macro",
+    "Link Tools - Bulk Editor, Graphs, Audit, Structure",
+    "https://marketplace.atlassian.com/apps/1215391/link-tools-bulk-editor-graphs-audit-structure",
+    533
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ]
+  ]
+ },
+ "Access Review Permission Audit for Jira|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+Permission+Audit+for+Jira&limit=50",
+  "count": 6422,
+  "first_results": [
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "de.arrayplatforms.jira.group-permission-audit",
+    "Group Permission Audit for Jira (Access Review & Tracking)",
+    "https://marketplace.atlassian.com/apps/411335795/group-permission-audit-for-jira-access-review-tracking",
+    3
+   ],
+   [
+    "atlassian.jira.plugins.accesswarden",
+    "Access Reviewer360 - Project Access, Roles & Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3827910812/access-reviewer360-project-access-roles-audit-for-jira",
+    13
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "com.applifare.apps.srfj",
+    "Sprint Review for Jira",
+    "https://marketplace.atlassian.com/apps/1234085/sprint-review-for-jira",
+    67
+   ],
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.pascal.fieldsecurity",
+    "Fields Permission for Jira",
+    "https://marketplace.atlassian.com/apps/1230929/fields-permission-for-jira",
+    51
+   ],
+   [
+    "io.github.piran777.clearance",
+    "Clearance for Jira (Permission Audit & Access Review)",
+    "https://marketplace.atlassian.com/apps/2391606881/clearance-for-jira-permission-audit-access-review",
+    1
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "f1f26a9b-0e68-43a1-b626-cfd039368ca7",
+    "AccessLens \u2014 Permission Audit & Access Review for Jira",
+    "https://marketplace.atlassian.com/apps/4182244448/accesslens-permission-audit-access-review-for-jira",
+    1
+   ]
+  ]
+ },
+ "Access Review Permission Audit for Jira|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+Permission+Audit+for+Jira&limit=50&hosting=cloud",
+  "count": 5305,
+  "first_results": [
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "de.arrayplatforms.jira.group-permission-audit",
+    "Group Permission Audit for Jira (Access Review & Tracking)",
+    "https://marketplace.atlassian.com/apps/411335795/group-permission-audit-for-jira-access-review-tracking",
+    3
+   ],
+   [
+    "atlassian.jira.plugins.accesswarden",
+    "Access Reviewer360 - Project Access, Roles & Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3827910812/access-reviewer360-project-access-roles-audit-for-jira",
+    13
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.pascal.fieldsecurity",
+    "Fields Permission for Jira",
+    "https://marketplace.atlassian.com/apps/1230929/fields-permission-for-jira",
+    51
+   ],
+   [
+    "com.applifare.apps.srfj",
+    "Sprint Review for Jira",
+    "https://marketplace.atlassian.com/apps/1234085/sprint-review-for-jira",
+    67
+   ],
+   [
+    "io.github.piran777.clearance",
+    "Clearance for Jira (Permission Audit & Access Review)",
+    "https://marketplace.atlassian.com/apps/2391606881/clearance-for-jira-permission-audit-access-review",
+    1
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "f1f26a9b-0e68-43a1-b626-cfd039368ca7",
+    "AccessLens \u2014 Permission Audit & Access Review for Jira",
+    "https://marketplace.atlassian.com/apps/4182244448/accesslens-permission-audit-access-review-for-jira",
+    1
+   ]
+  ]
+ },
+ "Access Review Permission Audit for Jira|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+Permission+Audit+for+Jira&limit=50&hosting=server",
+  "count": 1596,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "de.stagil.silcm.stagil-incoming-links-confluence-macro",
+    "Link Tools - Bulk Editor, Graphs, Audit, Structure",
+    "https://marketplace.atlassian.com/apps/1215391/link-tools-bulk-editor-graphs-audit-structure",
+    533
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.meetme.plugins.jira.gerrit-plugin",
+    "Gerrit Code Review for Jira",
+    "https://marketplace.atlassian.com/apps/1210874/gerrit-code-review-for-jira",
+    183
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ]
+  ]
+ },
+ "Access Review Permission Audit for Jira|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+Permission+Audit+for+Jira&limit=50&hosting=datacenter",
+  "count": 1226,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "ai.appforge.jira.plugins.doctorproforjira",
+    "Doctor Pro: Audit, Optimize & Manage Configuration for Jira",
+    "https://marketplace.atlassian.com/apps/1231705/doctor-pro-audit-optimize-manage-configuration-for-jira",
+    182
+   ],
+   [
+    "de.stagil.silcm.stagil-incoming-links-confluence-macro",
+    "Link Tools - Bulk Editor, Graphs, Audit, Structure",
+    "https://marketplace.atlassian.com/apps/1215391/link-tools-bulk-editor-graphs-audit-structure",
+    533
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ]
+  ]
+ },
+ "Permission Audit for Jira|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Permission+Audit+for+Jira&limit=50",
+  "count": 5704,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.pascal.fieldsecurity",
+    "Fields Permission for Jira",
+    "https://marketplace.atlassian.com/apps/1230929/fields-permission-for-jira",
+    51
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "com.ricksoft-inc.plugins.secure-custom-fields-for-jira",
+    "Secure Custom Fields for Jira (Security & Permission)",
+    "https://marketplace.atlassian.com/apps/1226365/secure-custom-fields-for-jira-security-permission",
+    512
+   ],
+   [
+    "twinit-reports-app",
+    "User Activity Audit Log",
+    "https://marketplace.atlassian.com/apps/1230734/user-activity-audit-log",
+    222
+   ],
+   [
+    "ai.appforge.jira.plugins.doctorproforjira",
+    "Doctor Pro: Audit, Optimize & Manage Configuration for Jira",
+    "https://marketplace.atlassian.com/apps/1231705/doctor-pro-audit-optimize-manage-configuration-for-jira",
+    182
+   ],
+   [
+    "de.actonic.spo",
+    "Space Permissions Overview",
+    "https://marketplace.atlassian.com/apps/1229314/space-permissions-overview",
+    241
+   ],
+   [
+    "de.stagil.silcm.stagil-incoming-links-confluence-macro",
+    "Link Tools - Bulk Editor, Graphs, Audit, Structure",
+    "https://marketplace.atlassian.com/apps/1215391/link-tools-bulk-editor-graphs-audit-structure",
+    533
+   ],
+   [
+    "ai.appforge.jira.doctorforjira",
+    "Doctor Governed: Audit, Optimize & Manage Configuration",
+    "https://marketplace.atlassian.com/apps/1230761/doctor-governed-audit-optimize-manage-configuration",
+    162
+   ]
+  ]
+ },
+ "Permission Audit for Jira|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Permission+Audit+for+Jira&limit=50&hosting=cloud",
+  "count": 4735,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.pascal.fieldsecurity",
+    "Fields Permission for Jira",
+    "https://marketplace.atlassian.com/apps/1230929/fields-permission-for-jira",
+    51
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "com.ricksoft-inc.plugins.secure-custom-fields-for-jira",
+    "Secure Custom Fields for Jira (Security & Permission)",
+    "https://marketplace.atlassian.com/apps/1226365/secure-custom-fields-for-jira-security-permission",
+    512
+   ],
+   [
+    "twinit-reports-app",
+    "User Activity Audit Log",
+    "https://marketplace.atlassian.com/apps/1230734/user-activity-audit-log",
+    222
+   ],
+   [
+    "ai.appforge.jira.plugins.doctorproforjira",
+    "Doctor Pro: Audit, Optimize & Manage Configuration for Jira",
+    "https://marketplace.atlassian.com/apps/1231705/doctor-pro-audit-optimize-manage-configuration-for-jira",
+    182
+   ],
+   [
+    "de.actonic.spo",
+    "Space Permissions Overview",
+    "https://marketplace.atlassian.com/apps/1229314/space-permissions-overview",
+    241
+   ],
+   [
+    "de.stagil.silcm.stagil-incoming-links-confluence-macro",
+    "Link Tools - Bulk Editor, Graphs, Audit, Structure",
+    "https://marketplace.atlassian.com/apps/1215391/link-tools-bulk-editor-graphs-audit-structure",
+    533
+   ],
+   [
+    "ai.appforge.jira.doctorforjira",
+    "Doctor Governed: Audit, Optimize & Manage Configuration",
+    "https://marketplace.atlassian.com/apps/1230761/doctor-governed-audit-optimize-manage-configuration",
+    162
+   ],
+   [
+    "net.parallelworlds.triangletech.permissionaudit",
+    "Permission Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3287543305/permission-audit-for-jira",
+    1
+   ]
+  ]
+ },
+ "Permission Audit for Jira|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Permission+Audit+for+Jira&limit=50&hosting=server",
+  "count": 1403,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "de.stagil.silcm.stagil-incoming-links-confluence-macro",
+    "Link Tools - Bulk Editor, Graphs, Audit, Structure",
+    "https://marketplace.atlassian.com/apps/1215391/link-tools-bulk-editor-graphs-audit-structure",
+    533
+   ],
+   [
+    "net.solutions.plugins.createprojectpermission",
+    "Create Project Permission",
+    "https://marketplace.atlassian.com/apps/1223557/create-project-permission",
+    53
+   ],
+   [
+    "com.atlassian.labs.bitbucket.bitbucket-permissions-lockdown-plugin",
+    "Permission Lockdown for Bitbucket Data Center",
+    "https://marketplace.atlassian.com/apps/1217941/permission-lockdown-for-bitbucket-data-center",
+    117
+   ],
+   [
+    "org.ttorvela.confluence.plugins.space-permissions-handler",
+    "Space Permissions Handler for Confluence",
+    "https://marketplace.atlassian.com/apps/1212648/space-permissions-handler-for-confluence",
+    60
+   ],
+   [
+    "com.bh.conf.groups.group-spaces",
+    "List Spaces with Permissions Group",
+    "https://marketplace.atlassian.com/apps/1220216/list-spaces-with-permissions-group",
+    28
+   ],
+   [
+    "com.hktx.confluence.morepermission",
+    "Gears more permission for Confluence",
+    "https://marketplace.atlassian.com/apps/1223807/gears-more-permission-for-confluence",
+    7
+   ],
+   [
+    "de.eposcat.permission-inspector",
+    "\"Who will see\" - Permission Inspector",
+    "https://marketplace.atlassian.com/apps/1218021/who-will-see-permission-inspector",
+    4
+   ],
+   [
+    "com.hktx.gears.export-issue-permission",
+    "Gears issue export permission",
+    "https://marketplace.atlassian.com/apps/1219461/gears-issue-export-permission",
+    5
+   ]
+  ]
+ },
+ "Permission Audit for Jira|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Permission+Audit+for+Jira&limit=50&hosting=datacenter",
+  "count": 1096,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "ai.appforge.jira.plugins.doctorproforjira",
+    "Doctor Pro: Audit, Optimize & Manage Configuration for Jira",
+    "https://marketplace.atlassian.com/apps/1231705/doctor-pro-audit-optimize-manage-configuration-for-jira",
+    182
+   ],
+   [
+    "de.stagil.silcm.stagil-incoming-links-confluence-macro",
+    "Link Tools - Bulk Editor, Graphs, Audit, Structure",
+    "https://marketplace.atlassian.com/apps/1215391/link-tools-bulk-editor-graphs-audit-structure",
+    533
+   ],
+   [
+    "net.solutions.plugins.createprojectpermission",
+    "Create Project Permission",
+    "https://marketplace.atlassian.com/apps/1223557/create-project-permission",
+    53
+   ],
+   [
+    "com.mgmtp.confluence.app.confluence-browse-people-permission",
+    "Browse People Permission for Confluence",
+    "https://marketplace.atlassian.com/apps/1225447/browse-people-permission-for-confluence",
+    7
+   ],
+   [
+    "com.atlassian.labs.bitbucket.bitbucket-permissions-lockdown-plugin",
+    "Permission Lockdown for Bitbucket Data Center",
+    "https://marketplace.atlassian.com/apps/1217941/permission-lockdown-for-bitbucket-data-center",
+    117
+   ],
+   [
+    "com.onresolve.jira.groovy.groovyrunner",
+    "ScriptRunner for Jira",
+    "https://marketplace.atlassian.com/apps/6820/scriptrunner-for-jira",
+    33444
+   ],
+   [
+    "com.smateso.plugins.confluence.03-group-permission-copy",
+    "Group Permission Copy for Confluence",
+    "https://marketplace.atlassian.com/apps/1238444/group-permission-copy-for-confluence",
+    0
+   ]
+  ]
+ },
+ "Access Review for Jira|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+for+Jira&limit=50",
+  "count": 6297,
+  "first_results": [
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.applifare.apps.srfj",
+    "Sprint Review for Jira",
+    "https://marketplace.atlassian.com/apps/1234085/sprint-review-for-jira",
+    67
+   ],
+   [
+    "atlassian.jira.plugins.accesswarden",
+    "Access Reviewer360 - Project Access, Roles & Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3827910812/access-reviewer360-project-access-roles-audit-for-jira",
+    13
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "com.cloze.jira.plugins.sprintreviewerpro",
+    "Sprint Reviewer Pro: Scrum Sprint Metrics for Jira",
+    "https://marketplace.atlassian.com/apps/1233252/sprint-reviewer-pro-scrum-sprint-metrics-for-jira",
+    86
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "com.meetme.plugins.jira.gerrit-plugin",
+    "Gerrit Code Review for Jira",
+    "https://marketplace.atlassian.com/apps/1210874/gerrit-code-review-for-jira",
+    183
+   ]
+  ]
+ },
+ "Access Review for Jira|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+for+Jira&limit=50&hosting=cloud",
+  "count": 5229,
+  "first_results": [
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.applifare.apps.srfj",
+    "Sprint Review for Jira",
+    "https://marketplace.atlassian.com/apps/1234085/sprint-review-for-jira",
+    67
+   ],
+   [
+    "atlassian.jira.plugins.accesswarden",
+    "Access Reviewer360 - Project Access, Roles & Audit for Jira",
+    "https://marketplace.atlassian.com/apps/3827910812/access-reviewer360-project-access-roles-audit-for-jira",
+    13
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "com.cloze.jira.plugins.sprintreviewerpro",
+    "Sprint Reviewer Pro: Scrum Sprint Metrics for Jira",
+    "https://marketplace.atlassian.com/apps/1233252/sprint-reviewer-pro-scrum-sprint-metrics-for-jira",
+    86
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ],
+   [
+    "com.flowtimeapps.access-review",
+    "Access Review for Jira",
+    "https://marketplace.atlassian.com/apps/2749172492/access-review-for-jira",
+    1
+   ]
+  ]
+ },
+ "Access Review for Jira|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+for+Jira&limit=50&hosting=server",
+  "count": 1553,
+  "first_results": [
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "com.meetme.plugins.jira.gerrit-plugin",
+    "Gerrit Code Review for Jira",
+    "https://marketplace.atlassian.com/apps/1210874/gerrit-code-review-for-jira",
+    183
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "com.mohamicorp.bitbucket.plugin.crucible-review-hook",
+    "Crucible Review Hook for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1215395/crucible-review-hook-for-bitbucket",
+    17
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ]
+  ]
+ },
+ "Access Review for Jira|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Access+Review+for+Jira&limit=50&hosting=datacenter",
+  "count": 1191,
+  "first_results": [
+   [
+    "ch.mibex.stash.cra",
+    "Code Review Assistant for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1212688/code-review-assistant-for-bitbucket",
+    147
+   ],
+   [
+    "com.automation-consultants.accloud.approvalmacro",
+    "Approvals for Confluence (Page Review & Sign-off)",
+    "https://marketplace.atlassian.com/apps/1216387/approvals-for-confluence-page-review-sign-off",
+    931
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "amoeboids-upraise",
+    "UpRaise for Employee Success - OKRs, Feedback, Review forms",
+    "https://marketplace.atlassian.com/apps/1212849/upraise-for-employee-success-okrs-feedback-review-forms",
+    600
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.mohamicorp.bitbucket.plugin.crucible-review-hook",
+    "Crucible Review Hook for Bitbucket",
+    "https://marketplace.atlassian.com/apps/1215395/crucible-review-hook-for-bitbucket",
+    17
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ],
+   [
+    "com.medeuit.jira.project-administration-access",
+    "Project Administration Access",
+    "https://marketplace.atlassian.com/apps/1237576/project-administration-access",
+    1
+   ]
+  ]
+ },
+ "Radar access|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Radar+access&limit=50",
+  "count": 1885,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ]
+  ]
+ },
+ "Radar access|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Radar+access&limit=50&hosting=cloud",
+  "count": 1556,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "multiplier",
+    "Multiplier - Access Management & IGA for Okta and Entra",
+    "https://marketplace.atlassian.com/apps/1224807/multiplier-access-management-iga-for-okta-and-entra",
+    179
+   ],
+   [
+    "com.radbee.confluence.plugins.snapshots-jira-client",
+    "Access Agent for Jira Snapshots for Confluence",
+    "https://marketplace.atlassian.com/apps/1229545/access-agent-for-jira-snapshots-for-confluence",
+    303
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "com.akeles.jira.parc",
+    "Project Access Review for Jira Cloud",
+    "https://marketplace.atlassian.com/apps/1238098/project-access-review-for-jira-cloud",
+    51
+   ],
+   [
+    "com.moy.jira.plugins.aafj",
+    "AuditAdmin for Jira (Access, Users, Groups, Roles & Access)",
+    "https://marketplace.atlassian.com/apps/1235391/auditadmin-for-jira-access-users-groups-roles-access",
+    9
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "ba3acbfa-7520-4101-b492-abd4a8c3202f",
+    "JSM Queue Radar",
+    "https://marketplace.atlassian.com/apps/646853047/jsm-queue-radar",
+    4
+   ],
+   [
+    "plugin.jira.field-radar",
+    "Field Radar",
+    "https://marketplace.atlassian.com/apps/2298684988/field-radar",
+    2
+   ]
+  ]
+ },
+ "Radar access|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Radar+access&limit=50&hosting=server",
+  "count": 449,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "com.luxplugins.jira.plugin.favorite-issues",
+    "Favorite Issues: Grouping & Fast Access",
+    "https://marketplace.atlassian.com/apps/1223362/favorite-issues-grouping-fast-access",
+    24
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ],
+   [
+    "com.jira.admanagerplus",
+    "ADManager Plus - Identity and Access Management Solution",
+    "https://marketplace.atlassian.com/apps/1224224/admanager-plus-identity-and-access-management-solution",
+    22
+   ],
+   [
+    "at.kervehrt.jira.restapiacl",
+    "REST-AccessControl for Jira",
+    "https://marketplace.atlassian.com/apps/1213637/rest-accesscontrol-for-jira",
+    0
+   ]
+  ]
+ },
+ "Radar access|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Radar+access&limit=50&hosting=datacenter",
+  "count": 383,
+  "first_results": [
+   [
+    "de.communardo.confluence.plugins.apc",
+    "Accessibility for Confluence",
+    "https://marketplace.atlassian.com/apps/1213437/accessibility-for-confluence",
+    9
+   ],
+   [
+    "com.enhancera.confaccesslog",
+    "Access Log for Confluence",
+    "https://marketplace.atlassian.com/apps/1222724/access-log-for-confluence",
+    19
+   ],
+   [
+    "com.enhancera.jiraaccesslog",
+    "Access Log for Jira",
+    "https://marketplace.atlassian.com/apps/1221422/access-log-for-jira",
+    41
+   ],
+   [
+    "net.seibertmedia.confluence.appcenter",
+    "Linchpin Launchpad - Access Your Tools",
+    "https://marketplace.atlassian.com/apps/1215578/linchpin-launchpad-access-your-tools",
+    19
+   ],
+   [
+    "com.redmoon.jira.secure-admin",
+    "Secure Admin - Share admin access safely and securely",
+    "https://marketplace.atlassian.com/apps/1213685/secure-admin-share-admin-access-safely-and-securely",
+    32
+   ],
+   [
+    "com.medeuit.jira.project-administration-access",
+    "Project Administration Access",
+    "https://marketplace.atlassian.com/apps/1237576/project-administration-access",
+    1
+   ],
+   [
+    "com.medeuit.jira.jira-user-management",
+    "Advanced User Management for licenses and access control",
+    "https://marketplace.atlassian.com/apps/1237103/advanced-user-management-for-licenses-and-access-control",
+    3
+   ],
+   [
+    "com.jira.admanagerplus",
+    "ADManager Plus - Identity and Access Management Solution",
+    "https://marketplace.atlassian.com/apps/1224224/admanager-plus-identity-and-access-management-solution",
+    22
+   ],
+   [
+    "de.accxia.jira.addon.access.AccxiaGenericJiraAccess",
+    "Generic Access for Jira",
+    "https://marketplace.atlassian.com/apps/1237017/generic-access-for-jira",
+    0
+   ],
+   [
+    "com.cps.lastLog",
+    "Last Log for Jira",
+    "https://marketplace.atlassian.com/apps/1211604/last-log-for-jira",
+    1332
+   ]
+  ]
+ },
+ "PermissionRadar|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=PermissionRadar&limit=50",
+  "count": 0,
+  "first_results": []
+ },
+ "PermissionRadar|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=PermissionRadar&limit=50&hosting=cloud",
+  "count": 0,
+  "first_results": []
+ },
+ "PermissionRadar|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=PermissionRadar&limit=50&hosting=server",
+  "count": 0,
+  "first_results": []
+ },
+ "PermissionRadar|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=PermissionRadar&limit=50&hosting=datacenter",
+  "count": 0,
+  "first_results": []
+ },
+ "Permission Radar|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Permission+Radar&limit=50",
+  "count": 634,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.pascal.fieldsecurity",
+    "Fields Permission for Jira",
+    "https://marketplace.atlassian.com/apps/1230929/fields-permission-for-jira",
+    51
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "com.ricksoft-inc.plugins.secure-custom-fields-for-jira",
+    "Secure Custom Fields for Jira (Security & Permission)",
+    "https://marketplace.atlassian.com/apps/1226365/secure-custom-fields-for-jira-security-permission",
+    512
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "de.actonic.spo",
+    "Space Permissions Overview",
+    "https://marketplace.atlassian.com/apps/1229314/space-permissions-overview",
+    241
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ]
+  ]
+ },
+ "Permission Radar|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Permission+Radar&limit=50&hosting=cloud",
+  "count": 468,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.pascal.fieldsecurity",
+    "Fields Permission for Jira",
+    "https://marketplace.atlassian.com/apps/1230929/fields-permission-for-jira",
+    51
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "com.ricksoft-inc.plugins.secure-custom-fields-for-jira",
+    "Secure Custom Fields for Jira (Security & Permission)",
+    "https://marketplace.atlassian.com/apps/1226365/secure-custom-fields-for-jira-security-permission",
+    512
+   ],
+   [
+    "de.actonic.spo",
+    "Space Permissions Overview",
+    "https://marketplace.atlassian.com/apps/1229314/space-permissions-overview",
+    241
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "com.appsfoundry.jira.role_revealer",
+    "Role Revealer for Jira (Transparency in Roles & Permissions)",
+    "https://marketplace.atlassian.com/apps/1231389/role-revealer-for-jira-transparency-in-roles-permissions",
+    13
+   ],
+   [
+    "com.adminhelm.confluence.permission-auditor",
+    "Permission Auditor",
+    "https://marketplace.atlassian.com/apps/3549326490/permission-auditor",
+    5
+   ]
+  ]
+ },
+ "Permission Radar|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Permission+Radar&limit=50&hosting=server",
+  "count": 207,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "net.solutions.plugins.createprojectpermission",
+    "Create Project Permission",
+    "https://marketplace.atlassian.com/apps/1223557/create-project-permission",
+    53
+   ],
+   [
+    "com.atlassian.labs.bitbucket.bitbucket-permissions-lockdown-plugin",
+    "Permission Lockdown for Bitbucket Data Center",
+    "https://marketplace.atlassian.com/apps/1217941/permission-lockdown-for-bitbucket-data-center",
+    117
+   ],
+   [
+    "org.ttorvela.confluence.plugins.space-permissions-handler",
+    "Space Permissions Handler for Confluence",
+    "https://marketplace.atlassian.com/apps/1212648/space-permissions-handler-for-confluence",
+    60
+   ],
+   [
+    "com.bh.conf.groups.group-spaces",
+    "List Spaces with Permissions Group",
+    "https://marketplace.atlassian.com/apps/1220216/list-spaces-with-permissions-group",
+    28
+   ],
+   [
+    "com.hktx.confluence.morepermission",
+    "Gears more permission for Confluence",
+    "https://marketplace.atlassian.com/apps/1223807/gears-more-permission-for-confluence",
+    7
+   ],
+   [
+    "de.eposcat.permission-inspector",
+    "\"Who will see\" - Permission Inspector",
+    "https://marketplace.atlassian.com/apps/1218021/who-will-see-permission-inspector",
+    4
+   ]
+  ]
+ },
+ "Permission Radar|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Permission+Radar&limit=50&hosting=datacenter",
+  "count": 173,
+  "first_results": [
+   [
+    "de.edrup.confluence.plugins.edit-inherit",
+    "Edit Permission Inheritance",
+    "https://marketplace.atlassian.com/apps/1221313/edit-permission-inheritance",
+    339
+   ],
+   [
+    "com.smateso.plugins.confluence.permission-management",
+    "Permission Management for Confluence",
+    "https://marketplace.atlassian.com/apps/1229872/permission-management-for-confluence",
+    133
+   ],
+   [
+    "de.kupper.it.atlassian.confluence.permission-helper",
+    "Permission Helper",
+    "https://marketplace.atlassian.com/apps/1220066/permission-helper",
+    51
+   ],
+   [
+    "net.solutions.plugins.createprojectpermission",
+    "Create Project Permission",
+    "https://marketplace.atlassian.com/apps/1223557/create-project-permission",
+    53
+   ],
+   [
+    "com.mgmtp.confluence.app.confluence-browse-people-permission",
+    "Browse People Permission for Confluence",
+    "https://marketplace.atlassian.com/apps/1225447/browse-people-permission-for-confluence",
+    7
+   ],
+   [
+    "com.atlassian.labs.bitbucket.bitbucket-permissions-lockdown-plugin",
+    "Permission Lockdown for Bitbucket Data Center",
+    "https://marketplace.atlassian.com/apps/1217941/permission-lockdown-for-bitbucket-data-center",
+    117
+   ],
+   [
+    "com.smateso.plugins.confluence.03-group-permission-copy",
+    "Group Permission Copy for Confluence",
+    "https://marketplace.atlassian.com/apps/1238444/group-permission-copy-for-confluence",
+    0
+   ],
+   [
+    "jira.plugin.versionmanager",
+    "Version Manager for Jira",
+    "https://marketplace.atlassian.com/apps/1214929/version-manager-for-jira",
+    421
+   ],
+   [
+    "onedrive-business-connector-addon-plugin-for-confluence-topdox",
+    "SharePoint Connector for Confluence Workflows",
+    "https://marketplace.atlassian.com/apps/1217864/sharepoint-connector-for-confluence-workflows",
+    1600
+   ],
+   [
+    "com.coresoftlabs.secure-fields.secure-fields",
+    "Secure Fields - Data Security & Privacy - ROA Ready!",
+    "https://marketplace.atlassian.com/apps/1212681/secure-fields-data-security-privacy-roa-ready",
+    558
+   ]
+  ]
+ },
+ "AuditRadar|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AuditRadar&limit=50",
+  "count": 0,
+  "first_results": []
+ },
+ "AuditRadar|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AuditRadar&limit=50&hosting=cloud",
+  "count": 0,
+  "first_results": []
+ },
+ "AuditRadar|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AuditRadar&limit=50&hosting=server",
+  "count": 0,
+  "first_results": []
+ },
+ "AuditRadar|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=AuditRadar&limit=50&hosting=datacenter",
+  "count": 0,
+  "first_results": []
+ },
+ "Radar|None": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Radar&limit=50",
+  "count": 26,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "ba3acbfa-7520-4101-b492-abd4a8c3202f",
+    "JSM Queue Radar",
+    "https://marketplace.atlassian.com/apps/646853047/jsm-queue-radar",
+    4
+   ],
+   [
+    "plugin.jira.field-radar",
+    "Field Radar",
+    "https://marketplace.atlassian.com/apps/2298684988/field-radar",
+    2
+   ],
+   [
+    "ac32f68c-7a05-483a-83bc-906cf05c0d53",
+    "Workload Radar for Jira",
+    "https://marketplace.atlassian.com/apps/344194779/workload-radar-for-jira",
+    3
+   ],
+   [
+    "cloudscript.radar.renderer",
+    "Tech Adoption Radar for Confluence",
+    "https://marketplace.atlassian.com/apps/2543668212/tech-adoption-radar-for-confluence",
+    2
+   ],
+   [
+    "com.caelor.jira.cloud.inventory",
+    "Radar - Assets Inventory for JSM",
+    "https://marketplace.atlassian.com/apps/974024200/radar-assets-inventory-for-jsm",
+    3
+   ],
+   [
+    "com.fresto.licenseradar",
+    "License Radar for Jira",
+    "https://marketplace.atlassian.com/apps/2470195860/license-radar-for-jira",
+    1
+   ]
+  ]
+ },
+ "Radar|cloud": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Radar&limit=50&hosting=cloud",
+  "count": 23,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "com.maksymbabenko.riskradar",
+    "Risk Radar for Jira (Risk Management, Assess & Track)",
+    "https://marketplace.atlassian.com/apps/1237030/risk-radar-for-jira-risk-management-assess-track",
+    200
+   ],
+   [
+    "com.confluence.plugins.skillsradar",
+    "Skills radar for Confluence",
+    "https://marketplace.atlassian.com/apps/1230867/skills-radar-for-confluence",
+    29
+   ],
+   [
+    "ba3acbfa-7520-4101-b492-abd4a8c3202f",
+    "JSM Queue Radar",
+    "https://marketplace.atlassian.com/apps/646853047/jsm-queue-radar",
+    4
+   ],
+   [
+    "plugin.jira.field-radar",
+    "Field Radar",
+    "https://marketplace.atlassian.com/apps/2298684988/field-radar",
+    2
+   ],
+   [
+    "ac32f68c-7a05-483a-83bc-906cf05c0d53",
+    "Workload Radar for Jira",
+    "https://marketplace.atlassian.com/apps/344194779/workload-radar-for-jira",
+    3
+   ],
+   [
+    "cloudscript.radar.renderer",
+    "Tech Adoption Radar for Confluence",
+    "https://marketplace.atlassian.com/apps/2543668212/tech-adoption-radar-for-confluence",
+    2
+   ],
+   [
+    "com.caelor.jira.cloud.inventory",
+    "Radar - Assets Inventory for JSM",
+    "https://marketplace.atlassian.com/apps/974024200/radar-assets-inventory-for-jsm",
+    3
+   ],
+   [
+    "com.fresto.licenseradar",
+    "License Radar for Jira",
+    "https://marketplace.atlassian.com/apps/2470195860/license-radar-for-jira",
+    1
+   ],
+   [
+    "com.wodi.blocked-work-radar",
+    "Blocked Work Radar for Jira",
+    "https://marketplace.atlassian.com/apps/3895859387/blocked-work-radar-for-jira",
+    1
+   ]
+  ]
+ },
+ "Radar|server": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Radar&limit=50&hosting=server",
+  "count": 4,
+  "first_results": [
+   [
+    "de.polscheit.jira.plugins.skill-radar",
+    "Skills-Radar for Jira",
+    "https://marketplace.atlassian.com/apps/1218488/skills-radar-for-jira",
+    20
+   ],
+   [
+    "de.iteconomics.confluence.techradar",
+    "TechRadar",
+    "https://marketplace.atlassian.com/apps/1214608/techradar",
+    25
+   ],
+   [
+    "com.fangwai.plugins.jcharts",
+    "JReport - Reports and Charts for Jira",
+    "https://marketplace.atlassian.com/apps/1217877/jreport-reports-and-charts-for-jira",
+    22
+   ],
+   [
+    "biz.softlist.hr.hr360jira",
+    "HR.360 Degree Feedback Assessment for Jira",
+    "https://marketplace.atlassian.com/apps/1218933/hr-360-degree-feedback-assessment-for-jira",
+    9
+   ]
+  ]
+ },
+ "Radar|datacenter": {
+  "url": "https://marketplace.atlassian.com/rest/2/addons?text=Radar&limit=50&hosting=datacenter",
+  "count": 0,
+  "first_results": []
+ }
+}
