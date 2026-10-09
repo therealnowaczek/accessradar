@@ -9,7 +9,7 @@ import SectionMessage from '@atlaskit/section-message';
 import { call, errorText } from './api';
 import { usePoll, useStatus } from './data';
 import { MODULE_KEYS } from './routes';
-import { ErrorState, Loading, PageFrame, PageHeader } from './ui';
+import { BrandMark, ErrorState, Loading, PageFrame, PageHeader } from './ui';
 
 const openApp = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.main });
 const openConfig = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.config });
@@ -79,6 +79,17 @@ export default function GetStartedScreen() {
       }
     >
       <div className="page-stack settings-content">
+        <div className="brand-hero">
+          <BrandMark size={56} />
+          <div>
+            <Heading size="medium" as="h2">
+              AccessRadar
+            </Heading>
+            <p className="subtle">
+              Who has access to what in Jira, why, and what changed. Read-only.
+            </p>
+          </div>
+        </div>
         <div className="section-stack">
           <ProgressBar
             value={done / steps.length}

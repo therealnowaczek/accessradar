@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import Button from '@atlaskit/button/new';
 import EmptyState from '@atlaskit/empty-state';
 import Heading from '@atlaskit/heading';
@@ -17,30 +17,57 @@ export function SplitLayout({ sidebar, children }: { sidebar: ReactNode; childre
   );
 }
 
-/** AccessRadar mark: radar sweep on the brand colour. Colours come from design tokens (light/dark). */
+/**
+ * AccessRadar logo (brand/accessradar-logo.svg): white padlock on the brand gradient
+ * #236BB4 → #6C70CD (65%) → #A96BCE. Brand colours appear only here; the rest of the UI uses ADS tokens.
+ */
 export function BrandMark({ size = 32 }: { size?: number }) {
-  const ink = { stroke: 'var(--ds-icon-inverse, #fff)' };
+  const id = useId().replace(/:/g, '');
+  const bg = `ar-bg-${id}`;
+  const shine = `ar-shine-${id}`;
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 32 32"
+      viewBox="0 0 1043 1043"
       fill="none"
       role="img"
       aria-label="AccessRadar"
     >
       <title>AccessRadar</title>
-      <rect
-        width="32"
-        height="32"
-        rx="8"
-        style={{ fill: 'var(--ds-background-brand-bold, #0c66e4)' }}
+      <defs>
+        <linearGradient id={bg} x1="0" y1="0" x2="1043" y2="1043" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#236BB4" />
+          <stop offset="0.65" stopColor="#6C70CD" />
+          <stop offset="1" stopColor="#A96BCE" />
+        </linearGradient>
+        <linearGradient
+          id={shine}
+          x1="521.5"
+          y1="616"
+          x2="672.109"
+          y2="357.876"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="white" stopOpacity="0" />
+          <stop offset="1" stopColor="white" stopOpacity="0.5" />
+        </linearGradient>
+      </defs>
+      <rect width="1043" height="1043" rx="230" fill={`url(#${bg})`} />
+      <path
+        d="M330 443V348C330 242 415 164 521.5 164C628 164 713 242 713 348V443"
+        strokeWidth="47"
+        strokeLinecap="round"
+        stroke="white"
       />
-      <circle cx="16" cy="16" r="10" strokeWidth="1.5" style={{ ...ink, strokeOpacity: 0.45 }} />
-      <circle cx="16" cy="16" r="5.5" strokeWidth="1.5" style={{ ...ink, strokeOpacity: 0.7 }} />
-      <path d="M16 16 L23.5 9.5" strokeWidth="2.5" strokeLinecap="round" style={ink} />
-      <circle cx="16" cy="16" r="2" style={{ fill: 'var(--ds-icon-inverse, #fff)' }} />
-      <circle cx="21.5" cy="19.5" r="1.6" style={{ fill: 'var(--ds-icon-inverse, #fff)' }} />
+      <path d="M521.5 616V443H818V616H521.5Z" fill={`url(#${shine})`} />
+      <path
+        d="M292 443H751C788.003 443 818 472.997 818 510V806C818 843.003 788.003 873 751 873H292C254.997 873 225 843.003 225 806V510C225 472.997 254.997 443 292 443Z"
+        strokeWidth="47"
+        stroke="white"
+      />
+      <circle cx="521.5" cy="616" r="46.125" fill="white" />
+      <path d="M521.5 648V725" strokeWidth="38" strokeLinecap="round" stroke="white" />
     </svg>
   );
 }
