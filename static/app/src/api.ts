@@ -13,18 +13,15 @@ export type ProjectList = { projects: ProjectRow[]; complete: boolean };
 export type Probe = { name: string; status: number; count?: number; error?: string };
 export type SpikeResult = { asUser: Probe[]; asApp: Probe[]; impersonationQueued: boolean };
 
-/** invoke() may wrap the body with metadata; normalise to the body. */
-export async function call<T>(key: string): Promise<T> {
-  const r = (await invoke<T>(key)) as unknown;
-  if (
-    r &&
-    typeof r === 'object' &&
-    'body' in r &&
-    Object.keys(r).every((k) => k === 'body' || k === 'metadata')
-  ) {
-    return (r as { body: T }).body;
-  }
-  return r as T;
+export type Result<T> = { ok: true; data: T } | { ok: false; error: string; forbidden?: boolean };
+
+/** Resolvers answer { ok, data } | { ok: false, error } (MarginRadar convention); unwrap or throw. */
+export async function call<T>(key: string, payload: Record<string, unknown> = {}): Promise<T> {
+  const r = (await invoke(key, payload)) as Result<T> | undefined;
+  if (!r || typeof r !== 'object' || !('ok' in r))
+    throw new Error('Unexpected response from AccessRadar.');
+  if (!r.ok) throw new Error(r.error);
+  return r.data;
 }
 
 export const errorText = (e: unknown) =>
