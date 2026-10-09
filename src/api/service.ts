@@ -104,7 +104,7 @@ async function withState<T>(seqInput: unknown, fn: (state: AccessState, snap: Sn
 }
 
 // ---------- status & overview ----------
-export async function status(environmentType?: string) {
+export async function status(spike = false) {
   const [latest, active, settings, list] = await Promise.all([
     latestCommitted(),
     activeSnapshot(),
@@ -113,7 +113,7 @@ export async function status(environmentType?: string) {
   ]);
   return {
     engineVersion: ENGINE_VERSION,
-    spike: process.env.ACCESSRADAR_SPIKE === '1' && environmentType === 'DEVELOPMENT',
+    spike,
     settingsSaved: settings.saved,
     frequency: settings.frequency,
     latest: snapshotSummary(latest),

@@ -184,7 +184,7 @@ export interface EvidenceInput {
 }
 
 /** Canonical evidence document; its SHA-256 is the review's evidence hash.
- *  Uses accountIds only, so privacy anonymisation of names does not break verification. */
+ *  Uses accountIds only, so privacy pseudonymisation of names does not break verification. */
 export function evidenceDocument(input: EvidenceInput): string {
   const items = [...input.items].sort((a, b) => a.itemKey.localeCompare(b.itemKey));
   return canonicalJson({

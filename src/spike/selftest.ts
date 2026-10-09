@@ -15,7 +15,7 @@ export async function devSelfTest(): Promise<void> {
   const log = (name: string, info: Record<string, unknown>) =>
     console.log(`[selftest] ${name}`, info);
   try {
-    const status = await svc.status('DEVELOPMENT');
+    const status = await svc.status(true);
     log('getStatus', { latest: status.latest?.seq ?? null, status: status.latest?.status ?? null });
     if (!status.latest) return;
     const seq = status.latest.seq;

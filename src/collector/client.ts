@@ -91,12 +91,13 @@ export class CollectorClient {
       }
       this.points += res.ok ? estimatePoints(r.value, body) : 1;
       if (!res.ok) {
-        const b = body as { errorMessages?: string[]; message?: string } | null;
+        // Jira error bodies can name users, groups or projects: keep only the status code,
+        // so neither logs nor stored coverage reasons carry personal data.
         return {
           ok: false,
           status: res.status,
           body: null,
-          error: (b?.errorMessages?.[0] ?? b?.message ?? `HTTP ${res.status}`).slice(0, 200),
+          error: `HTTP ${res.status}`,
           identity,
         };
       }

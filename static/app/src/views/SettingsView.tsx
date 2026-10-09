@@ -510,9 +510,14 @@ export function SettingsView() {
                   [
                     'Personal data',
                     v.privacy
-                      ? `Checked ${formatLocal(v.privacy.at)}: ${v.privacy.reported} accounts, ${v.privacy.closed} closed, ${v.privacy.updated} updated`
-                      : 'Daily check with Atlassian for closed accounts (not run yet)',
+                      ? `Last run ${formatLocal(v.privacy.at)}: ${v.privacy.reported} of ${v.privacy.stored ?? v.privacy.reported} accounts reported (each at most once per 7 days), ${v.privacy.closedTotal ?? v.privacy.closed} closed`
+                      : 'Reported to Atlassian at most once per 7 days per account (not run yet)',
                   ],
+                  [
+                    'Closed accounts',
+                    'Pseudonymised: the name is replaced by “Closed account <code>”; the account ID is kept in snapshots, reviews and the audit log as evidence',
+                  ],
+                  ['Audit log', `Kept for ${s.retentionDays} days (same as snapshot retention)`],
                 ]}
               />
             </Section>

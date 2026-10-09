@@ -165,7 +165,8 @@ export async function runCollectStep(
       });
       if (process.env.ACCESSRADAR_SPIKE === '1') await push({ step: 'SELFTEST' }, 5);
       const retention = await applyRetention(settings.retentionDays);
-      if (retention.snapshots) console.log('[retention] deleted', retention);
+      if (retention.snapshots || retention.auditEvents)
+        console.log('[retention] deleted', retention);
       return;
     }
     const result = await STEPS[step](ctx);

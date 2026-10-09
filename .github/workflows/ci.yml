@@ -25,3 +25,9 @@ jobs:
       # forge lint needs Forge credentials and the Forge API, which timed out intermittently here
       # ("Request timed out after 300000ms") and is unavailable to Dependabot PRs. It runs with
       # retries in deploy-dev.yml, right before every deploy, which is where it gates anything.
+      # The production build must not contain the development-only spike/self-test code.
+      - name: Production strip builds
+        run: |
+          bash scripts/strip-spike.sh
+          npm run typecheck
+          npm run build:ui

@@ -3,9 +3,17 @@ import { InvocationError, InvocationErrorCode, type AsyncEvent } from '@forge/ev
 import { assertJiraAdmin, ForbiddenError } from './lib/auth';
 import { push, type CollectEvent } from './lib/queue';
 import { ensureMigrated, runMigrations } from './db/migrations';
-import { failStale } from './db/snapshots';
-import { formatProbeLog, runProbes, spikeEnabled } from './spike/probe';
-import { devAutoSnapshot, devSelfTest } from './spike/selftest';
+import { failStale, purgeAudit } from './db/snapshots';
+import { getSettings } from './db/settings';
+import {
+  runSpikeResolver,
+  spikeAllowed,
+  spikeEnabled,
+  spikeOnInstall,
+  spikeOnTick,
+  spikeProbe,
+  spikeSelfTest,
+} from './spike';
 import { listProjectsAsUser } from './ui/projects';
 import { runCollectStep, scheduledTick } from './collector/run';
 import { runPrivacyReport } from './privacy';
@@ -48,7 +56,7 @@ function def(name: string, fn: Handler) {
   });
 }
 
-def('getStatus', (_p, c) => svc.status(c.environmentType));
+def('getStatus', (_p, c) => svc.status(spikeAllowed(c.environmentType)));
 def('getOverview', (p) => svc.overview(p));
 def('listSnapshots', () => svc.snapshots());
 def('getSnapshot', (p) => svc.snapshotDetail(p));
@@ -81,16 +89,8 @@ def('logExport', (p, c) => svc.logExport(p, c.accountId));
  *  for the caller (accountId taken from the server-side context, never from the payload). */
 def('runSpike', async (_p, c) => {
   // Dev-only: needs the ACCESSRADAR_SPIKE=1 variable AND the development environment.
-  if (!spikeEnabled() || c.environmentType !== 'DEVELOPMENT')
-    throw new svc.BadRequest('Spike disabled');
-  const [asUser, asApp] = await Promise.all([
-    runProbes({ kind: 'user' }),
-    runProbes({ kind: 'app' }),
-  ]);
-  console.log(formatProbeLog('asUser', asUser));
-  console.log(formatProbeLog('asApp', asApp));
-  if (c.accountId) await push({ step: 'SPIKE', impersonateAccountId: c.accountId });
-  return { asUser, asApp, impersonationQueued: Boolean(c.accountId) };
+  if (!spikeAllowed(c.environmentType)) throw new svc.BadRequest('Spike disabled');
+  return runSpikeResolver(c.accountId);
 });
 
 export const resolverHandler = resolver.getDefinitions();
@@ -104,11 +104,7 @@ interface LifecycleEvent {
 export async function lifecycleHandler(event: LifecycleEvent) {
   await push({ step: 'MIGRATE' });
   const who = event.installerAccountId ?? event.upgraderAccountId;
-  if (spikeEnabled()) {
-    // app-user permissions are granted eventually-consistently after install; give it time.
-    await push({ step: 'SPIKE' }, 120);
-    if (who) await push({ step: 'SPIKE', impersonateAccountId: who }, 150);
-  }
+  await spikeOnInstall(who);
   console.log('[lifecycle] enqueued migrations', {
     spike: spikeEnabled(),
     hasAccount: Boolean(who),
@@ -122,18 +118,14 @@ export async function tickHandler() {
     const stale = await failStale();
     if (stale) console.warn('[tick] marked stale snapshots failed', { stale });
     await scheduledTick();
-    await devAutoSnapshot();
+    await spikeOnTick();
   } catch (e) {
     console.error('[tick] failed', errInfo(e));
-  }
-  if (spikeEnabled()) {
-    await push({ step: 'SPIKE' });
-    await push({ step: 'SELFTEST' }, 30);
   }
   return { statusCode: 204 };
 }
 
-/** Daily: personal-data report + anonymisation (via the queue for the longer timeout). */
+/** Daily tick: personal-data report (each account at most once per 7 days) + pseudonymisation of closed accounts. */
 export async function privacyHandler() {
   await push({ step: 'PRIVACY' });
   console.log('[privacy] report queued');
@@ -161,21 +153,19 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
       await ensureMigrated();
       const r = await runPrivacyReport();
       console.log('[privacy] reported', r);
+      // Audit log retention also runs daily, so it applies even when no snapshots are taken.
+      const settings = await getSettings();
+      const auditEvents = await purgeAudit(Date.now() - settings.retentionDays * 86400_000);
+      if (auditEvents) console.log('[retention] audit events deleted', { auditEvents });
       return;
     }
     case 'SELFTEST':
       await ensureMigrated();
-      await devSelfTest();
+      await spikeSelfTest();
       return;
-    case 'SPIKE': {
-      if (!spikeEnabled()) return;
-      const imp = body.impersonateAccountId;
-      const results = await runProbes(
-        imp ? { kind: 'impersonate', accountId: imp } : { kind: 'app' },
-      );
-      console.log(formatProbeLog(imp ? 'asUser(accountId) offline' : 'asApp (async)', results));
+    case 'SPIKE':
+      await spikeProbe(body.impersonateAccountId);
       return;
-    }
     default:
       await ensureMigrated();
       return runCollectStep(event);

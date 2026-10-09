@@ -284,7 +284,14 @@ export type SettingsView = {
   settings: Settings;
   fallbackIsMe: boolean;
   fallbackEnabled: boolean;
-  privacy: { at: number; reported: number; closed: number; updated: number } | null;
+  privacy: {
+    at: number;
+    stored?: number;
+    reported: number;
+    closed: number;
+    updated: number;
+    closedTotal?: number;
+  } | null;
   usage: { points: number; calls: number };
 };
 

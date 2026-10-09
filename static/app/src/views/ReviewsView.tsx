@@ -860,6 +860,10 @@ function ItemDrawer({
                 onChange={(e) => setNote(e.target.value)}
                 resize="vertical"
               />
+              <span className="subtle">
+                Notes become part of the evidence. Do not include personal data beyond what the
+                decision needs.
+              </span>
             </label>
           </div>
         )}

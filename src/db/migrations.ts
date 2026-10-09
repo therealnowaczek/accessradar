@@ -230,6 +230,16 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       calls INT NOT NULL
     )`,
   ],
+  [
+    // Per-account personal-data reporting state: report each account at most once per cycle
+    // (7 days) and never again once Atlassian says it is closed.
+    'v024_privacy_account',
+    `CREATE TABLE IF NOT EXISTS privacy_account (
+      account_id VARCHAR(128) NOT NULL PRIMARY KEY,
+      last_reported BIGINT NOT NULL,
+      closed_at BIGINT NULL
+    )`,
+  ],
 ];
 
 let runner: typeof migrationRunner | null = null;

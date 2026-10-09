@@ -324,7 +324,7 @@ export async function mergeStage(seq: number, prevSeq: number | null): Promise<M
   };
 }
 
-// Snapshot facts are immutable once committed (except privacy anonymisation), so a short cache helps.
+// Snapshot facts are immutable once committed (except privacy pseudonymisation), so a short cache helps.
 const cache = new Map<number, { at: number; facts: StoredFact<any>[] }>();
 const CACHE_TTL_MS = 60_000;
 
@@ -369,8 +369,10 @@ export async function computeContentHash(seq: number): Promise<string> {
 /** Deletes snapshots older than the retention window that no review pins, then orphaned facts. */
 export async function applyRetention(
   retentionDays: number,
-): Promise<{ snapshots: number; facts: number }> {
+): Promise<{ snapshots: number; facts: number; auditEvents: number }> {
   const cutoff = Date.now() - retentionDays * 86400_000;
+  // The audit log follows the snapshot retention setting (signed reviews keep their own record).
+  const auditEvents = await purgeAudit(cutoff);
   const latest = await latestCommitted();
   const candidates = await q<{ seq: number }>(
     `SELECT seq FROM snap WHERE started_at < ? AND seq NOT IN (SELECT base_seq FROM review)
@@ -385,7 +387,7 @@ export async function applyRetention(
     Number(r.seq),
   );
   let facts = 0;
-  if (!kept.length) return { snapshots: drop.length, facts };
+  if (!kept.length) return { snapshots: drop.length, facts, auditEvents };
   facts += await exec('DELETE FROM fact WHERE last_seen < ?', kept[0]);
   // Facts that lived only between two kept snapshots (inside a deleted gap) are orphaned too.
   for (let i = 0; i + 1 < kept.length; i++) {
@@ -398,5 +400,16 @@ export async function applyRetention(
   }
   for (const s of drop) await exec('DELETE FROM stage WHERE seq = ?', s);
   if (facts) invalidateFactCache();
-  return { snapshots: drop.length, facts };
+  return { snapshots: drop.length, facts, auditEvents };
+}
+
+/** Deletes audit events older than the cutoff (in bounded batches). */
+export async function purgeAudit(cutoff: number): Promise<number> {
+  let total = 0;
+  for (let i = 0; i < 50; i++) {
+    const n = await exec('DELETE FROM audit_event WHERE at < ? LIMIT 5000', cutoff);
+    total += n;
+    if (n < 5000) break;
+  }
+  return total;
 }

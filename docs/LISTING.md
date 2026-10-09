@@ -252,17 +252,17 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 | Stores End-User Data outside Atlassian (excl. logs)? | **No** | Forge SQL on Atlassian infrastructure |
 | Processes End-User Data outside Atlassian / the end-user's browser? | **No** | Forge functions only; no `permissions.external`, no Forge Remote, no Connect. CSV/PDF generated in the browser |
 | Does the app store personal data? | **Yes** | Atlassian accountId, display name (cache), active status, account type, group memberships and role assignments, review decisions with decider accountId and timestamps. **No email addresses** |
-| Logs End-User Data? | **No** [TO CONFIRM] | Spec §8.4: logs without accountIds or emails; collector logs only point estimates and error codes. Verify in code; if not guaranteed, answer Yes (logs stay in the Forge developer console) |
+| Logs End-User Data? | **No** | Production logs carry only snapshot numbers, step names, counters, timings and HTTP status codes. Jira error bodies are never logged or stored (status code only, `src/collector/client.ts`); quoted values in driver errors are redacted (`src/lib/errors.ts`); the dev-only spike/self-test code is stripped from production builds (`scripts/strip-spike.sh`, deploy-prod.yml) |
 | Logs End-User Data outside Atlassian? | **No** | — |
 | Exposes remote REST APIs? | **No** | No web triggers |
 | Shares End-User Data with third parties / sub-processors? | **No** | Only Atlassian (Forge hosting) |
 | **Data residency** | **Yes: all in-scope End-User Data stored exclusively within the Atlassian Forge platform** | Forge SQL is residency-enabled; publish the in-scope list in /docs |
 | Migration between residency locations? | **Yes** | Handled by Forge |
 | Stores End-User Data after uninstall? | **Yes: min 0, max 28 days** [TO CONFIRM] | Forge hosted storage lifecycle; Radrly keeps nothing. Same reading as MarginRadar |
-| Retention while installed | Snapshots: configurable 30–3650 days (default 395, i.e. 13 months); snapshots pinned by a review are kept; signed reviews kept until uninstall | From `src/db/settings.ts` / spec §8.5 |
+| Retention while installed | Snapshots and the audit log: configurable 30–3650 days (default 395, i.e. 13 months); snapshots pinned by a review are kept; signed reviews kept until uninstall | `src/db/settings.ts`, `applyRetention` / `purgeAudit` in `src/db/snapshots.ts` |
 | Custom retention on request? | **No**: the customer sets retention in Settings | — |
-| Closed accounts | Daily `report:personal-data` check; closed accounts are anonymised (display name replaced by a pseudonym) | `src/privacy.ts` |
-| Privacy-enhancing technologies? | **Yes: data minimisation** (no emails; accountId as key; anonymisation of closed accounts) [TO CONFIRM wording] | — |
+| Closed accounts | `report:personal-data`: each stored accountId reported at most once per 7-day cycle; accounts reported as closed are never reported again. Closed accounts are **pseudonymised**: the cached display name is replaced by `Closed account <hash>`; the accountId is kept in snapshots, review items, sign-offs and the audit log (evidence integrity) [LEGAL TO CONFIRM, see name-pricing-legal.md P3a] | `src/privacy.ts`, docs/data-handling.md |
+| Privacy-enhancing technologies? | **Yes: data minimisation and pseudonymisation** (no emails, no issue content; accountId as key; pseudonymisation of closed accounts) | — |
 | GDPR controller? | **No** [LEGAL TO CONFIRM] | — |
 | GDPR processor? | **Yes** [LEGAL TO CONFIRM] | Personal data above, processed on the customer's behalf; DPA at /dpa |
 | CCPA | **Not applicable / No** [LEGAL TO CONFIRM] | — |

@@ -120,7 +120,7 @@ export function sha256(text: string): string {
 }
 
 /** 16-hex fingerprint of the attrs. Person display names are excluded so that
- *  privacy anonymisation never looks like an access change. */
+ *  privacy pseudonymisation never looks like an access change. */
 export function factVersionHash(kind: FactKind, attrs: unknown): string {
   const relevant =
     kind === 'person' && attrs && typeof attrs === 'object'
