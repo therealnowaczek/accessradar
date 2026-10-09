@@ -46,7 +46,7 @@ The developer spike panel appears in Settings only when `ACCESSRADAR_SPIKE=1` is
 ## CI/CD
 
 - `ci.yml`: format check, lint, typecheck, tests, UI build, `npm audit`, `forge lint`.
-- `deploy-dev.yml`: push to `main` deploys to development (`--approve MAJOR_VERSION_RULE --confirm-scopes`).
+- `deploy-dev.yml`: push to `main` deploys to development (`--approve MAJOR_VERSION_RULE`; `--confirm-scopes` exists only on `forge install`).
   `forge install --upgrade` only via manual dispatch when scopes change.
 - `deploy-prod.yml`: push (fast-forward) to `release/production` deploys to production. Deploy only.
 - Secrets: `FORGE_EMAIL`, `FORGE_API_TOKEN` (GitHub Actions secrets only).

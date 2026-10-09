@@ -22,8 +22,10 @@ jobs:
       - run: npm test
       - run: npm run build:ui
       - run: npm audit --omit=dev --audit-level=high
+      - run: npm install -g @forge/cli@14
+      - run: forge settings set usage-analytics false
       - name: forge lint (fails only on errors)
-        run: npx --yes @forge/cli@14 lint
+        run: forge lint --environment development
         env:
           FORGE_EMAIL: ${{ secrets.FORGE_EMAIL }}
           FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}

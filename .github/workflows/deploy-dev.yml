@@ -32,7 +32,7 @@ jobs:
       - run: npm install -g @forge/cli@14
       - run: forge settings set usage-analytics false
       - run: forge lint --environment development
-      - run: forge deploy --environment development --non-interactive --approve MAJOR_VERSION_RULE --confirm-scopes
+      - run: forge deploy --environment development --non-interactive --approve MAJOR_VERSION_RULE
       - name: Upgrade installation (scope change only)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.upgrade_install }}
         run: forge install --upgrade --environment development --site marginradar.atlassian.net --product Jira --non-interactive --confirm-scopes
