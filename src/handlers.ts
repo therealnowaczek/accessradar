@@ -10,6 +10,7 @@ import { listProjectsAsUser } from './ui/projects';
 import { runCollectStep, scheduledTick } from './collector/run';
 import { runPrivacyReport } from './privacy';
 import * as svc from './api/service';
+import { errInfo } from './lib/errors';
 
 // ---------- UI resolver (jira:adminPage) ----------
 const resolver = new Resolver();
@@ -36,8 +37,7 @@ function def(name: string, fn: Handler) {
       const message = String((e as Error)?.message ?? e).slice(0, 300);
       const known = e instanceof ForbiddenError || e instanceof svc.BadRequest;
       if (!known) {
-        const err = e as { code?: string; suggestion?: string; debug?: unknown };
-        console.error(`[ui] ${name} failed`, { message, code: err?.code, suggestion: err?.suggestion });
+        console.error(`[ui] ${name} failed`, errInfo(e));
       }
       return {
         ok: false,
@@ -124,7 +124,7 @@ export async function tickHandler() {
     await scheduledTick();
     await devAutoSnapshot();
   } catch (e) {
-    console.error('[tick] failed', String((e as Error)?.message ?? e).slice(0, 300));
+    console.error('[tick] failed', errInfo(e));
   }
   if (spikeEnabled()) {
     await push({ step: 'SPIKE' });
@@ -149,7 +149,7 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
         const applied = await runMigrations();
         console.log('[migrate] applied', applied.length);
       } catch (e) {
-        console.error('[migrate] failed', String((e as Error)?.message ?? e));
+        console.error('[migrate] failed', errInfo(e));
         return new InvocationError({
           retryAfter: 60,
           retryReason: InvocationErrorCode.FUNCTION_RETRY_REQUEST,

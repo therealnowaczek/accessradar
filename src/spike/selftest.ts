@@ -3,6 +3,7 @@ import { getItems } from '../db/reviews';
 import { activeSnapshot, latestCommitted, listSnapshots } from '../db/snapshots';
 import { startSnapshot } from '../collector/run';
 import { spikeEnabled } from './probe';
+import { errInfo } from '../lib/errors';
 
 /**
  * Development-only self-test (behind ACCESSRADAR_SPIKE=1, which is set only in the development
@@ -93,7 +94,7 @@ export async function devSelfTest(): Promise<void> {
     });
     await svc.removeReview({ id: r.id }, 'system');
   } catch (e) {
-    console.error('[selftest] failed', String((e as Error)?.message ?? e).slice(0, 300));
+    console.error('[selftest] failed', errInfo(e));
   }
 }
 

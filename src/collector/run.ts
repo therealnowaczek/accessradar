@@ -13,6 +13,7 @@ import { audit } from '../db/audit';
 import { push, type CollectEvent } from '../lib/queue';
 import { CollectorClient, RateLimitedError } from './client';
 import { hourBucket, secondsToNextHour } from './points';
+import { errInfo } from '../lib/errors';
 import {
   directory,
   finalize,
@@ -207,10 +208,11 @@ export async function runCollectStep(
       await push({ step, snapshotSeq: seq, batch }, e.retryAfter);
       return;
     }
-    const message = String((e as Error)?.message ?? e).slice(0, 300);
+    const info = errInfo(e);
+    const message = info.message;
     await markStep(seq, step, batch, 'failed', 'ERROR');
     const attempts = (state?.attempts ?? 0) + 1;
-    console.error('[collector] step failed', { seq, step, batch, attempts, message });
+    console.error('[collector] step failed', { seq, step, batch, attempts, ...info });
     if (attempts >= MAX_ATTEMPTS) {
       await updateSnapshot(seq, {
         status: 'failed',
