@@ -16,7 +16,8 @@
     "forge:lint": "forge lint --environment development",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build:ui && npm run forge:lint"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build:ui && npm run forge:lint",
+    "icons": "node scripts/export-icons.mjs"
   },
   "dependencies": {
     "@atlaskit/avatar": "^30.0.4",
@@ -62,6 +63,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "prettier": "^3.9.9",
+    "sharp": "^0.35.5",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vite": "^7.3.7",
