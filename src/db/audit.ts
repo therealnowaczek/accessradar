@@ -1,4 +1,4 @@
-import { exec, q } from './sql';
+import { exec, limitClause, q } from './sql';
 
 export interface AuditEvent {
   id: number;
@@ -28,8 +28,7 @@ export async function audit(
 
 export async function listAudit(limit = 200): Promise<AuditEvent[]> {
   const rows = await q<any>(
-    'SELECT id, at, actor, action, target, detail FROM audit_event ORDER BY id DESC LIMIT ?',
-    limit,
+    `SELECT id, at, actor, action, target, detail FROM audit_event ORDER BY id DESC ${limitClause(limit)}`,
   );
   return rows.map((r) => ({
     id: Number(r.id),

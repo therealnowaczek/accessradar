@@ -1,6 +1,6 @@
 import { contentHash, factVersionHash, type FactKind, type StoredFact } from '../engine/facts';
 import { ENGINE_VERSION } from '../engine/resolve';
-import { chunk, exec, num, placeholders, q } from './sql';
+import { chunk, exec, limitClause, num, placeholders, q } from './sql';
 
 export type SnapshotStatus = 'queued' | 'running' | 'complete' | 'partial' | 'failed';
 export const COMMITTED: SnapshotStatus[] = ['complete', 'partial'];
@@ -103,7 +103,7 @@ export async function getSnapshot(seq: number, withCoverage = true): Promise<Sna
 }
 
 export async function listSnapshots(limit = 200): Promise<SnapshotRow[]> {
-  const rows = await q(`SELECT ${COLS} FROM snap ORDER BY seq DESC LIMIT ?`, limit);
+  const rows = await q(`SELECT ${COLS} FROM snap ORDER BY seq DESC ${limitClause(limit)}`);
   return rows.map((r) => toRow(r, false));
 }
 

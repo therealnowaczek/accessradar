@@ -35,7 +35,10 @@ function def(name: string, fn: Handler) {
     } catch (e) {
       const message = String((e as Error)?.message ?? e).slice(0, 300);
       const known = e instanceof ForbiddenError || e instanceof svc.BadRequest;
-      if (!known) console.error(`[ui] ${name} failed`, { message });
+      if (!known) {
+        const err = e as { code?: string; suggestion?: string; debug?: unknown };
+        console.error(`[ui] ${name} failed`, { message, code: err?.code, suggestion: err?.suggestion });
+      }
       return {
         ok: false,
         error: known ? message : `Something went wrong: ${message}`,

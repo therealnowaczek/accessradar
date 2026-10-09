@@ -1,6 +1,6 @@
 # AccessRadar: nazwa, ceny, pytania prawne
 
-**Przygotowano:** 9.10.2026, ok. 18:50 (czas warszawski) · **Dla:** Marcin · **Źródła:** Atlassian Marketplace REST API v2 (`/rest/2/addons`, `/rest/2/addons/{key}`, `/versions/latest`, `/pricing/cloud/live`), strony web podane przy wynikach, kod w `/workspace/accessradar` (commit `6b295ce` + niezacommitowane zmiany UI w drzewie roboczym), `docs/LISTING.md`.
+**Przygotowano:** 9.10.2026, ok. 18:50 (czas warszawski) · **Dla:** Marcin · **Źródła:** Atlassian Marketplace REST API v2 (`/rest/2/addons`, `/rest/2/addons/{key}`, `/versions/latest`, `/pricing/cloud/live`), strony web podane przy wynikach, kod w `/workspace/accessradar` (stan odpowiadający commitowi `002fa36`), `docs/LISTING.md`.
 **Surowe dane:** `docs/research-raw/pricing.json` (pełne odpowiedzi cenowe), `docs/research-raw/price-table.json` (wyliczenia), `docs/research-raw/name-search-summary.json` (wyniki wyszukiwania nazw z URL-ami zapytań).
 
 Zasada: liczby pochodzą wyłącznie z API lub ze stron, które podaję. Czego nie dało się sprawdzić, oznaczam jako **NIESPRAWDZONE** albo **brak danych**.

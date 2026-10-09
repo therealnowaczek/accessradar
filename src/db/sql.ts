@@ -34,3 +34,9 @@ export function chunk<T>(list: T[], size: number): T[][] {
 
 export const num = (v: unknown): number | null =>
   v === null || v === undefined ? null : Number(v);
+
+/** LIMIT cannot be a bound parameter in Forge SQL prepared statements; clamp to a safe integer literal. */
+export function limitClause(limit: number, max = 1000): string {
+  const n = Math.max(1, Math.min(max, Math.floor(Number(limit)) || 1));
+  return `LIMIT ${n}`;
+}
