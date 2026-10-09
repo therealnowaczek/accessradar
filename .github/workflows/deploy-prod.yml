@@ -1,0 +1,33 @@
+name: Deploy (production)
+on:
+  push:
+    branches: [release/production]
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FORGE_EMAIL: ${{ secrets.FORGE_EMAIL }}
+      FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            static/accessradar-ui/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix static/accessradar-ui
+      - run: npm run lint && npm run typecheck && npm test
+      - run: npm run build:ui
+      - run: npm install -g @forge/cli@14
+      - run: forge settings set usage-analytics false
+      - run: forge lint --environment production
+      # Deploy only. No install/upgrade in production from CI. Never change scopes during Marketplace review.
+      - run: forge deploy --environment production --non-interactive --approve MAJOR_VERSION_RULE --confirm-scopes
