@@ -2,20 +2,22 @@
 
 **Partner (vendor):** Radrly (Radrly Sp. z o.o., Poland), the same partner as MarginRadar · **Console:** marketplace.atlassian.com/manage → Radrly → AccessRadar
 **Product:** AccessRadar, the access-review twin of MarginRadar · **Build:** dev 2.x (pre-release) · Forge-only, Runs on Atlassian, Custom UI (`jira:adminPage`), Jira Cloud
-**Prepared:** 2026-10-09 · Sources: `/workspace/access-review-mvp.md` (§0–§13), `docs/marketplace-checklist.md`, `docs/week1-findings.md`, `manifest.yml`, `/workspace/forge-niche-research.md` (#3), MarginRadar listing (`/workspace/atlassian-marketplace-research/LISTING.md`, structure and Atlassian limits/sources in its §13).
+**Prepared:** 2026-10-09 · **Updated:** 2026-10-09 (name chosen, pricing adopted, docs site live, production deployed) · Sources: `/workspace/access-review-mvp.md` (§0–§13), `docs/marketplace-checklist.md`, `docs/week1-findings.md`, `manifest.yml`, `/workspace/forge-niche-research.md` (#3), MarginRadar listing (`/workspace/atlassian-marketplace-research/LISTING.md`, structure and Atlassian limits/sources in its §13).
 **Character counts:** every count below was measured with `docs/listing-check.py` (Python `len()`, newlines in More details count as 1 character). Run `python3 docs/listing-check.py` after any edit.
 
 ---
 
 ## 0. Podsumowanie dla Marcina (PL)
 
-- **Nazwa (55/60):** *AccessRadar – Access Review & Permission Audit for Jira*. Nazwa robocza ze specyfikacji (*AccessRadar – Jira Access Review & Permission Audit*) łamie regułę brand guidelines: „Jira” musi stać po „for”, a nie w środku nazwy. Dlatego proponuję wersję z „for Jira” na końcu. Title Case, bez słów app/plugin/add-on/beta/Premium, myślnik nie stoi obok „Jira”. Dwie alternatywy w §1.
+- **Nazwa (55/60) — WYBRANA przez Marcina 9.10.2026:** *AccessRadar – Access Review & Permission Audit for Jira*. Zgodna z brand guidelines: „Jira” stoi po „for”, Title Case, bez słów app/plugin/add-on/beta/Premium, myślnik nie stoi obok „Jira”. Alternatywy usunięte z dokumentu (§1).
 - **Limity (jak w MarginRadar, zweryfikowane tam w docs 2026-10-09):** nazwa ≤60, tagline ≤130 **bez kropki na końcu** (z checklisty), summary ≤250, More details ≤1000, 3 highlighty (tytuł ≤50, opis ≤220, podpis ≤220), 2 kategorie + 4 keywords. Wszystkie pola mieszczą się w limitach; skrypt `docs/listing-check.py` to sprawdza i potwierdza, że każdy tekst występuje w tym pliku dosłownie.
 - **Kategorie:** Security and compliance + Administrative tools. **Keywords:** Audit, Compliance, User permissions, Risk Management. Dokładnie taki zestaw mają Project Access Review (Akeles), a podobny Access Reviewer360 i AuditAdmin (sprawdzone w Marketplace REST 2026-10-09). To standard niszy, więc nie ma sensu z nim walczyć.
 - **Pozycjonowanie bez nazywania konkurentów:** „the why” (ścieżka grantu), uczciwa kompletność, dowód z hashem SHA-256, read-only (kontrast z Access Reviewer360, które robi revoke). Konkurentów (AccessLens, Project Access Review, Project Roles) ani JRACLOUD-71967 **nie wymieniamy** w listingu. Ticket to dobry materiał na stronę /docs albo post w Community, ale dopiero po Twojej decyzji.
-- **Ceny (PROPOZYCJA, §8):** Standard $0 do 10 użytkowników, potem $0.60 / $0.48 / $0.32 / $0.20 za użytkownika miesięcznie. Daje to $54/mies., czyli $540/rok za 100 użytkowników, w środku przedziału 500–600 USD ze specyfikacji (§13). Advanced dopiero po akceptacji płatnego listingu i dopiero, gdy powstaną funkcje fazy 2 (kampanie). W listingu nie ma o nim ani słowa.
+- **Ceny (§8, przyjęta propozycja z `docs/name-pricing-legal.md` §2.4):** Standard $0 do 10 użytkowników (płasko), potem $0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12 za użytkownika miesięcznie na stałych progach Atlassian (11–100 / 101–250 / 251–1 000 / 1 001–2 500 / 2 501–5 000 / 5 001+). Model progresywny **od 1. użytkownika**: 100 u. = $75/mies. = $750/rok. Stare przykłady (liczone od 11. użytkownika, np. „100 u. = $54”) były błędne i zostały poprawione. Advanced dopiero po akceptacji płatnego listingu i po funkcjach fazy 2; w listingu nie ma o nim ani słowa.
 - **Privacy & Security:** gotowe odpowiedzi w §9. Dwie rzeczy wymagają uczciwego ujawnienia: (1) manifest deklaruje `allowImpersonation: true` na scope'ach odczytu, (2) Atlassian po instalacji dodaje app usera AccessRadar do grup adminów (week1-findings §3), choć aplikacja ma wyłącznie scope'y `read:*`. Pytania prawne oznaczyłem **[TO CONFIRM]**.
-- **Do sprawdzenia przed submitem (feature truth check):** PDF evidence pack jest w specyfikacji (M6), ale w kodzie na 2026-10-09 jeszcze go nie ma (jest SHA-256, harmonogram daily/weekly, retencja, ryzyka). Widoki Explore/Changes/Reviews w UI są częściowo placeholderami. Listing opisuje zakres v1.0 ze specyfikacji; nie publikuj go, dopóki build tego nie robi (recenzent sprawdza zgodność listingu z aplikacją). Pełna lista w §11.
+- **Feature truth check (stan kodu 9.10.2026):** w kodzie są już: Explore (projekty/grupy/osoby) z panelem „Why”, Changes (zakładki Granted / Revoked / Groups / Schemes & roles / People, eksport CSV i PDF), Reviews z decyzjami **Keep / Revoke**, podpisem i hashem SHA-256 oraz eksportem CSV i PDF evidence pack (`static/app/src/export/pdf.ts`), harmonogram daily/weekly, retencja, ryzyka. Teksty listingu dopasowano do etykiet w UI (wcześniej było „OK / To change”, w aplikacji jest „Keep / Revoke”). Przed submitem przeklikaj to na prod (recenzent sprawdza zgodność listingu z aplikacją). Lista w §11.
+- **Produkcja:** wdrożona 9.10.2026 (gałąź `release/production`, workflow Deploy (production) zielony, spike usunięty w CI). **Instalacja prod przez CLI jest zablokowana przez Atlassian** („Installing a licensed app is not permitted”): aplikacji z `licensing.enabled: true` nie da się zainstalować z produkcji, dopóki listing nie zostanie zatwierdzony (instalacja tylko przez Marketplace). Zrzuty do listingu trzeba więc zrobić z dev/staging (z dopiskiem „Dev”/„Staging”) albo jako kompozycje, a finalne zrzuty z prod podmienić po akceptacji.
+- **Strona dokumentacji działa:** https://accessradar.radrly.com z podstronami /docs /support /privacy /terms /dpa /security, wszystkie zwracają HTTP 200 (sprawdzone curl 9.10.2026 ok. 19:30 czasu warszawskiego). §7.
 - **Bez wymyślonych liczb:** brak liczby klientów, instalacji, opinii, cytatów i obietnic certyfikacji. AccessRadar *wspiera* zbieranie dowodów do SOC 2 / ISO 27001; nie jest certyfikowany i nie gwarantuje zgodności.
 
 ---
@@ -24,11 +26,9 @@
 
 | Field | Value | Chars |
 |---|---|---|
-| **App name (recommended)** | `AccessRadar – Access Review & Permission Audit for Jira` | 55 / 60 |
-| Alternative A | `AccessRadar – Permission Audit & Access Reviews for Jira` | 56 / 60 |
-| Alternative B | `AccessRadar: Permission Audit, Snapshots & Sign-off for Jira` | 60 / 60 |
+| **App name (chosen by Marcin, 2026-10-09)** | `AccessRadar – Access Review & Permission Audit for Jira` | 55 / 60 |
 
-Compliance with the brand guidelines: "Jira" comes after "for", Title Case, none of the prohibited words (Atlassian, plugin, beta, add-on, app, Premium), no dash next to "Jira". The spec's working name (`AccessRadar – Jira Access Review & Permission Audit`, 51) puts Jira mid-name, so it is not used.
+Compliance with the brand guidelines: "Jira" comes after "for", Title Case, none of the prohibited words (Atlassian, plugin, beta, add-on, app, Premium), no dash next to "Jira". The spec's working name (`AccessRadar – Jira Access Review & Permission Audit`, 51) puts Jira mid-name, so it is not used. The earlier alternatives were dropped once the name was chosen (name check: `docs/name-pricing-legal.md` §1).
 
 *(PL) Konflikty nazwy z §12 specyfikacji: 0 wyników „AccessRadar” w Marketplace, ale ta sama nazwa istnieje poza Atlassian (WCAG.World / getaccessradar.com: dostępność WCAG; Vennx „Access Radar”: IAM/GRC, Brazylia). Przed publikacją sprawdź znaki towarowe (EUIPO/USPTO/WIPO) i ponownie unikalność nazwy w dniu submitu.*
 
@@ -55,7 +55,7 @@ Built for Jira admins and compliance teams:
 • The "why": group → project role → permission scheme grant
 • Daily or weekly snapshots, plus one on demand
 • Diff two snapshots: access granted and removed, group and scheme changes
-• Access reviews: mark items OK or To change, then sign off with a SHA-256 evidence hash
+• Access reviews: mark items Keep or Revoke, then sign off with a SHA-256 evidence hash
 • CSV and PDF evidence export for SOC 2 and ISO 27001 audits
 • Risk indicators: admins, inactive users with access, public (anonymous) grants
 • Completeness shown for every snapshot
@@ -64,7 +64,7 @@ Read-only scopes only: AccessRadar never changes Jira. Runs on Atlassian: no dat
 
 Free for up to 10 users.
 ```
-*(980/1000.)* The long-form version for the docs landing page is in §4.
+*(979/1000.)* The long-form version for the docs landing page is in §4.
 
 ---
 
@@ -81,14 +81,14 @@ Free for up to 10 users.
 - **Title:** What changed since your last review *(35/50)*
 - **Description:** Daily or weekly snapshots, plus one on demand. Compare any two to see access granted and removed, group membership and scheme changes, filtered by project, group or permission. Export the diff to CSV. *(200/220)*
 - **Caption:** Changes view: two snapshots compared, with access granted and removed listed separately and filters by project, group and permission. *(133/220)*
-- **Image concept (S2):** Changes, light theme. A/B selector on a snapshot timeline (A = last signed review, B = latest). Tabs *Access granted (n) / Access removed (n) / Groups / Schemes & roles*. Visible rows: a contractor added to `jira-admins-demo`, a group removed from Developers in PAY, a new grant in a scheme. Granted/removed shown by text label and icon, not colour alone. Crop 580×330: the granted/removed list.
+- **Image concept (S2):** Changes, light theme. A/B selector on a snapshot timeline (A = last signed review, B = latest). Tabs *Granted (n) / Revoked (n) / Groups (n) / Schemes & roles (n) / People (n)* (labels as in `ChangesView.tsx`). Visible rows: a contractor added to `jira-admins-demo`, a group removed from Developers in PAY, a new grant in a scheme. Granted/removed shown by text label and icon, not colour alone. Crop 580×330: the granted/removed list.
 - **Alt text:** "AccessRadar comparison of two snapshots showing access granted and removed since the last review"
 
 ### Highlight 3: Review sign-off + evidence + trust
 - **Title:** Sign-off you can hand to an auditor *(35/50)*
-- **Description:** Mark each item OK or To change, then sign off. The review is frozen with a SHA-256 evidence hash and exported as CSV and a PDF evidence pack for SOC 2 and ISO 27001. Read-only, Runs on Atlassian. *(195/220)*
+- **Description:** Mark each item Keep or Revoke, then sign off. The review is frozen with a SHA-256 evidence hash and exported as CSV and a PDF evidence pack for SOC 2 and ISO 27001. Read-only, Runs on Atlassian. *(194/220)*
 - **Caption:** Review sign-off: summary of decisions, who signed and when (UTC and local time), and the SHA-256 evidence hash printed in the PDF and CSV export. *(145/220)*
-- **Image concept (S3):** Reviews → "Q4 2026 access review", sign-off screen after signing, light theme. Summary (items, OK, To change), signer (fictional demo admin), signed-at in UTC and local time, base snapshot ID, engine version, the 64-character SHA-256 hash, buttons *Export CSV* / *Export PDF evidence pack*. Optionally the PDF cover page as an inset. Crop 580×330: signer + hash block.
+- **Image concept (S3):** Reviews → "Q4 2026 access review", sign-off screen after signing, light theme. Summary (Items, Decided, Keep, Revoke), signer (fictional demo admin), signed-at in UTC and local time, base snapshot ID, engine version, the 64-character SHA-256 hash, header buttons *Evidence pack* (CSV / PDF) and *Verify*. Optionally the PDF cover page as an inset. Crop 580×330: signer + hash block.
 - **Alt text:** "AccessRadar signed access review with decision summary, signer, timestamps and SHA-256 evidence hash"
 
 ---
@@ -113,9 +113,9 @@ In Jira Cloud, effective access comes from several layers at once: the permissio
 
 **Access reviews with sign-off**
 - A review = a scope (selected projects or the whole site) + a pinned snapshot, optionally compared with the previous review.
-- Mark items OK or To change with a note; bulk actions for uniform items.
+- Mark items Keep or Revoke with a note; bulk actions for uniform items.
 - Sign-off records who signed and when (UTC and local time) and freezes the review with a SHA-256 evidence hash over the items, decisions, snapshot content hash and engine version. The hash is tamper-evident, and auditors can recompute it from the CSV (see docs).
-- Items marked To change form a to-do list you carry out in Jira yourself. AccessRadar never changes anything.
+- Items marked Revoke form a to-do list you carry out in Jira yourself. AccessRadar never changes anything.
 
 **Evidence export**
 - CSV: access matrix, changes between snapshots, review decisions.
@@ -174,6 +174,11 @@ Sampled 2026-10-09 from Marketplace REST (`/rest/2/addons/{key}` → `tags`): Pr
 
 Every image needs alt text. Show the app inside the Jira UI, not marketing slides. Capture from **production** (dev shows a "Dev" label: checklist §1), viewport 1840×900 (or 920×450 at 2×), browser chrome hidden, light theme for the three highlights, demo data only, fictional names and avatars.
 
+**Asset files (2026-10-09, `brand/marketplace/`, built with Python + Pillow by the MarginRadar method; scripts in `brand/marketplace/_build/`, MarginRadar originals for reference in `_build/reference/marginradar/`):**
+- `brand/marketplace/logo-144.png`: 144×144, padlock on the brand gradient #236BB4 → #6569CB → #9B53C6, rounded chiclet (`_build/brand.py`)
+- `brand/marketplace/banner-1120x548.png`: 1120×548, MarginRadar banner layout: logo, "AccessRadar", "by Radrly", line "Who has access in Jira, and why. Read-only access reviews", Why-path card (`_build/brand.py`); variant with the full gradient background and white text: `banner-1120x548-gradient.png`
+- Highlights 1–3 and gallery 1–4 (1840×900): **not generated yet**. `_build/make.py` (highlights) and `_build/visuals.py` (gallery) wait for real 2x screenshots in `brand/marketplace/shots/` (list in `shots/README.md`), captured after the demo seed (`scripts/demo/seed.py`, plan in `docs/demo-data-plan.md`).
+
 ### 6.2 Demo data to seed (fictional, synthetic seed script)
 | Item | Seed |
 |---|---|
@@ -181,7 +186,7 @@ Every image needs alt text. Show the app inside the Jira UI, not marketing slide
 | Groups | `jira-admins-demo` (admin access), `developers`, `contractors`, `auditors`, `jira-software-users` |
 | Situations to show | a contractor gaining Edit in PAY between snapshots; a deactivated user still in `developers` (inactive with access); one scheme granting Browse to anyone in WEB (public grant); one person with Administer projects in 4 projects; app accounts hidden |
 | Snapshots | at least 3 (weekly), one pinned to a signed review "Q3 2026 access review" |
-| Review | "Q4 2026 access review", scope PAY + HR, ~40 items, 3 marked To change, signed |
+| Review | "Q4 2026 access review", scope PAY + HR, ~40 items, 3 marked Revoke, signed |
 
 ### 6.3 Shots
 | # | Use | Screen | Theme | Caption (≤220) |
@@ -201,7 +206,9 @@ Extra-screenshot caption counts (verified by the script): S4 126 · S5 124 · S6
 
 ---
 
-## 7. Links plan (all on accessradar.radrly.com; every URL must be live before submission)
+## 7. Links (all on accessradar.radrly.com)
+
+**Status 2026-10-09: the docs site is live** at https://accessradar.radrly.com with /docs /support /privacy /terms /dpa /security; all six pages and the home page return HTTP 200 (checked with curl on 2026-10-09, ~19:30 Europe/Warsaw).
 
 | Console field | URL | Notes |
 |---|---|---|
@@ -220,24 +227,40 @@ Extra-screenshot caption counts (verified by the script): S4 126 · S5 124 · S6
 
 ---
 
-## 8. Pricing: PROPOSAL (follows the MarginRadar schema), USD per month
+## 8. Pricing (Standard, USD per month, Paid via Atlassian)
 
-> **PROPOSAL, not decided.** Based on spec §13 (target ~$500–600 per 100 users per year for Standard). Free up to 10 users is from the brief and the checklist.
+> **Adopted 2026-10-09:** the recommendation from `docs/name-pricing-legal.md` §2.4. Free up to 10 users is from the brief and the checklist. Atlassian fixes the tier boundaries; the vendor only sets the price per tier.
 
-| Users (monthly tiers) | **Standard** (proposal) |
+| Users (Atlassian's monthly tiers) | **Standard** |
 |---|---:|
 | 1–10 | **$0** (flat, free) |
-| 11–100 | $0.60 / user |
-| 101–250 | $0.48 / user |
-| 251–1000 | $0.32 / user |
-| 1001+ (all higher tiers) | $0.20 / user |
-| Annual | 10× monthly (Marketplace rule, automatic) |
+| 11–100 | $0.75 / user |
+| 101–250 | $0.55 / user |
+| 251–1,000 | $0.35 / user |
+| 1,001–2,500 | $0.20 / user |
+| 2,501–5,000 | $0.15 / user |
+| 5,001+ (every higher tier up to 90,001+) | $0.12 / user |
+| Annual | 10× monthly (Marketplace rule, automatic), sold in annual user tiers (10, 15, 25, 50, 100, 200, 300, 400, 500, …) |
 | Multi-instance | Same as single-instance (checklist §4) |
 | Trial | 30-day free trial |
 
-Worked monthly examples (progressive, list price): 25 users $9.00 · 50 users $24.00 · 100 users $54.00 (= $540/year) · 250 users $126.00 · 500 users $206.00.
+**How the price is calculated (progressive, from the first user):** once a site has 11 or more users, every user is paid for, including the first ten: users 1–100 at the 11–100 rate, users 101–250 at the 101–250 rate, and so on (verified on 26 Marketplace apps, `name-pricing-legal.md` §2.1).
 
-*(PL) Punkty odniesienia (USD/100 u./rok, spec §13): Access Lens 100, Project Roles 200, AuditAdmin 450, Group Permission Audit 650, AccessLens 900, Access Reviewer360 1 620; Project Access Review darmowa. $540 to środek półki: poniżej AccessLens i Access Reviewer360, powyżej mikroklonów. Do walidacji w rozmowach z adminami/audytorami. Koszt Forge SQL na dużych instancjach trzeba zmierzyć (spec tydz. 7) przed ustaleniem progów.*
+| Users | Monthly (list) | Calculation | Annual equivalent (10×) |
+|---:|---:|---|---:|
+| 10 | $0.00 | flat free tier | $0 |
+| 25 | $18.75 | 25 × $0.75 | $187.50 |
+| 50 | $37.50 | 50 × $0.75 | $375 |
+| 100 | $75.00 | 100 × $0.75 | $750 |
+| 250 | $157.50 | 100 × $0.75 + 150 × $0.55 | $1,575 (annual licence is sold in the 300-user tier: $1,750) |
+| 500 | $245.00 | $157.50 + 250 × $0.35 | $2,450 |
+| 1,000 | $420.00 | $245.00 + 500 × $0.35 | $4,200 |
+| 2,500 | $720.00 | $420.00 + 1,500 × $0.20 | $7,200 |
+| 5,000 | $1,095.00 | $720.00 + 2,500 × $0.15 | $10,950 |
+
+`docs/listing-check.py` recomputes these examples from the tier table.
+
+*(PL) Punkty odniesienia (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2): Access Lens 100, Project Roles 200, AuditAdmin 450, Group Permission Audit 650, Access Auditor 750, Clearance 800, AccessLens 900, Recert 1 250, Keyring 1 360, Access Reviewer360 1 620, Certia 4 000, Access Evidence 4 530; Project Access Review darmowa. Mediana płatnych bezpośrednich konkurentów: $900. Nasze $750 jest poniżej mediany, a w progu 11–100 tyle samo co MarginRadar. Rewizja po 3 miesiącach albo 10 płatnych instalacjach; koszt Forge SQL na dużych instancjach do zmierzenia.*
 
 **Advanced edition (later, not in this listing):** only after the paid listing is approved and the phase-2 features exist (multi-reviewer campaigns with project leads, escalation, Jira audit-log context, longer retention). Spec suggests ~1.5–2× Standard. Do not mention Advanced in the listing copy until then.
 
@@ -293,7 +316,7 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 
 ## 10. Accuracy notes (keep the listing truthful)
 - Every listing claim maps to spec v1.0 Must items M1–M8 or Should S1 (risk indicators). No Advanced, campaigns, revoke, Rovo, Slack/email notifications or Confluence.
-- **PDF evidence pack and parts of the UI are not built yet** (2026-10-09). Listing goes live only when the build does what it says.
+- PDF evidence pack, Explore, Changes and Reviews are built (2026-10-09). Listing copy uses the UI's labels (Keep / Revoke, Granted / Revoked). Verify every claim in production before submitting.
 - Risk indicators match `src/engine/risk.ts`: anonymous, broad-app-role, admins, wide-admin, inactive, large-groups.
 - Schedule options match `src/db/settings.ts`: off / daily / weekly (default weekly).
 - "Tamper-evident", not "tamper-proof" (spec §8.5). "Supports evidence for SOC 2 / ISO 27001", never "SOC 2 compliant" or "certified".
@@ -303,13 +326,13 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 ---
 
 ## 11. Decisions and inputs needed from Marcin
-1. **App name:** recommended or Alternative A/B (§1); trademark check.
-2. **Pricing:** accept or change the proposal in §8.
-3. **Feature truth check before submit:** PDF evidence pack built; Explore (project/group/person), Changes, Reviews with sign-off and CSV export working in prod; risk tiles on Overview; key-permission labels.
-4. **`allowImpersonation`:** keep from v1.0 or remove before the first prod deploy.
-5. **Live URLs** on accessradar.radrly.com (§7), support hours and response time.
+1. ~~App name~~: **chosen** (*AccessRadar – Access Review & Permission Audit for Jira*). Still open: manual trademark check (EUIPO/WIPO, `name-pricing-legal.md` §1.4).
+2. ~~Pricing~~: **adopted** (§8).
+3. **Feature truth check before submit:** all listed features are in the code (2026-10-09); verify them in production after the Marketplace install (CLI install of a licensed app into production is refused until approval).
+4. **`allowImpersonation`:** shipped as declared in the first production deploy (2026-10-09). Removing it later is a scope change (new major version, admin consent) and must not happen during Marketplace review.
+5. ~~Live URLs~~: **live, all 200** (§7). Still open: support hours and response time.
 6. **Legal answers** in §9 (processor/controller, retention after uninstall, logging, EEA transfer).
-7. **Assets:** logo 144×144, banner 1120×548, S1–S3 at 1840×900 (+ 580×330 crops), optional S4–S10, alt texts.
+7. **Assets:** logo 144×144 and banner 1120×548 done (§6.1); S1–S3 highlights and gallery wait for real 2x screenshots after the demo seed (`docs/demo-data-plan.md`).
 8. **Keywords:** confirm Audit / Compliance / User permissions / Risk Management.
 
 ---

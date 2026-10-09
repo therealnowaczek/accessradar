@@ -9,9 +9,7 @@ md_block = re.search(r"### 2\.3 More details.*?```\n(.*?)\n```", listing, re.S).
 
 # (key, text, limit). Texts must match LISTING.md exactly.
 FIELDS = [
-    ("App name (recommended)", "AccessRadar – Access Review & Permission Audit for Jira", 60),
-    ("App name alt A", "AccessRadar – Permission Audit & Access Reviews for Jira", 60),
-    ("App name alt B", "AccessRadar: Permission Audit, Snapshots & Sign-off for Jira", 60),
+    ("App name", "AccessRadar – Access Review & Permission Audit for Jira", 60),
     ("Tagline", "See who can access what in Jira and why, what changed since your last review, and sign off with evidence auditors can check", 130),
     ("Tagline short", "Who has access to what in Jira, and why. Read-only access reviews with audit-ready evidence", 130),
     ("Summary", "See who has access to what in Jira and why: group, project role and permission scheme. Scheduled snapshots, diffs, signed access reviews and CSV/PDF evidence for SOC 2 and ISO 27001. Read-only. Runs on Atlassian.", 250),
@@ -23,7 +21,7 @@ FIELDS = [
     ("H2 description", "Daily or weekly snapshots, plus one on demand. Compare any two to see access granted and removed, group membership and scheme changes, filtered by project, group or permission. Export the diff to CSV.", 220),
     ("H2 caption", "Changes view: two snapshots compared, with access granted and removed listed separately and filters by project, group and permission.", 220),
     ("H3 title", "Sign-off you can hand to an auditor", 50),
-    ("H3 description", "Mark each item OK or To change, then sign off. The review is frozen with a SHA-256 evidence hash and exported as CSV and a PDF evidence pack for SOC 2 and ISO 27001. Read-only, Runs on Atlassian.", 220),
+    ("H3 description", "Mark each item Keep or Revoke, then sign off. The review is frozen with a SHA-256 evidence hash and exported as CSV and a PDF evidence pack for SOC 2 and ISO 27001. Read-only, Runs on Atlassian.", 220),
     ("H3 caption", "Review sign-off: summary of decisions, who signed and when (UTC and local time), and the SHA-256 evidence hash printed in the PDF and CSV export.", 220),
     ("Release summary", "First public release: who has access and why, snapshots, diffs, signed reviews", 80),
     ("S4 caption", "Overview: latest snapshot and its completeness, with risk indicators for admins, inactive users with access and public grants.", 220),
@@ -35,10 +33,10 @@ FIELDS = [
     ("S10 caption", "AccessRadar supports Jira's light and dark themes.", 220),
 ]
 STATED = {  # counts written in LISTING.md
-    "App name (recommended)": 55, "App name alt A": 56, "App name alt B": 60, "Tagline": 123,
-    "Tagline short": 91, "Summary": 212, "More details": 980, "H1 title": 39, "H1 description": 201,
+    "App name": 55, "Tagline": 123,
+    "Tagline short": 91, "Summary": 212, "More details": 979, "H1 title": 39, "H1 description": 201,
     "H1 caption": 154, "H2 title": 35, "H2 description": 200, "H2 caption": 133, "H3 title": 35,
-    "H3 description": 195, "H3 caption": 145, "Release summary": 78,
+    "H3 description": 194, "H3 caption": 145, "Release summary": 78,
 }
 ok = True
 for key, text, limit in FIELDS:
@@ -50,5 +48,22 @@ for key, text, limit in FIELDS:
     if key in STATED and STATED[key] != n: problems.append(f"stated {STATED[key]}")
     ok &= not problems
     print(f"{'OK ' if not problems else 'ERR'} {key:24} {n:4}/{limit}  {'; '.join(problems)}")
+# Pricing (§8): progressive from the first user on Atlassian's fixed tiers; 1–10 flat $0.
+TIERS = [(100, 0.75), (250, 0.55), (1000, 0.35), (2500, 0.20), (5000, 0.15), (None, 0.12)]
+def monthly(users):
+    if users <= 10: return 0.0
+    total, lo = 0.0, 0
+    for hi, rate in TIERS:
+        top = users if hi is None else min(users, hi)
+        if top > lo: total += (top - lo) * rate
+        if hi is None or users <= hi: break
+        lo = hi
+    return round(total, 2)
+for users, stated in [(10, 0), (25, 18.75), (50, 37.5), (100, 75), (250, 157.5), (500, 245), (1000, 420), (2500, 720), (5000, 1095)]:
+    m = monthly(users); good = abs(m - stated) < 0.005
+    row = f"| {users:,} | ${stated:,.2f} |"
+    found = row in listing
+    ok &= good and found
+    print(f"{'OK ' if good and found else 'ERR'} pricing {users:>5} users  ${m:,.2f}/month  annual ${m*10:,.2f}{'' if found else '  row not found in LISTING.md'}")
 print("Categories: 2 (Security and compliance, Administrative tools); keywords: 4 (Audit, Compliance, User permissions, Risk Management)")
 sys.exit(0 if ok else 1)
