@@ -174,3 +174,33 @@ export function Empty({
     </div>
   );
 }
+
+/** Small rounded status badge (MarginRadar Pill). */
+export function Pill({
+  tone = 'neutral',
+  children,
+}: {
+  tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'discovery';
+  children: ReactNode;
+}) {
+  return <span className={`pill pill-${tone}`}>{children}</span>;
+}
+
+/** Definition list on dividers (no nested cards). */
+export function Details({ rows }: { rows: Array<[string, ReactNode]> }) {
+  return (
+    <dl className="details settings-form">
+      {rows.map(([term, value]) => (
+        <div className="details-row" key={term}>
+          <dt>{term}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** Toolbar row above tables: search, filters, actions. Wraps on narrow screens. */
+export function FilterBar({ children }: { children: ReactNode }) {
+  return <div className="filter-bar">{children}</div>;
+}

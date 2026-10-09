@@ -11,7 +11,7 @@ import './styles.css';
 const AdminScreen = lazy(() => import('./AdminScreen'));
 const GetStartedScreen = lazy(() => import('./GetStartedScreen'));
 
-export type ForgeContext = { moduleKey?: string; localId?: string };
+export type ForgeContext = { moduleKey?: string; localId?: string; siteUrl?: string };
 
 function App() {
   const [context, setContext] = useState<ForgeContext | null>(null);

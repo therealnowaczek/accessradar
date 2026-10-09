@@ -7,7 +7,8 @@ export type ViewId =
   | 'changes'
   | 'reviews'
   | 'snapshots'
-  | 'settings';
+  | 'settings'
+  | 'activity';
 
 export type NavItem = { id: ViewId; label: string; title: string; description: string };
 
@@ -78,6 +79,12 @@ export const NAV: Array<{ group: string; items: NavItem[] }> = [
         label: 'Settings',
         title: 'Settings',
         description: 'Snapshot schedule, key permissions, retention, and security & data.',
+      },
+      {
+        id: 'activity',
+        label: 'Activity',
+        title: 'Activity',
+        description: 'Audit log of snapshots, reviews, sign-offs, exports and settings changes.',
       },
     ],
   },
