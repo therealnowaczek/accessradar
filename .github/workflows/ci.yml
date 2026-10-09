@@ -22,10 +22,6 @@ jobs:
       - run: npm test
       - run: npm run build:ui
       - run: npm audit --omit=dev --audit-level=high
-      - run: npm install -g @forge/cli@14
-      - run: forge settings set usage-analytics false
-      - name: forge lint (fails only on errors)
-        run: forge lint --environment development
-        env:
-          FORGE_EMAIL: ${{ secrets.FORGE_EMAIL }}
-          FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+      # forge lint needs Forge credentials and the Forge API, which timed out intermittently here
+      # ("Request timed out after 300000ms") and is unavailable to Dependabot PRs. It runs with
+      # retries in deploy-dev.yml, right before every deploy, which is where it gates anything.

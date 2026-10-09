@@ -25,6 +25,13 @@ jobs:
       - run: npm run build:ui
       - run: npm install -g @forge/cli@14
       - run: forge settings set usage-analytics false
-      - run: forge lint --environment production
+      - name: forge lint (retried on Forge API timeouts)
+        run: |
+          for attempt in 1 2 3; do
+            if timeout 240 forge lint --environment production; then exit 0; fi
+            echo "forge lint attempt $attempt failed; retrying in $((attempt * 20))s"
+            sleep $((attempt * 20))
+          done
+          exit 1
       # Deploy only. No install/upgrade in production from CI. Never change scopes during Marketplace review.
       - run: forge deploy --environment production --non-interactive --approve MAJOR_VERSION_RULE

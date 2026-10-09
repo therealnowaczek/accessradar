@@ -31,7 +31,14 @@ jobs:
       - run: npm run build:ui
       - run: npm install -g @forge/cli@14
       - run: forge settings set usage-analytics false
-      - run: forge lint --environment development
+      - name: forge lint (fails only on errors; retried on Forge API timeouts)
+        run: |
+          for attempt in 1 2 3; do
+            if timeout 240 forge lint --environment development; then exit 0; fi
+            echo "forge lint attempt $attempt failed; retrying in $((attempt * 20))s"
+            sleep $((attempt * 20))
+          done
+          exit 1
       - run: forge deploy --environment development --non-interactive --approve MAJOR_VERSION_RULE
       - name: Upgrade installation (scope change only)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.upgrade_install }}

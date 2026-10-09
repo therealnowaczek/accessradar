@@ -3,6 +3,10 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule: { interval: weekly }
+    groups:
+      # vite and its React plugin have peer ranges that must move together.
+      vite:
+        patterns: ['vite', '@vitejs/*', 'vitest']
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
