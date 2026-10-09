@@ -1,0 +1,9 @@
+node_modules/
+static/*/node_modules/
+static/*/build/
+.vitest/
+coverage/
+.env
+.env.*
+*.log
+.DS_Store

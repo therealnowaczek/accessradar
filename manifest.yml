@@ -1,0 +1,110 @@
+app:
+  id: ari:cloud:ecosystem::app/026c4f6a-266d-4c42-aec5-7394371ad05d
+  runtime:
+    name: nodejs24.x
+  licensing:
+    enabled: true
+modules:
+  jira:adminPage:
+    - key: accessradar-admin
+      resource: accessradar-ui
+      resolver:
+        function: ar-resolver
+      title: AccessRadar
+      layout: native
+      sections:
+        - header: AccessRadar
+          pages:
+            - title: Overview
+              route: overview
+            - title: Explore – Projects
+              route: explore-projects
+            - title: Explore – Groups
+              route: explore-groups
+            - title: Explore – People
+              route: explore-people
+            - title: Changes
+              route: changes
+            - title: Reviews
+              route: reviews
+            - title: Snapshots
+              route: snapshots
+            - title: Settings
+              route: settings
+    - key: accessradar-get-started
+      resource: accessradar-ui
+      resolver:
+        function: ar-resolver
+      title: AccessRadar – Get started
+      layout: native
+      useAsGetStarted: true
+  scheduledTrigger:
+    - key: accessradar-snapshot-tick
+      function: ar-tick
+      interval: hour
+    - key: accessradar-privacy-daily
+      function: ar-privacy
+      interval: day
+  trigger:
+    - key: accessradar-lifecycle
+      function: ar-lifecycle
+      events:
+        - avi:forge:installed:app
+        - avi:forge:upgraded:app
+  consumer:
+    - key: accessradar-collect-consumer
+      queue: accessradar-collect
+      function: ar-collector
+  sql:
+    - key: main
+      engine: mysql
+  function:
+    - key: ar-resolver
+      handler: index.resolver
+    - key: ar-tick
+      handler: index.tick
+      timeoutSeconds: 120
+    - key: ar-collector
+      handler: index.collector
+      timeoutSeconds: 900
+    - key: ar-privacy
+      handler: index.privacy
+      timeoutSeconds: 300
+    - key: ar-lifecycle
+      handler: index.lifecycle
+resources:
+  - key: accessradar-ui
+    path: static/accessradar-ui/build
+permissions:
+  scopes:
+    read:project:jira:
+      allowImpersonation: true
+    read:permission-scheme:jira:
+      allowImpersonation: true
+    read:permission:jira:
+      allowImpersonation: true
+    read:project-role:jira:
+      allowImpersonation: true
+    read:group:jira:
+      allowImpersonation: true
+    read:user:jira:
+      allowImpersonation: true
+    read:avatar:jira:
+      allowImpersonation: true
+    read:application-role:jira:
+      allowImpersonation: true
+    read:field:jira:
+      allowImpersonation: true
+    read:project-category:jira:
+      allowImpersonation: true
+    read:issue-type:jira:
+      allowImpersonation: true
+    read:project.property:jira:
+      allowImpersonation: true
+    read:issue-type-hierarchy:jira:
+      allowImpersonation: true
+    read:project-version:jira:
+      allowImpersonation: true
+    read:project.component:jira:
+      allowImpersonation: true
+    report:personal-data: {}
