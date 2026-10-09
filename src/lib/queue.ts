@@ -3,11 +3,19 @@ import { Queue } from '@forge/events';
 export const COLLECT_QUEUE = 'accessradar-collect';
 
 export type CollectStep =
-  'MIGRATE' | 'PLAN' | 'SCHEMES' | 'ROLES' | 'GROUPS' | 'FINALIZE' | 'SPIKE';
+  | 'MIGRATE'
+  | 'PLAN'
+  | 'PROJECTS'
+  | 'DIRECTORY'
+  | 'GROUPS'
+  | 'FINALIZE'
+  | 'PRIVACY'
+  | 'SPIKE'
+  | 'SELFTEST';
 
 export interface CollectEvent extends Record<string, unknown> {
   step: CollectStep;
-  snapshotId?: string;
+  snapshotSeq?: number;
   batch?: number;
   /** SPIKE only: accountId to impersonate (never logged). */
   impersonateAccountId?: string;
@@ -19,5 +27,11 @@ export const collectQueue = new Queue<CollectEvent>({ key: COLLECT_QUEUE });
 export const PER_INSTALL_CONCURRENCY = { key: 'collect', limit: 1 };
 
 export function push(body: CollectEvent, delayInSeconds?: number) {
-  return collectQueue.push({ body, delayInSeconds, concurrency: PER_INSTALL_CONCURRENCY });
+  return collectQueue.push({
+    body,
+    ...(delayInSeconds
+      ? { delayInSeconds: Math.min(900, Math.max(0, Math.round(delayInSeconds))) }
+      : {}),
+    concurrency: PER_INSTALL_CONCURRENCY,
+  });
 }
