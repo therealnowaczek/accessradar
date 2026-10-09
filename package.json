@@ -60,6 +60,7 @@
   },
   "overrides": {
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "prosemirror-view": "1.42.6"
   }
 }
