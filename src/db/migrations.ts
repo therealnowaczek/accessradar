@@ -374,6 +374,13 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       KEY ix_notice_proj (project_id, dismissed_at)
     )`,
   ],
+  // Site-wide signature chain across signed reviews (R2-07).
+  ['v037_review_chain', `ALTER TABLE review ADD COLUMN chain_seq INT NULL`],
+  ['v038_review_prev', `ALTER TABLE review ADD COLUMN prev_review_hash CHAR(64) NULL`],
+  [
+    'v039_review_chain_ix',
+    `CREATE UNIQUE INDEX uq_review_chain ON review (chain_seq)`,
+  ],
 ];
 
 let runner: typeof migrationRunner | null = null;

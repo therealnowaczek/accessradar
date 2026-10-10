@@ -96,18 +96,35 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
   useEffect(() => {
     if (autoCreate && hasSnapshot) openCreate();
   }, [autoCreate, hasSnapshot]);
+  const reviews = list.data?.reviews ?? [];
+  const hasChained = reviews.some((r) => r.status === 'signed' && r.chainSeq != null);
+  const openVerifyChain = () =>
+    setDrawer([
+      {
+        key: 'verify-chain',
+        title: 'Verify signature chain',
+        description: 'Checks that signed reviews form a contiguous hash-linked sequence.',
+        content: <VerifyChainPanel onDone={() => setDrawer([])} />,
+      },
+    ]);
   const header = (
     <PageHeader
       title={meta.title}
       description={meta.description}
       actions={
-        <Button appearance="primary" isDisabled={!hasSnapshot} onClick={openCreate}>
-          Start a review
-        </Button>
+        <>
+          {hasChained ? (
+            <Button appearance="subtle" onClick={openVerifyChain}>
+              Verify chain
+            </Button>
+          ) : null}
+          <Button appearance="primary" isDisabled={!hasSnapshot} onClick={openCreate}>
+            Start a review
+          </Button>
+        </>
       }
     />
   );
-  const reviews = list.data?.reviews ?? [];
   return (
     <PageFrame header={header}>
       <div className="page-stack">
@@ -133,6 +150,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
               cells: [
                 { key: 'name', content: 'Review', isSortable: true },
                 { key: 'status', content: 'Status', isSortable: true },
+                { key: 'chain', content: 'Chain #', isSortable: true },
                 { key: 'progress', content: 'Decided' },
                 { key: 'flagged', content: 'Revoke', isSortable: true },
                 { key: 'due', content: 'Due', isSortable: true },
@@ -166,6 +184,19 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                   content: (
                     <Lozenge appearance={STATUS[r.status][1]}>{STATUS[r.status][0]}</Lozenge>
                   ),
+                },
+                {
+                  key: r.chainSeq ?? 0,
+                  content:
+                    r.status === 'signed' ? (
+                      r.chainSeq != null ? (
+                        String(r.chainSeq)
+                      ) : (
+                        <span className="subtle">pre-chain</span>
+                      )
+                    ) : (
+                      <span className="subtle">—</span>
+                    ),
                 },
                 { key: 'p', content: `${r.decided ?? 0} of ${r.itemCount}` },
                 { key: r.flagged ?? 0, content: r.flagged ?? 0 },
@@ -678,6 +709,18 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                     `Snapshot #${d.review.baseSeq} hash`,
                     <Hash key="s" value={d.base?.contentHash} />,
                   ],
+                  [
+                    'Chain #',
+                    d.review.chainSeq != null ? String(d.review.chainSeq) : 'pre-chain',
+                  ],
+                  [
+                    'Previous hash',
+                    d.review.prevReviewHash ? (
+                      <Hash key="p" value={d.review.prevReviewHash} />
+                    ) : (
+                      '—'
+                    ),
+                  ],
                   ['Signature', `v${d.review.signatureVersion ?? 1}`],
                 ]}
               />
@@ -1162,6 +1205,95 @@ type VerifyJob = {
   actualHash: string | null;
   error: string | null;
 };
+
+type ChainVerifyResult = {
+  ok: boolean;
+  length: number;
+  brokenAt?: number;
+  reason?: string;
+  links: Array<{ chainSeq: number; id: string; ok: boolean; reason?: string }>;
+};
+
+function VerifyChainPanel({ onDone }: { onDone: () => void }) {
+  const [result, setResult] = useState<ChainVerifyResult | null>(null);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(true);
+  useEffect(() => {
+    void (async () => {
+      try {
+        setResult(await call<ChainVerifyResult>('verifyChain', {}));
+      } catch (e) {
+        setError(errorText(e));
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }, []);
+  return (
+    <>
+      <DrawerBody>
+        {error ? (
+          <SectionMessage appearance="error">
+            <p>{error}</p>
+          </SectionMessage>
+        ) : busy || !result ? (
+          <Loading />
+        ) : (
+          <div className="section-stack">
+            <Lozenge appearance={result.ok ? 'success' : 'removed'}>
+              {result.ok
+                ? `Intact · ${result.length} signed`
+                : `Broken at #${result.brokenAt ?? '?'}`}
+            </Lozenge>
+            {!result.ok && result.reason ? (
+              <SectionMessage appearance="error">
+                <p>{result.reason}</p>
+              </SectionMessage>
+            ) : null}
+            {result.length ? (
+              <DynamicTable
+                head={{
+                  cells: [
+                    { key: 'seq', content: 'Chain #' },
+                    { key: 'ok', content: 'Status' },
+                    { key: 'reason', content: 'Detail' },
+                  ],
+                }}
+                rows={result.links.map((l) => ({
+                  key: String(l.chainSeq),
+                  cells: [
+                    { key: l.chainSeq, content: String(l.chainSeq) },
+                    {
+                      key: l.ok ? 'ok' : 'bad',
+                      content: (
+                        <Lozenge appearance={l.ok ? 'success' : 'removed'}>
+                          {l.ok ? 'OK' : 'Break'}
+                        </Lozenge>
+                      ),
+                    },
+                    {
+                      key: l.reason ?? '',
+                      content: l.reason ?? <span className="subtle">—</span>,
+                    },
+                  ],
+                }))}
+                rowsPerPage={50}
+                defaultPage={1}
+              />
+            ) : (
+              <p className="subtle">No chained signatures yet.</p>
+            )}
+          </div>
+        )}
+      </DrawerBody>
+      <DrawerFooter>
+        <Button appearance="primary" onClick={onDone}>
+          Close
+        </Button>
+      </DrawerFooter>
+    </>
+  );
+}
 
 function VerifyDrawer({
   reviewId,

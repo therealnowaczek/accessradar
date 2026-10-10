@@ -31,6 +31,8 @@ export interface ReviewRow {
   signatureVersion: number;
   coverageHash: string | null;
   campaignRunId: string | null;
+  chainSeq: number | null;
+  prevReviewHash: string | null;
 }
 
 export interface ReviewItemRow {
@@ -73,6 +75,8 @@ const toReview = (r: any): ReviewRow => ({
   signatureVersion: Number(r.signature_version ?? 1),
   coverageHash: r.coverage_hash ?? null,
   campaignRunId: r.campaign_run_id ?? null,
+  chainSeq: num(r.chain_seq),
+  prevReviewHash: r.prev_review_hash ?? null,
 });
 
 const toItem = (r: any): ReviewItemRow => ({
@@ -95,7 +99,7 @@ const toItem = (r: any): ReviewItemRow => ({
 });
 
 const REVIEW_COLS =
-  'id, name, scope_json, key_perms, base_seq, compare_seq, status, created_by, created_at, due_at, item_count, signed_by, signed_at, signer_tz, attestation, evidence_hash, engine_version, signature_version, coverage_hash, campaign_run_id';
+  'id, name, scope_json, key_perms, base_seq, compare_seq, status, created_by, created_at, due_at, item_count, signed_by, signed_at, signer_tz, attestation, evidence_hash, engine_version, signature_version, coverage_hash, campaign_run_id, chain_seq, prev_review_hash';
 
 export async function insertReview(
   r: Omit<
@@ -110,6 +114,8 @@ export async function insertReview(
     | 'evidenceHash'
     | 'signatureVersion'
     | 'coverageHash'
+    | 'chainSeq'
+    | 'prevReviewHash'
   >,
   items: Array<
     ReviewItemDraft & {
@@ -246,6 +252,45 @@ export async function decide(
   return changed;
 }
 
+/** Next site-wide chain position and the previous signed evidence hash to link. */
+export async function nextChainTip(): Promise<{ nextSeq: number; prevHash: string | null }> {
+  const tip = await q<{ chain_seq: number; evidence_hash: string }>(
+    `SELECT chain_seq, evidence_hash FROM review
+      WHERE status = 'signed' AND chain_seq IS NOT NULL
+      ORDER BY chain_seq DESC LIMIT 1`,
+  );
+  if (tip.length) {
+    return { nextSeq: Number(tip[0].chain_seq) + 1, prevHash: tip[0].evidence_hash };
+  }
+  const pre = await q<{ evidence_hash: string }>(
+    `SELECT evidence_hash FROM review
+      WHERE status = 'signed' AND evidence_hash IS NOT NULL
+      ORDER BY signed_at DESC LIMIT 1`,
+  );
+  return { nextSeq: 1, prevHash: pre[0]?.evidence_hash ?? null };
+}
+
+export async function listChainLinks(): Promise<
+  Array<{ id: string; chainSeq: number; evidenceHash: string; prevReviewHash: string | null }>
+> {
+  const rows = await q<{
+    id: string;
+    chain_seq: number;
+    evidence_hash: string;
+    prev_review_hash: string | null;
+  }>(
+    `SELECT id, chain_seq, evidence_hash, prev_review_hash FROM review
+      WHERE status = 'signed' AND chain_seq IS NOT NULL
+      ORDER BY chain_seq ASC`,
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    chainSeq: Number(r.chain_seq),
+    evidenceHash: r.evidence_hash,
+    prevReviewHash: r.prev_review_hash ?? null,
+  }));
+}
+
 export async function markSigned(
   id: string,
   signedBy: string,
@@ -253,14 +298,19 @@ export async function markSigned(
   tz: string,
   attestation: string,
   hash: string,
-  opts: { signatureVersion: number; coverageHash: string | null } = {
+  opts: {
+    signatureVersion: number;
+    coverageHash: string | null;
+    chainSeq?: number | null;
+    prevReviewHash?: string | null;
+  } = {
     signatureVersion: 2,
     coverageHash: null,
   },
 ): Promise<boolean> {
   const n = await exec(
     `UPDATE review SET status = 'signed', signed_by = ?, signed_at = ?, signer_tz = ?, attestation = ?, evidence_hash = ?,
-        signature_version = ?, coverage_hash = ?
+        signature_version = ?, coverage_hash = ?, chain_seq = ?, prev_review_hash = ?
      WHERE id = ? AND status <> 'signed'`,
     signedBy,
     signedAt,
@@ -269,6 +319,8 @@ export async function markSigned(
     hash,
     opts.signatureVersion,
     opts.coverageHash,
+    opts.chainSeq ?? null,
+    opts.prevReviewHash ?? null,
     id,
   );
   return n > 0;

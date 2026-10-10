@@ -52,6 +52,10 @@ export async function insertReview(
     signerTz: null,
     attestation: null,
     evidenceHash: null,
+    signatureVersion: 1,
+    coverageHash: null,
+    chainSeq: null,
+    prevReviewHash: null,
   });
   return id;
 }
@@ -99,6 +103,31 @@ export async function decide(
   return changed;
 }
 
+export async function nextChainTip(): Promise<{ nextSeq: number; prevHash: string | null }> {
+  const chained = [...reviews.values()]
+    .filter((r) => r.status === 'signed' && r.chainSeq != null)
+    .sort((a, b) => (b.chainSeq ?? 0) - (a.chainSeq ?? 0));
+  if (chained.length) {
+    return { nextSeq: (chained[0].chainSeq ?? 0) + 1, prevHash: chained[0].evidenceHash };
+  }
+  const pre = [...reviews.values()]
+    .filter((r) => r.status === 'signed' && r.evidenceHash)
+    .sort((a, b) => (b.signedAt ?? 0) - (a.signedAt ?? 0));
+  return { nextSeq: 1, prevHash: pre[0]?.evidenceHash ?? null };
+}
+
+export async function listChainLinks() {
+  return [...reviews.values()]
+    .filter((r) => r.status === 'signed' && r.chainSeq != null)
+    .sort((a, b) => (a.chainSeq ?? 0) - (b.chainSeq ?? 0))
+    .map((r) => ({
+      id: r.id,
+      chainSeq: r.chainSeq!,
+      evidenceHash: r.evidenceHash!,
+      prevReviewHash: r.prevReviewHash,
+    }));
+}
+
 export async function markSigned(
   id: string,
   signedBy: string,
@@ -106,6 +135,12 @@ export async function markSigned(
   tz: string,
   attestation: string,
   hash: string,
+  opts: {
+    signatureVersion: number;
+    coverageHash: string | null;
+    chainSeq?: number | null;
+    prevReviewHash?: string | null;
+  } = { signatureVersion: 2, coverageHash: null },
 ): Promise<boolean> {
   const r = reviews.get(id);
   if (!r || r.status === 'signed') return false;
@@ -116,6 +151,10 @@ export async function markSigned(
     signerTz: tz,
     attestation,
     evidenceHash: hash,
+    signatureVersion: opts.signatureVersion,
+    coverageHash: opts.coverageHash,
+    chainSeq: opts.chainSeq ?? null,
+    prevReviewHash: opts.prevReviewHash ?? null,
   });
   return true;
 }

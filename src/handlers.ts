@@ -104,6 +104,7 @@ def('getReview', (p) => svc.reviewDetail(p));
 def('decideItems', (p, c) => svc.decideItems(p, c.accountId));
 def('signReview', (p, c) => svc.signReview(p, c.accountId, c.edition));
 def('verifyReview', (p, c) => svc.verifyReview(p, c.accountId));
+def('verifyChain', (_p, c) => svc.verifyChain(c.accountId));
 def('startSnapshotVerify', (p, c) => svc.startSnapshotVerify(p, c.accountId));
 def('getVerifyJob', (p) => svc.verifyJobStatus(p));
 def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
