@@ -2,11 +2,26 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
     groups:
       # vite and its React plugin have peer ranges that must move together.
       vite:
-        patterns: ['vite', '@vitejs/*', 'vitest']
+        patterns:
+          - 'vite'
+          - '@vitejs/*'
+          - 'vitest'
+      production-dependencies:
+        dependency-type: production
+      development-dependencies:
+        dependency-type: development
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      github-actions:
+        patterns:
+          - '*'
