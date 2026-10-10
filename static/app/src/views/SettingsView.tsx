@@ -391,6 +391,40 @@ function ReviewsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: ()
   );
 }
 
+const ALERT_RULE_LABELS: Array<{ key: keyof NonNullable<Settings['alerts']>; label: string }> = [
+  { key: 'new-admin', label: 'New Jira admin' },
+  { key: 'new-anonymous-grant', label: 'New anonymous (Anyone) grant' },
+  { key: 'inactive-with-access', label: 'Inactive account with access' },
+  { key: 'new-project-admin', label: 'New project admin' },
+  { key: 'new-app-account-admin', label: 'New app account admin' },
+];
+
+function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () => void }) {
+  const base = s.alerts ?? {
+    'new-admin': true,
+    'new-anonymous-grant': true,
+    'inactive-with-access': true,
+    'new-project-admin': true,
+    'new-app-account-admin': true,
+  };
+  const [alerts, setAlerts] = useState(base);
+  return (
+    <EditForm onCancel={cancel} onSave={() => save({ alerts })}>
+      <p className="subtle">
+        Alerts are evaluated when a snapshot commits (Advanced). Delivery is in-app only — no email.
+      </p>
+      {ALERT_RULE_LABELS.map((r) => (
+        <ToggleField
+          key={r.key}
+          label={r.label}
+          isChecked={alerts[r.key]}
+          onChange={() => setAlerts((a) => ({ ...a, [r.key]: !a[r.key] }))}
+        />
+      ))}
+    </EditForm>
+  );
+}
+
 export function SettingsView() {
   const { status } = useApp();
   const toast = useToast();
@@ -600,6 +634,32 @@ export function SettingsView() {
                 ]}
               />
             </Section>
+            {v.edition.features.changeAlerts ? (
+              <Section
+                title="Change alerts"
+                description="In-app alerts when access changes between snapshots (Advanced)."
+                action={
+                  <Button
+                    onClick={() =>
+                      edit(
+                        'Change alerts',
+                        'Which rules raise an in-app alert after a snapshot.',
+                        <AlertsForm s={s} save={save} cancel={close} />,
+                      )
+                    }
+                  >
+                    Edit
+                  </Button>
+                }
+              >
+                <Details
+                  rows={ALERT_RULE_LABELS.map((r) => [
+                    r.label,
+                    (s.alerts ?? {})[r.key] === false ? 'Off' : 'On',
+                  ])}
+                />
+              </Section>
+            ) : null}
             <Section
               title="Security & data"
               description="AccessRadar runs on Atlassian and only reads configuration."

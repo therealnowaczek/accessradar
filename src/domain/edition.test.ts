@@ -64,11 +64,11 @@ describe('featureFlags', () => {
     expect(comingSoonFeatures(featureFlags('advanced'))).toEqual([
       'delegatedReviews',
       'reviewCampaigns',
-      'changeAlerts',
       'rovo',
     ]);
     expect(RELEASED_FEATURES).toContain('remediationVerification');
     expect(RELEASED_FEATURES).toContain('evidencePack');
+    expect(RELEASED_FEATURES).toContain('changeAlerts');
     expect(comingSoonFeatures(featureFlags('standard'))).toEqual([]);
   });
 });

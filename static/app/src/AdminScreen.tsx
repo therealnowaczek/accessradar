@@ -18,6 +18,7 @@ import { GroupsView } from './views/GroupsView';
 import { OverviewView } from './views/OverviewView';
 import { PeopleView } from './views/PeopleView';
 import { ProjectsView } from './views/ProjectsView';
+import { AlertsView } from './views/AlertsView';
 import { ExceptionsView } from './views/ExceptionsView';
 import { ReviewsView } from './views/ReviewsView';
 import { SettingsView } from './views/SettingsView';
@@ -39,6 +40,7 @@ const VIEWS: Record<ViewId, () => JSX.Element> = {
   changes: ChangesView,
   reviews: ReviewsView,
   exceptions: ExceptionsView,
+  alerts: AlertsView,
   snapshots: SnapshotsView,
   settings: SettingsView,
   activity: ActivityView,
@@ -73,15 +75,22 @@ function Shell({ context }: { context: ForgeContext }) {
             <NavigationContent>
               {NAV.map((group) => (
                 <Section key={group.group} title={group.group}>
-                  {group.items.map((item) => (
-                    <ButtonItem
-                      key={item.id}
-                      isSelected={route.view === item.id}
-                      onClick={() => app.go(item.id)}
-                    >
-                      {item.label}
-                    </ButtonItem>
-                  ))}
+                  {group.items.map((item) => {
+                    const badge =
+                      item.id === 'alerts' && (status.data?.alertCount ?? 0) > 0
+                        ? ` (${status.data!.alertCount})`
+                        : '';
+                    return (
+                      <ButtonItem
+                        key={item.id}
+                        isSelected={route.view === item.id}
+                        onClick={() => app.go(item.id)}
+                      >
+                        {item.label}
+                        {badge}
+                      </ButtonItem>
+                    );
+                  })}
                 </Section>
               ))}
             </NavigationContent>

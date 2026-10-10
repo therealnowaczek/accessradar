@@ -72,6 +72,8 @@ export async function listNotices(opts: {
   projectId?: string | null;
   accountId?: string | null;
   kindPrefix?: string;
+  /** undismissed (default) | dismissed | all */
+  status?: 'undismissed' | 'dismissed' | 'all';
   undismissedOnly?: boolean;
   page?: number;
   pageSize?: number;
@@ -97,9 +99,15 @@ export async function listNotices(opts: {
     where.push('kind LIKE ?');
     params.push(`${opts.kindPrefix}%`);
   }
-  if (opts.undismissedOnly !== false) {
-    where.push('dismissed_at IS NULL');
-  }
+  const status =
+    opts.status ??
+    (opts.undismissedOnly === false
+      ? 'all'
+      : opts.undismissedOnly === true
+        ? 'undismissed'
+        : 'undismissed');
+  if (status === 'undismissed') where.push('dismissed_at IS NULL');
+  else if (status === 'dismissed') where.push('dismissed_at IS NOT NULL');
   const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
   const totalRows = await q<{ n: number }>(`SELECT COUNT(*) AS n FROM notice ${clause}`, ...params);
   const rows = await q(

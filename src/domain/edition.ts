@@ -41,6 +41,7 @@ export const RELEASED_FEATURES = [
   'unlimitedHistory',
   'remediationVerification',
   'evidencePack',
+  'changeAlerts',
 ] as const satisfies ReadonlyArray<keyof FeatureFlags>;
 
 export type ReleasedFeature = (typeof RELEASED_FEATURES)[number];

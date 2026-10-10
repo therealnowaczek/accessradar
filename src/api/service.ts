@@ -13,7 +13,14 @@ import {
 import { computeRisks } from '../engine/risk';
 import { buildState, type AccessState } from '../engine/state';
 import { audit, listAudit } from '../db/audit';
-import { countUndismissed } from '../db/notices';
+import {
+  countUndismissed,
+  dismissNotices,
+  insertNotice,
+  listNotices,
+  type Notice,
+} from '../db/notices';
+import { capAlerts, evaluateAlerts, sanitizeAlertRules } from '../engine/alerts';
 import {
   decide,
   deleteDraftReview,
@@ -144,12 +151,13 @@ async function withState<T>(seqInput: unknown, fn: (state: AccessState, snap: Sn
 
 // ---------- status & overview ----------
 export async function status(spike = false) {
-  const [latest, active, settings, list, noticeCount] = await Promise.all([
+  const [latest, active, settings, list, noticeCount, alertCount] = await Promise.all([
     latestCommitted(),
     activeSnapshot(),
     getSettings(),
     listSnapshots(1),
     countUndismissed({ audience: 'admin' }).catch(() => 0),
+    countUndismissed({ audience: 'admin', kindPrefix: 'alert:' }).catch(() => 0),
   ]);
   return {
     engineVersion: ENGINE_VERSION,
@@ -160,6 +168,7 @@ export async function status(spike = false) {
     active: snapshotSummary(active),
     lastAttempt: snapshotSummary(list[0] ?? null),
     noticeCount,
+    alertCount,
   };
 }
 
@@ -752,6 +761,75 @@ export async function acceptRemediationRisk(p: any, accountId: string, edition: 
   await markRemediationAccepted(review.id, idx, `Accepted risk: ${note}`);
   await audit(accountId, 'remediation.accepted', review.id, { idx });
   return { ok: true };
+}
+
+/** After a committed snapshot: raise in-app change alerts (Advanced). */
+export async function runAlertsCheck(seq: number): Promise<void> {
+  const edition = await backgroundEdition();
+  if (!edition.features.changeAlerts) return;
+  const snap = await getSnapshot(seq, false);
+  if (!snap || (snap.status !== 'complete' && snap.status !== 'partial')) return;
+  const prev = await previousCommitted(seq);
+  if (!prev) return; // first committed snapshot: no baseline
+  const settings = await getSettings();
+  const rules = sanitizeAlertRules(settings.alerts);
+  const [prevState, nextState] = await Promise.all([stateFor(prev.seq), stateFor(seq)]);
+  const alerts = capAlerts(evaluateAlerts(prevState, nextState, rules));
+  if (!alerts.length) return;
+  const counts: Record<string, number> = {};
+  for (const a of alerts) {
+    counts[a.rule] = (counts[a.rule] ?? 0) + 1;
+    await insertNotice({
+      kind: `alert:${a.rule}`,
+      audience: 'admin',
+      severity: a.severity,
+      title: a.title,
+      body: a.body,
+      refId: String(seq),
+    });
+  }
+  await audit('system', 'alert.raised', `#${seq}`, { seq, counts, total: alerts.length });
+  console.log('[alerts] raised', { seq, total: alerts.length });
+}
+
+function alertFromNotice(n: Notice) {
+  return {
+    id: n.id,
+    rule: n.kind.startsWith('alert:') ? n.kind.slice(6) : n.kind,
+    severity: n.severity,
+    title: n.title,
+    body: n.body,
+    seq: n.refId ? Number(n.refId) || null : null,
+    createdAt: n.createdAt,
+    dismissedAt: n.dismissedAt,
+    dismissedBy: n.dismissedBy,
+  };
+}
+
+export async function alertsList(payload: any, edition: EditionDecision) {
+  if (!edition.features.changeAlerts) throw new BadRequest(REQUIRES_ADVANCED);
+  const raw = typeof payload?.status === 'string' ? payload.status : 'undismissed';
+  const status =
+    raw === 'dismissed' || raw === 'all' || raw === 'undismissed' ? raw : 'undismissed';
+  const page = Math.max(1, Math.floor(Number(payload?.page) || 1));
+  const out = await listNotices({
+    audience: 'admin',
+    kindPrefix: 'alert:',
+    status,
+    page,
+  });
+  return { items: out.items.map(alertFromNotice), total: out.total };
+}
+
+export async function dismissAlerts(payload: any, accountId: string, edition: EditionDecision) {
+  if (!edition.features.changeAlerts) throw new BadRequest(REQUIRES_ADVANCED);
+  const ids = Array.isArray(payload?.ids)
+    ? payload.ids.map((n: unknown) => Number(n)).filter((n: number) => Number.isInteger(n) && n > 0)
+    : [];
+  if (!ids.length) throw new BadRequest('ids required');
+  const changed = await dismissNotices(ids, accountId);
+  if (changed) await audit(accountId, 'alert.dismissed', null, { count: changed });
+  return { changed };
 }
 
 /** After a committed snapshot: re-check open remediations against the new access picture. */
