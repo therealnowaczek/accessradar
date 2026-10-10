@@ -101,12 +101,14 @@ def('listReviews', () => svc.reviews());
 def('createReview', (p, c) => svc.createReview(p, c.accountId));
 def('getReview', (p) => svc.reviewDetail(p));
 def('decideItems', (p, c) => svc.decideItems(p, c.accountId));
-def('signReview', (p, c) => svc.signReview(p, c.accountId));
+def('signReview', (p, c) => svc.signReview(p, c.accountId, c.edition));
 def('verifyReview', (p, c) => svc.verifyReview(p, c.accountId));
 def('startSnapshotVerify', (p, c) => svc.startSnapshotVerify(p, c.accountId));
 def('getVerifyJob', (p) => svc.verifyJobStatus(p));
 def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
 def('listExceptions', (p) => svc.exceptionsList(p));
+def('listRemediation', (p, c) => svc.remediationList(p, c.edition));
+def('acceptRemediationRisk', (p, c) => svc.acceptRemediationRisk(p, c.accountId, c.edition));
 def('getSettings', (_p, c) => svc.settingsView(c.accountId, c.edition));
 def('saveSettings', (p, c) => svc.updateSettings(p, c.accountId, c.edition));
 def('getEdition', async (_p, c) => svc.editionView(c.edition));
@@ -228,6 +230,11 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
     case 'VERIFY_SNAPSHOT': {
       await ensureMigrated();
       if (typeof body.jobId === 'string') await svc.runVerifySnapshotJob(body.jobId);
+      return;
+    }
+    case 'REMEDIATION': {
+      await ensureMigrated();
+      if (Number.isInteger(body.seq)) await svc.runRemediationCheck(Number(body.seq));
       return;
     }
     case 'SELFTEST':

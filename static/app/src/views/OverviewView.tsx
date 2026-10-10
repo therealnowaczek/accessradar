@@ -276,6 +276,15 @@ export function OverviewView() {
                       : undefined
                   }
                 />
+                <Metric
+                  label="Open remediations"
+                  value={d.remediation?.open ?? 0}
+                  hint={
+                    d.remediation?.stillPresent
+                      ? `${d.remediation.stillPresent} still present`
+                      : undefined
+                  }
+                />
               </div>
               {d.reviews.overdue.length ? (
                 <SectionMessage

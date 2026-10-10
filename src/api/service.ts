@@ -6,6 +6,7 @@ import { buildReviewItems, evidenceHash, type ReviewScope } from '../engine/revi
 import {
   activeExceptionsForKeys,
   expireExceptions,
+  insertException,
   listExceptions,
   upsertExceptionsOnSign,
 } from '../db/exceptions';
@@ -37,7 +38,17 @@ import {
   STANDARD_RETENTION_DAYS,
   type FeatureFlags,
 } from '../domain/edition';
-import type { EditionDecision } from './edition';
+import { itemPresent } from '../engine/remediation';
+import {
+  getRemediation,
+  insertRemediations,
+  listRemediation,
+  markRemediationAccepted,
+  openRemediations,
+  remediationSummarySite,
+  updateRemediationCheck,
+} from '../db/remediation';
+import { backgroundEdition, type EditionDecision } from './edition';
 import {
   activeSnapshot,
   getSnapshot,
@@ -165,11 +176,17 @@ export async function overview(payload: any) {
       .filter((r) => r.status !== 'signed' && r.dueAt && r.dueAt < Date.now())
       .map((r) => ({ id: r.id, name: r.name, dueAt: r.dueAt })),
   };
+  const remediation = await remediationSummarySite().catch(() => ({
+    open: 0,
+    stillPresent: 0,
+    verified: 0,
+  }));
   if (!snap)
     return {
       snapshot: null,
       active: snapshotSummary(active),
       reviews: reviewSummary,
+      remediation,
       usage,
       budget: settings.hourlyPointBudget,
     };
@@ -212,6 +229,7 @@ export async function overview(payload: any) {
     risks,
     changes,
     reviews: reviewSummary,
+    remediation,
     usage,
     budget: settings.hourlyPointBudget,
   };
@@ -585,7 +603,7 @@ export async function decideItems(p: any, accountId: string) {
 
 const TZ = /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+){0,2}$|^UTC$/;
 
-export async function signReview(p: any, accountId: string) {
+export async function signReview(p: any, accountId: string, edition: EditionDecision) {
   const review = await loadReview(p.id);
   if (review.status === 'signed') throw new BadRequest('This review is already signed');
   if (p.attest !== true) throw new BadRequest('Confirm the attestation to sign');
@@ -628,6 +646,16 @@ export async function signReview(p: any, accountId: string) {
   if (exc.granted) await audit(accountId, 'exception.granted', review.id, { count: exc.granted });
   if (exc.superseded)
     await audit(accountId, 'exception.superseded', review.id, { count: exc.superseded });
+  if (edition.features.remediationVerification) {
+    const n = await insertRemediations(
+      review.id,
+      items
+        .filter((it) => it.decision === 'revoke')
+        .map((it) => ({ idx: it.idx, itemKey: it.itemKey })),
+      signedAt,
+    );
+    if (n) await audit(accountId, 'remediation.created', review.id, { count: n });
+  }
   await audit(accountId, 'review.signed', review.id, {
     signatureVersion: 2,
     evidenceHash: hash,
@@ -654,6 +682,131 @@ export async function runExpireExceptions(now = Date.now()): Promise<number> {
     console.log('[exceptions] expired', { count });
   }
   return count;
+}
+
+export async function remediationList(p: any, edition: EditionDecision) {
+  const review = await loadReview(p.reviewId ?? p.id);
+  if (!edition.features.remediationVerification) {
+    return { gated: true as const, rows: [], summary: { verified: 0, total: 0, open: 0 } };
+  }
+  const rows = await listRemediation(review.id);
+  const verified = rows.filter((r) => r.status === 'verified' || r.status === 'accepted').length;
+  const open = rows.filter((r) =>
+    ['pending', 'still_present', 'inconclusive'].includes(r.status),
+  ).length;
+  return {
+    gated: false as const,
+    rows,
+    summary: { verified, total: rows.length, open },
+  };
+}
+
+export async function acceptRemediationRisk(p: any, accountId: string, edition: EditionDecision) {
+  if (!edition.features.remediationVerification) throw new BadRequest(REQUIRES_ADVANCED);
+  const review = await loadReview(p.reviewId ?? p.id);
+  const idx = Number(p.idx);
+  if (!Number.isInteger(idx) || idx < 0) throw new BadRequest('Invalid item');
+  const row = await getRemediation(review.id, idx);
+  if (!row) throw new BadRequest('Remediation not found');
+  if (row.status === 'verified' || row.status === 'accepted')
+    throw new BadRequest('This remediation is already closed');
+  const items = await getItems(review.id);
+  const item = items.find((i) => i.idx === idx);
+  if (!item) throw new BadRequest('Review item not found');
+  let note: string;
+  let expiresAt: number;
+  try {
+    const checked = validateDecisionInput({
+      decision: 'exception',
+      note: p.note,
+      expiresAt: p.expiresAt,
+      tz: typeof p.tz === 'string' ? p.tz : 'UTC',
+    });
+    note = checked.note!;
+    expiresAt = checked.expiresAt!;
+  } catch (e) {
+    throw new BadRequest(String((e as Error).message ?? e));
+  }
+  await insertException({
+    itemKey: item.itemKey,
+    subjectType: item.subjectType,
+    subjectId: item.subjectId,
+    projectId: item.projectId,
+    groupId: item.groupId,
+    permissions: item.permissions,
+    justification: note,
+    expiresAt,
+    reviewId: review.id,
+    grantedBy: accountId,
+    grantedAt: Date.now(),
+  });
+  await markRemediationAccepted(review.id, idx, `Accepted risk: ${note}`);
+  await audit(accountId, 'remediation.accepted', review.id, { idx });
+  return { ok: true };
+}
+
+/** After a committed snapshot: re-check open remediations against the new access picture. */
+export async function runRemediationCheck(seq: number): Promise<void> {
+  const edition = await backgroundEdition();
+  if (!edition.features.remediationVerification) return;
+  const snap = await getSnapshot(seq, false);
+  if (!snap || (snap.status !== 'complete' && snap.status !== 'partial')) return;
+  const open = await openRemediations(seq);
+  if (!open.length) return;
+  const state = await stateFor(seq);
+  const now = Date.now();
+  let verified = 0;
+  let stillPresent = 0;
+  let inconclusive = 0;
+  // Cache review metadata per id.
+  const reviews = new Map<string, ReviewRow>();
+  for (const row of open) {
+    let review = reviews.get(row.reviewId);
+    if (!review) {
+      const r = await getReview(row.reviewId);
+      if (!r) continue;
+      review = r;
+      reviews.set(row.reviewId, r);
+    }
+    const presence = itemPresent(state, row.itemKey, review.keyPermissions, review.scope);
+    if (presence === 'absent') {
+      await updateRemediationCheck(row.reviewId, row.idx, {
+        status: 'verified',
+        checkedSeq: seq,
+        checkedAt: now,
+        verifiedSeq: seq,
+        detail: `Absent in snapshot #${seq}`,
+      });
+      verified += 1;
+    } else if (presence === 'inconclusive') {
+      await updateRemediationCheck(row.reviewId, row.idx, {
+        status: 'inconclusive',
+        checkedSeq: seq,
+        checkedAt: now,
+        detail: 'Partial data; could not confirm removal',
+      });
+      inconclusive += 1;
+    } else {
+      const checks = row.checkCount + 1;
+      await updateRemediationCheck(row.reviewId, row.idx, {
+        status: 'still_present',
+        checkedSeq: seq,
+        checkedAt: now,
+        detail:
+          checks >= 3
+            ? `Still present after ${checks} snapshots (highlighted)`
+            : `Still present in snapshot #${seq}`,
+      });
+      stillPresent += 1;
+    }
+  }
+  await audit('system', 'remediation.checked', `#${seq}`, {
+    seq,
+    verified,
+    stillPresent,
+    inconclusive,
+  });
+  console.log('[remediation] checked', { seq, verified, stillPresent, inconclusive });
 }
 
 /** Recomputes the evidence hash from stored records; any edit after sign-off shows up as a mismatch. */

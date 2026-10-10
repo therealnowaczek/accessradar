@@ -648,6 +648,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             </div>
           </SectionMessage>
         ) : null}
+        {signed ? <RemediationPanel reviewId={id} items={d.items} /> : null}
         <CoverageLimitations coverage={d.coverage} limitations={d.limitations} />
         <div className="metric-grid">
           <Metric
@@ -1007,6 +1008,116 @@ function ItemDrawer({
 
 const ATTESTATION =
   'I confirm that I reviewed every access item in this scope and that the decisions recorded here reflect my assessment.';
+
+type RemediationRow = {
+  idx: number;
+  itemKey: string;
+  status: 'pending' | 'verified' | 'still_present' | 'inconclusive' | 'accepted';
+  checkedSeq: number | null;
+  verifiedSeq: number | null;
+  detail: string | null;
+  checkCount: number;
+};
+
+const REMEDIATION_LOZENGE: Record<
+  RemediationRow['status'],
+  [string, 'default' | 'inprogress' | 'success' | 'removed' | 'moved']
+> = {
+  pending: ['Pending', 'inprogress'],
+  verified: ['Verified', 'success'],
+  still_present: ['Still present', 'removed'],
+  inconclusive: ['Inconclusive', 'default'],
+  accepted: ['Accepted risk', 'moved'],
+};
+
+function RemediationPanel({ reviewId, items }: { reviewId: string; items: ReviewItem[] }) {
+  const rem = useCall<{
+    gated: boolean;
+    rows: RemediationRow[];
+    summary: { verified: number; total: number; open: number };
+  }>('listRemediation', { reviewId });
+  if (rem.error && !rem.data) return null;
+  if (!rem.data) return <Loading />;
+  if (rem.data.gated) {
+    return (
+      <SectionMessage appearance="information" title="Remediation verification">
+        <p>
+          Verify revocations automatically with Advanced — AccessRadar checks the next snapshot.
+        </p>
+      </SectionMessage>
+    );
+  }
+  if (!rem.data.rows.length) {
+    return (
+      <Section title="Remediation">
+        <Empty title="No revocations in this review" description="" action={null} />
+      </Section>
+    );
+  }
+  const byIdx = new Map(items.map((i) => [i.idx, i]));
+  const { verified, total } = rem.data.summary;
+  return (
+    <Section
+      title="Remediation"
+      description="Whether Revoke decisions disappeared in a later snapshot."
+    >
+      <div className="section-stack">
+        <ProgressBar value={total ? verified / total : 0} />
+        <span className="subtle">
+          {verified} of {total} closed
+        </span>
+        <DynamicTable
+          head={{
+            cells: [
+              { key: 'who', content: 'Subject' },
+              { key: 'access', content: 'Access' },
+              { key: 'status', content: 'Status' },
+              { key: 'snap', content: 'Checked in snapshot' },
+            ],
+          }}
+          rows={rem.data.rows.map((r) => {
+            const item = byIdx.get(r.idx);
+            const [label, appearance] = REMEDIATION_LOZENGE[r.status];
+            return {
+              key: String(r.idx),
+              cells: [
+                {
+                  key: 'w',
+                  content: item ? <SubjectCell subject={item.subject} compact /> : r.itemKey,
+                },
+                {
+                  key: 'a',
+                  content: item ? item.permissions.map(permissionLabel).join(', ') : '—',
+                },
+                {
+                  key: 's',
+                  content: (
+                    <span className="section-stack">
+                      <Lozenge appearance={appearance}>
+                        {r.status === 'verified' && r.verifiedSeq
+                          ? `Verified #${r.verifiedSeq}`
+                          : label}
+                      </Lozenge>
+                      {r.detail && r.checkCount >= 3 ? (
+                        <span className="subtle">{r.detail}</span>
+                      ) : null}
+                    </span>
+                  ),
+                },
+                {
+                  key: 'c',
+                  content: r.checkedSeq != null ? `#${r.checkedSeq}` : '—',
+                },
+              ],
+            };
+          })}
+          rowsPerPage={25}
+          defaultPage={1}
+        />
+      </div>
+    </Section>
+  );
+}
 
 type VerifyJob = {
   id: string;

@@ -282,6 +282,23 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       KEY ix_verify_review (review_id)
     )`,
   ],
+  [
+    'v030_remediation',
+    `CREATE TABLE IF NOT EXISTS remediation (
+      review_id VARCHAR(36) NOT NULL,
+      idx INT NOT NULL,
+      item_key VARCHAR(512) NOT NULL,
+      status VARCHAR(16) NOT NULL,
+      created_at BIGINT NOT NULL,
+      checked_seq INT NULL,
+      checked_at BIGINT NULL,
+      verified_seq INT NULL,
+      detail VARCHAR(500) NULL,
+      check_count INT NOT NULL DEFAULT 0,
+      PRIMARY KEY (review_id, idx),
+      KEY ix_rem_status (status)
+    )`,
+  ],
 ];
 
 let runner: typeof migrationRunner | null = null;
