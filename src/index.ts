@@ -1,5 +1,6 @@
 export {
   resolverHandler as resolver,
+  projectResolverHandler as projectResolver,
   tickHandler as tick,
   collectorHandler as collector,
   privacyHandler as privacy,

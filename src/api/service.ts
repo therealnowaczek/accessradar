@@ -1293,6 +1293,8 @@ export async function getEvidencePack(p: any, edition: EditionDecision) {
 // ---------- campaigns (Advanced) ----------
 import {
   deleteCampaign as dbDeleteCampaign,
+  findOpenAssignmentForProject,
+  getAssignment,
   getCampaign,
   getCampaignRun,
   insertCampaign,
@@ -1301,12 +1303,14 @@ import {
   listCampaigns as dbListCampaigns,
   pauseCampaign as dbPauseCampaign,
   sanitizeCampaignInput,
+  submitAssignment as dbSubmitAssignment,
   updateCampaign,
   type CampaignInput,
 } from '../db/campaigns';
 import { exec as sqlExec } from '../db/sql';
 import { resolveAssignee, resolveCampaignProjectIds } from '../collector/campaignRun';
 import { push as queuePush } from '../lib/queue';
+import { ForbiddenError } from '../lib/auth';
 import { nextRunAt } from '../domain/campaignSchedule';
 
 function assertCampaigns(edition: EditionDecision) {
@@ -1438,5 +1442,138 @@ export async function campaignReassign(p: any, accountId: string, edition: Editi
     reviewId,
   );
   await audit(accountId, 'assignment.reassigned', reviewId, {});
+  return { ok: true };
+}
+
+// ---------- project settings page (delegated reviews) ----------
+function assertDelegated(edition: EditionDecision) {
+  if (!edition.features.delegatedReviews) throw new BadRequest(REQUIRES_ADVANCED);
+}
+
+/**
+ * Project page payload. `projectId` must come from Forge extension context (never payload).
+ * Caller is already verified as project admin (or site admin) by the project resolver.
+ */
+export async function projectMyAssignment(
+  projectId: string,
+  accountId: string,
+  access: 'assignee' | 'site-admin' | 'not-assigned',
+  edition: EditionDecision,
+) {
+  assertDelegated(edition);
+  const notices = await listNotices({
+    audience: 'project',
+    projectId,
+    status: 'undismissed',
+    page: 1,
+    pageSize: 20,
+  });
+  if (access === 'not-assigned') {
+    return {
+      access,
+      assignment: null,
+      review: null,
+      items: [],
+      notices: notices.items,
+      limitation:
+        'No access review is assigned to you for this project. Admins assign owners when they run a campaign.',
+    };
+  }
+  const assignment = await findOpenAssignmentForProject(projectId);
+  if (!assignment) {
+    return {
+      access,
+      assignment: null,
+      review: null,
+      items: [],
+      notices: notices.items,
+      limitation: 'No access review is assigned to this project.',
+    };
+  }
+  if (access === 'assignee' && assignment.assignee !== accountId) {
+    return {
+      access: 'not-assigned' as const,
+      assignment: null,
+      review: null,
+      items: [],
+      notices: notices.items,
+      limitation: 'Only the assigned project admin can review access here.',
+    };
+  }
+  const detail = await reviewDetail({ id: assignment.reviewId });
+  return {
+    access,
+    assignment,
+    review: detail.review,
+    items: detail.items,
+    notices: notices.items,
+    limitation: null,
+  };
+}
+
+export async function projectDecideItems(
+  projectId: string,
+  accountId: string,
+  access: 'assignee' | 'site-admin' | 'not-assigned',
+  p: any,
+  edition: EditionDecision,
+) {
+  assertDelegated(edition);
+  if (access === 'not-assigned')
+    throw new ForbiddenError('Only the assigned project admin can review access here');
+  const reviewId = v.id(p.reviewId ?? p.id, 'review', /^[0-9a-f-]{36}$/);
+  const assignment = await getAssignment(reviewId);
+  if (!assignment || assignment.projectId !== projectId || assignment.status !== 'open')
+    throw new BadRequest('Assignment not found for this project');
+  if (access === 'assignee' && assignment.assignee !== accountId)
+    throw new ForbiddenError('Only the assigned project admin can review access here');
+  return decideItems({ ...p, id: reviewId }, accountId);
+}
+
+export async function projectSubmitAssignment(
+  projectId: string,
+  accountId: string,
+  access: 'assignee' | 'site-admin' | 'not-assigned',
+  p: any,
+  edition: EditionDecision,
+) {
+  assertDelegated(edition);
+  if (access === 'not-assigned')
+    throw new ForbiddenError('Only the assigned project admin can submit this review');
+  const reviewId = v.id(p.reviewId ?? p.id, 'review', /^[0-9a-f-]{36}$/);
+  const assignment = await getAssignment(reviewId);
+  if (!assignment || assignment.projectId !== projectId || assignment.status !== 'open')
+    throw new BadRequest('Assignment not found for this project');
+  if (access === 'assignee' && assignment.assignee !== accountId)
+    throw new ForbiddenError('Only the assigned project admin can submit this review');
+  const review = await loadReview(reviewId);
+  const items = await getItems(reviewId);
+  const pending = items.filter((i) => i.change !== 'removed' && !i.decision).length;
+  if (pending) throw new BadRequest(`${pending} items still need a decision`);
+  if (!(await dbSubmitAssignment(reviewId, accountId)))
+    throw new BadRequest('Assignment already submitted');
+  await audit(accountId, 'assignment.submitted', reviewId, { projectId });
+  return { submitted: true, reviewId, name: review.name };
+}
+
+export async function projectDismissNotice(
+  projectId: string,
+  accountId: string,
+  p: any,
+  edition: EditionDecision,
+) {
+  assertDelegated(edition);
+  const id = Number(p.id);
+  if (!Number.isInteger(id) || id < 1) throw new BadRequest('Invalid notice');
+  const list = await listNotices({
+    audience: 'project',
+    projectId,
+    status: 'undismissed',
+    page: 1,
+    pageSize: 200,
+  });
+  if (!list.items.some((n) => n.id === id)) throw new BadRequest('Notice not found');
+  await dismissNotices([id], accountId);
+  await audit(accountId, 'notice.dismissed', String(id), { projectId });
   return { ok: true };
 }

@@ -10,6 +10,7 @@ import './styles.css';
 // Each Forge module needs one screen, so the other is not downloaded or parsed.
 const AdminScreen = lazy(() => import('./AdminScreen'));
 const GetStartedScreen = lazy(() => import('./GetStartedScreen'));
+const ProjectReviewScreen = lazy(() => import('./ProjectReviewScreen'));
 
 export type ForgeContext = { moduleKey?: string; localId?: string; siteUrl?: string };
 
@@ -30,9 +31,12 @@ function App() {
   }, []);
   if (error) return <ErrorState title="AccessRadar could not start" message={error} retry={load} />;
   if (!context) return <Loading />;
+  const kind = screenFor(context.moduleKey);
   const screen =
-    screenFor(context.moduleKey) === 'get-started' ? (
+    kind === 'get-started' ? (
       <GetStartedScreen />
+    ) : kind === 'project' ? (
+      <ProjectReviewScreen />
     ) : (
       <AdminScreen context={context} />
     );

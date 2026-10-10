@@ -43,6 +43,7 @@ export const RELEASED_FEATURES = [
   'evidencePack',
   'changeAlerts',
   'reviewCampaigns',
+  'delegatedReviews',
 ] as const satisfies ReadonlyArray<keyof FeatureFlags>;
 
 export type ReleasedFeature = (typeof RELEASED_FEATURES)[number];

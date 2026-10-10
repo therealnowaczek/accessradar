@@ -1,6 +1,7 @@
 import Resolver from '@forge/resolver';
 import { InvocationError, InvocationErrorCode, type AsyncEvent } from '@forge/events';
 import { assertJiraAdmin, ForbiddenError } from './lib/auth';
+import { assertProjectAdminister, assignmentAccess, isJiraAdmin } from './lib/projectAuth';
 import { push, type CollectEvent } from './lib/queue';
 import { ensureMigrated, runMigrations } from './db/migrations';
 import { purgeNotices } from './db/notices';
@@ -28,9 +29,10 @@ import {
 import { runCollectStep, scheduledTick } from './collector/run';
 import { runPrivacyReport } from './privacy';
 import * as svc from './api/service';
+import { findOpenAssignmentForProject } from './db/campaigns';
 import { errInfo } from './lib/errors';
 import { backgroundEdition, decideForInvocation, setEditionOverride } from './api/edition';
-import { effectiveSchedule, type EditionLicense } from './domain/edition';
+import { effectiveSchedule, REQUIRES_ADVANCED, type EditionLicense } from './domain/edition';
 import { isLicensed, UNLICENSED_MESSAGE } from './domain/license';
 
 // ---------- UI resolver (jira:adminPage) ----------
@@ -140,6 +142,83 @@ def('runSpike', async (_p, c) => {
 });
 
 export const resolverHandler = resolver.getDefinitions();
+
+// ---------- project settings page resolver (not Jira-admin-gated) ----------
+const projectResolver = new Resolver();
+
+type ProjectCtx = Ctx & {
+  projectId: string;
+  access: 'assignee' | 'site-admin' | 'not-assigned';
+};
+type ProjectHandler = (payload: any, ctx: ProjectCtx) => Promise<unknown>;
+
+/**
+ * Project settings page: license → projectId from extension context → ADMINISTER_PROJECTS
+ * (or site admin) → Advanced delegatedReviews. Payload project ids are ignored.
+ */
+function defProject(name: string, fn: ProjectHandler) {
+  projectResolver.define(name, async ({ payload, context }) => {
+    const started = Date.now();
+    try {
+      const license = (context as { license?: EditionLicense | null }).license ?? null;
+      if (!isLicensed({ license })) return { ok: false, error: UNLICENSED_MESSAGE };
+      const accountId = (context as { accountId?: string }).accountId ?? '';
+      const extension = (context as { extension?: { project?: { id?: string } } }).extension;
+      const projectId = extension?.project?.id ? String(extension.project.id) : '';
+      if (!projectId) return { ok: false, error: 'Project context missing', forbidden: true };
+
+      await ensureMigrated();
+      const edition = await decideForInvocation(license);
+      if (!edition.features.delegatedReviews) return { ok: false, error: REQUIRES_ADVANCED };
+
+      const siteAdmin = await isJiraAdmin(accountId);
+      if (!siteAdmin) await assertProjectAdminister(accountId, projectId);
+
+      const open = await findOpenAssignmentForProject(projectId);
+      const access = assignmentAccess({
+        accountId,
+        assignee: open?.assignee ?? null,
+        isSiteAdmin: siteAdmin,
+      });
+
+      const environmentType = (context as { environmentType?: string }).environmentType;
+      const data = await fn(payload ?? {}, {
+        accountId,
+        environmentType,
+        license,
+        edition,
+        projectId,
+        access,
+      });
+      console.log(`[project] ${name} ok`, { ms: Date.now() - started });
+      return { ok: true, data };
+    } catch (e) {
+      const message = String((e as Error)?.message ?? e).slice(0, 300);
+      const known = e instanceof ForbiddenError || e instanceof svc.BadRequest;
+      if (!known) console.error(`[project] ${name} failed`, errInfo(e));
+      return {
+        ok: false,
+        error: known ? message : `Something went wrong: ${message}`,
+        forbidden: e instanceof ForbiddenError,
+      };
+    }
+  });
+}
+
+defProject('getMyAssignment', (_p, c) =>
+  svc.projectMyAssignment(c.projectId, c.accountId, c.access, c.edition),
+);
+defProject('decideAssignedItems', (p, c) =>
+  svc.projectDecideItems(c.projectId, c.accountId, c.access, p, c.edition),
+);
+defProject('submitAssignment', (p, c) =>
+  svc.projectSubmitAssignment(c.projectId, c.accountId, c.access, p, c.edition),
+);
+defProject('dismissNotice', (p, c) =>
+  svc.projectDismissNotice(c.projectId, c.accountId, p, c.edition),
+);
+
+export const projectResolverHandler = projectResolver.getDefinitions();
 
 // ---------- lifecycle trigger ----------
 interface LifecycleEvent {
