@@ -121,13 +121,16 @@ export const MODULE_KEYS = {
   main: 'accessradar-admin',
   config: 'accessradar-config',
   getStarted: 'accessradar-get-started',
+  projectReview: 'accessradar-project-review',
 } as const;
 
-export type Screen = 'app' | 'get-started';
+export type Screen = 'app' | 'get-started' | 'project';
 
 /** Picks the screen from the Forge module that rendered the iframe. */
 export function screenFor(moduleKey: string | undefined): Screen {
-  return moduleKey === MODULE_KEYS.getStarted ? 'get-started' : 'app';
+  if (moduleKey === MODULE_KEYS.getStarted) return 'get-started';
+  if (moduleKey === MODULE_KEYS.projectReview) return 'project';
+  return 'app';
 }
 
 /** First view shown: the configuration module (useAsConfig) opens Settings, the main page Overview. */

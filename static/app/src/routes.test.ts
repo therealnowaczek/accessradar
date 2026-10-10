@@ -6,6 +6,7 @@ describe('routes', () => {
     expect(screenFor('accessradar-admin')).toBe('app');
     expect(screenFor('accessradar-config')).toBe('app');
     expect(screenFor('accessradar-get-started')).toBe('get-started');
+    expect(screenFor('accessradar-project-review')).toBe('project');
     expect(screenFor(undefined)).toBe('app');
   });
   it('opens settings from the configuration module', () => {

@@ -51,6 +51,15 @@ modules:
   sql:
     - key: main
       engine: mysql
+  # Project-owner delegated reviews (Advanced). No new scopes.
+  jira:projectSettingsPage:
+    - key: accessradar-project-review
+      resource: custom-ui
+      resolver:
+        function: ar-project-resolver
+      title: Access review
+      icon: resource:icons;accessradar.svg
+      layout: blank
   # Read-only Rovo agent (Advanced). No egress / remotes / Connect — keeps Runs on Atlassian.
   rovo:agent:
     - key: accessradar-agent
@@ -170,6 +179,8 @@ modules:
       handler: index.lifecycle
     - key: ar-rovo
       handler: index.rovo
+    - key: ar-project-resolver
+      handler: index.projectResolver
 
 resources:
   - key: icons

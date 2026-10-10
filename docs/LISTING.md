@@ -15,7 +15,7 @@
 - **Pozycjonowanie bez nazywania konkurentów:** „the why” (ścieżka grantu), uczciwa kompletność, dowód z hashem SHA-256, read-only (kontrast z Access Reviewer360, które robi revoke). Konkurentów (AccessLens, Project Access Review, Project Roles) ani JRACLOUD-71967 **nie wymieniamy** w listingu. Ticket to dobry materiał na stronę /docs albo post w Community, ale dopiero po Twojej decyzji.
 - **Ceny (§8, zaktualizowane 2026-10-10, 1:1 z MarginRadar):** Standard $0 do 10 użytkowników (płasko), potem $0.75 / $0.60 / $0.40 / $0.25 (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced $10 płasko do 10 użytkowników, potem $1.99 / $1.49 / $0.99 / $0.49. Rocznie 10× miesięcznie, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $75/mies. = $750/rok. Advanced trafi do Marketplace dopiero po akceptacji płatnej aplikacji; strona www pokazuje Advanced jako „Coming soon”. Progi Standard w Marketplace (dziś 0.75/0.55/0.35/0.20/0.15/0.12) do wyrównania, gdy listing będzie edytowalny.
 - **Privacy & Security:** gotowe odpowiedzi w §9. Dwie rzeczy wymagają uczciwego ujawnienia: (1) manifest deklaruje `allowImpersonation: true` na scope'ach odczytu, (2) Atlassian po instalacji dodaje app usera AccessRadar do grup adminów (week1-findings §3), choć aplikacja ma wyłącznie scope'y `read:*`. Pytania prawne oznaczyłem **[TO CONFIRM]**.
-- **Feature truth check (stan kodu 2026-10-10, po R1+R2 bez project page/Rovo):** jak po R1, plus **łańcuch podpisów** (Standard: `chain_seq` / previous hash, Verify chain), Advanced: **kampanie** (admin UI: create/preview/run/pause), **alerty zmian** w aplikacji (new admin / public grant / inactive), przypomnienia **tylko in-app** (bez e-maila). Nadal *(coming soon)*: strona ustawień projektu dla delegatów (R2-06) oraz agent Rovo (R2-08) — nie twierdzić ich w listingu. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Przed submitem przeklikaj na marginradar.atlassian.net (development). Lista w §11.
+- **Feature truth check (stan kodu 2026-10-10, po R1+R2):** jak po R1, plus **łańcuch podpisów**, Advanced: **kampanie**, **alerty zmian**, **delegacja** (project settings page dla project adminów), przypomnienia **tylko in-app**. Agent Rovo jest w manifeście (read-only), ale w Settings/listingu nadal *(coming soon)* do osobnej aktualizacji listingu. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Lista w §11.
 - **Produkcja:** wdrożona 9.10.2026 (gałąź `release/production`, workflow Deploy (production) zielony, spike usunięty w CI). **Instalacja prod przez CLI jest zablokowana przez Atlassian** („Installing a licensed app is not permitted”): aplikacji z `licensing.enabled: true` nie da się zainstalować z produkcji, dopóki listing nie zostanie zatwierdzony (instalacja tylko przez Marketplace). Zrzuty do listingu trzeba więc zrobić z dev/staging (z dopiskiem „Dev”/„Staging”) albo jako kompozycje, a finalne zrzuty z prod podmienić po akceptacji.
 - **Strona dokumentacji działa:** https://accessradar.radrly.com z podstronami /docs /support /privacy /terms /dpa /security, wszystkie zwracają HTTP 200 (sprawdzone curl 9.10.2026 ok. 19:30 czasu warszawskiego). §7.
 - **Bez wymyślonych liczb:** brak liczby klientów, instalacji, opinii, cytatów i obietnic certyfikacji. AccessRadar *wspiera* zbieranie dowodów do SOC 2 / ISO 27001; nie jest certyfikowany i nie gwarantuje zgodności.
@@ -291,9 +291,9 @@ Advanced (same method):
 | Explore projects, groups and people, with the why path | Recurring review campaigns (admin: create, preview, run, pause) |
 | Snapshot diff; coverage & limitations in exports | Change alerts: new admin, public grant, inactive user (in-app) |
 | Reviews: Keep / Revoke / Exception (expiry), SHA-256 sign-off v2 | In-app reminders for campaign runs (no email) |
-| Site-wide signature chain; verify signature, snapshot & chain | Remediation verification (confirm Revokes in later snapshots) |
-| CSV/PDF export; risk indicators (11 rules); exception register | Audit evidence pack PDF with SOC 2 / ISO control mapping |
-| | Reviews delegated to project owners *(coming soon)* |
+| Site-wide signature chain; verify signature, snapshot & chain | Reviews delegated to project owners (project settings page) |
+| CSV/PDF export; risk indicators (11 rules); exception register | Remediation verification (confirm Revokes in later snapshots) |
+| | Audit evidence pack PDF with SOC 2 / ISO control mapping |
 | | Rovo agent *(coming soon)* |
 
 *(PL) Punkty odniesienia (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2): Access Lens 100, Project Roles 200, AuditAdmin 450, Group Permission Audit 650, Access Auditor 750, Clearance 800, AccessLens 900, Recert 1 250, Keyring 1 360, Access Reviewer360 1 620, Certia 4 000, Access Evidence 4 530; Project Access Review darmowa. Mediana płatnych bezpośrednich konkurentów: $900. Standard $750 jest poniżej mediany; ceny obu edycji 1:1 z MarginRadar.*
@@ -349,8 +349,8 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 ---
 
 ## 10. Accuracy notes (keep the listing truthful)
-- Listing claims map to shipped R1 + R2 features in code (2026-10-10). Do **not** claim project-settings delegation inbox or Rovo until those PRs ship. No Slack/email notifications, no Confluence, no write scopes.
-- Campaigns, change alerts and signature chain are in development builds; verify on marginradar.atlassian.net before Marketplace submit. Listing copy uses the UI's labels (Keep / Revoke / Exception, Granted / Revoked, Campaigns, Alerts, Verify chain).
+- Listing claims map to shipped R1 + R2 features in code (2026-10-10), including project-settings delegation. Do **not** claim Rovo in the public listing until Settings drops its Coming soon flag for `rovo`. No Slack/email notifications, no Confluence, no write scopes.
+- Campaigns, alerts, signature chain and project Access review page are in development builds. Listing copy uses the UI's labels (Keep / Revoke / Exception, Campaigns, Alerts, Verify chain, Access review).
 - Known limitation (also in product copy): campaign delegates are not notified outside Jira; reminders and alerts are in-app only.
 - Risk indicators match `src/engine/risk.ts`: anonymous, broad-app-role, admins, wide-admin, inactive, large-groups.
 - Schedule options match `src/db/settings.ts`: off / daily / weekly (default weekly).

@@ -383,6 +383,35 @@ export async function getAssignment(reviewId: string): Promise<AssignmentRow | n
   return rows[0] ? toAssignment(rows[0]) : null;
 }
 
+/** Open assignment for a project (earliest due). Used by the project settings page. */
+export async function findOpenAssignmentForProject(
+  projectId: string,
+): Promise<AssignmentRow | null> {
+  const rows = await q(
+    `SELECT * FROM review_assignment
+      WHERE project_id = ? AND status = 'open'
+      ORDER BY due_at ASC LIMIT 1`,
+    projectId,
+  );
+  return rows[0] ? toAssignment(rows[0]) : null;
+}
+
+export async function submitAssignment(
+  reviewId: string,
+  accountId: string,
+  now = Date.now(),
+): Promise<boolean> {
+  const n = await exec(
+    `UPDATE review_assignment
+        SET status = 'submitted', submitted_at = ?, submitted_by = ?
+      WHERE review_id = ? AND status = 'open'`,
+    now,
+    accountId,
+    reviewId,
+  );
+  return n > 0;
+}
+
 export async function listAssignmentsForRun(runId: string): Promise<AssignmentRow[]> {
   const rows = await q(
     `SELECT a.* FROM review_assignment a
