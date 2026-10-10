@@ -58,6 +58,13 @@ export function matrixCsv(
   snapshot: Snapshot,
   rows: Array<Record<string, string>>,
   ctx: ExportContext = {},
+  risks: Array<{
+    id: string;
+    severity: string;
+    title: string;
+    count: number;
+    partial?: boolean;
+  }> = [],
 ) {
   const meta = baseMeta(ctx, [
     ['Snapshot', `#${snapshot.seq} (${snapshot.status})`],
@@ -70,7 +77,23 @@ export function matrixCsv(
     snapshot_id: snapshot.seq,
     captured_at_utc: formatUtc(snapshot.startedAt),
   }));
-  return toCsv(MATRIX_COLUMNS, enriched, { meta });
+  let out = toCsv(MATRIX_COLUMNS, enriched, { meta });
+  if (risks.length) {
+    const riskRows = risks.map((r) => ({
+      risk_id: r.id,
+      severity: r.severity,
+      title: r.title,
+      count: r.count,
+      partial: r.partial ? 'yes' : 'no',
+    }));
+    out +=
+      '\r\n' +
+      toCsv(['risk_id', 'severity', 'title', 'count', 'partial'], riskRows, {
+        meta: [['Section', 'Risks']],
+        bom: false,
+      });
+  }
+  return out;
 }
 
 export function matrixPdf(

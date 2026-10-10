@@ -71,6 +71,18 @@ describe('evidence exports', () => {
     expect(data[1]).toBe('2026-10-09 10:00:00 UTC');
   });
 
+  it('matrix CSV appends a Risks section when risks are provided', () => {
+    const text = matrixCsv(
+      snap,
+      [{ project_key: 'OPS', display_name: 'Ann', permission: 'BROWSE_PROJECTS', path: 'x' }],
+      ctx,
+      [{ id: 'anonymous', severity: 'high', title: 'Anonymous access', count: 2, partial: false }],
+    );
+    expect(text).toContain('# Section: Risks');
+    expect(text).toContain('anonymous');
+    expect(text).toContain('Anonymous access');
+  });
+
   it('changes CSV lists granted, revoked and configuration changes', () => {
     const c: Changes = {
       a: { ...snap, seq: 6 },

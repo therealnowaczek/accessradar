@@ -29,6 +29,11 @@ const RISK_TARGET: Record<string, [ViewId, Params]> = {
   'wide-admin': ['explore-people', { filter: 'project-admins' }],
   'broad-app-role': ['explore-groups', { filter: 'app-access' }],
   'large-groups': ['explore-groups', { filter: 'large' }],
+  'project-no-admin': ['explore-projects', {}],
+  'direct-user-grants': ['explore-people', {}],
+  'unused-schemes': ['explore-projects', {}],
+  'empty-groups-in-use': ['explore-groups', {}],
+  'app-accounts-admin': ['explore-people', { filter: 'admins' }],
 };
 
 export function OverviewView() {
@@ -84,6 +89,12 @@ export function OverviewView() {
         description: r.description,
         content: (
           <DrawerBody>
+            {r.learnMore ? <p className="subtle">{r.learnMore}</p> : null}
+            {r.partial ? (
+              <SectionMessage appearance="warning">
+                <p>Some related data was incomplete; this list may be partial.</p>
+              </SectionMessage>
+            ) : null}
             <ul className="plain-list">
               {r.items.map((i) => (
                 <li key={i.id}>
@@ -185,7 +196,7 @@ export function OverviewView() {
               title="Risk indicators"
               description="Signals worth checking in the next review. Select one to see the details."
             >
-              {d.risks && d.risks.some((r) => r.count) ? (
+              {d.risks && d.risks.some((r) => r.count || r.partial) ? (
                 <DynamicTable
                   head={{
                     cells: [
@@ -195,7 +206,7 @@ export function OverviewView() {
                     ],
                   }}
                   rows={d.risks
-                    .filter((r) => r.count)
+                    .filter((r) => r.count || r.partial)
                     .map((r) => ({
                       key: r.id,
                       cells: [
@@ -212,7 +223,10 @@ export function OverviewView() {
                             </>
                           ),
                         },
-                        { key: 'count', content: r.count },
+                        {
+                          key: 'count',
+                          content: r.partial && !r.count ? 'partial' : r.count,
+                        },
                       ],
                     }))}
                 />
