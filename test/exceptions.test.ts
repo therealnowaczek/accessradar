@@ -79,7 +79,7 @@ describe('validateDecisionInput', () => {
   });
 
   it('stores end-of-day in signer TZ for Europe/Warsaw and Pacific/Auckland', () => {
-    const warsaw = expiryEndOfDay('2026-10-20', 'Europe/Warsaw', now);
+    const warsaw = expiryEndOfDay('2026-10-20', 'Europe/Warsaw');
     expect(
       new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Europe/Warsaw',
@@ -100,7 +100,7 @@ describe('validateDecisionInput', () => {
     }).formatToParts(new Date(warsaw));
     expect(parts.find((p) => p.type === 'hour')?.value).toBe('23');
 
-    const auckland = expiryEndOfDay('2026-10-20', 'Pacific/Auckland', now);
+    const auckland = expiryEndOfDay('2026-10-20', 'Pacific/Auckland');
     const aDay = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Pacific/Auckland',
       year: 'numeric',
