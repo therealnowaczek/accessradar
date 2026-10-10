@@ -34,6 +34,11 @@ import { useCall } from '../data';
 import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Drawer';
 import { downloadCsv, downloadPdf } from '../export/download';
 import { reviewCsv, reviewFileName, reviewPdf } from '../export/evidence';
+import {
+  evidencePackFileName,
+  evidencePackPdf,
+  type EvidencePackPayload,
+} from '../export/evidencePack';
 import { formatLocal, formatUtc, permissionLabel, plural, timeZone } from '../format';
 import { navItem } from '../routes';
 import { exportContext, logExport, NoSnapshot, useApp, useExporter, useSnapshots } from '../shared';
@@ -577,7 +582,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           </Button>
           <ExportMenu
             isDisabled={!d}
-            label={signed ? 'Evidence pack' : 'Export'}
+            label={signed ? 'Export' : 'Export'}
             onCsv={() =>
               void exporter('Review CSV', () => {
                 downloadCsv(reviewFileName(d!, 'csv'), reviewCsv(d!, exportContext(siteUrl)));
@@ -585,14 +590,45 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               })
             }
             onPdf={() =>
-              void exporter('Evidence pack PDF', () => {
+              void exporter('Review PDF', () => {
                 downloadPdf(reviewFileName(d!, 'pdf'), reviewPdf(d!, exportContext(siteUrl)));
                 logExport('review-pdf', id, d!.limitations?.version);
               })
             }
           />
           {signed ? (
-            <Button onClick={openVerify}>Verify</Button>
+            <>
+              <Button
+                appearance="primary"
+                onClick={() =>
+                  void exporter('Evidence pack', async () => {
+                    const allItems: EvidencePackPayload['items'] = [];
+                    let page = 1;
+                    let first: EvidencePackPayload | null = null;
+                    for (;;) {
+                      const pack = await call<EvidencePackPayload>('getEvidencePack', {
+                        id,
+                        page,
+                        pageSize: 500,
+                      });
+                      if (!first) first = pack;
+                      allItems.push(...pack.items);
+                      if (!pack.nextPage) break;
+                      page = pack.nextPage;
+                    }
+                    if (!first) throw new Error('Empty evidence pack');
+                    downloadPdf(
+                      evidencePackFileName(d!.review.name, id),
+                      evidencePackPdf(first, allItems, exportContext(siteUrl)),
+                    );
+                    logExport('evidence-pack', id, d!.limitations?.version);
+                  })
+                }
+              >
+                Download evidence pack
+              </Button>
+              <Button onClick={openVerify}>Verify</Button>
+            </>
           ) : (
             <>
               <Button appearance="subtle" onClick={openDelete} isDisabled={!d}>

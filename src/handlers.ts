@@ -109,6 +109,7 @@ def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
 def('listExceptions', (p) => svc.exceptionsList(p));
 def('listRemediation', (p, c) => svc.remediationList(p, c.edition));
 def('acceptRemediationRisk', (p, c) => svc.acceptRemediationRisk(p, c.accountId, c.edition));
+def('getEvidencePack', (p, c) => svc.getEvidencePack(p, c.edition));
 def('getSettings', (_p, c) => svc.settingsView(c.accountId, c.edition));
 def('saveSettings', (p, c) => svc.updateSettings(p, c.accountId, c.edition));
 def('getEdition', async (_p, c) => svc.editionView(c.edition));

@@ -65,10 +65,10 @@ describe('featureFlags', () => {
       'delegatedReviews',
       'reviewCampaigns',
       'changeAlerts',
-      'evidencePack',
       'rovo',
     ]);
     expect(RELEASED_FEATURES).toContain('remediationVerification');
+    expect(RELEASED_FEATURES).toContain('evidencePack');
     expect(comingSoonFeatures(featureFlags('standard'))).toEqual([]);
   });
 });
