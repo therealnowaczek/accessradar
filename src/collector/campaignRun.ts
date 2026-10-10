@@ -42,24 +42,38 @@ export async function soonestReminderAt(now = Date.now()): Promise<number | null
   return now + 3600_000;
 }
 
+export type CampaignProjectRef = { id: string; categoryId?: string | null };
+
 /** Resolve project ids for a campaign from the latest committed snapshot state. */
 export function resolveCampaignProjectIds(
   campaign: CampaignRow,
-  projectIds: string[],
+  projects: Iterable<CampaignProjectRef>,
 ): { ids: string[]; warnings: string[] } {
   const warnings: string[] = [];
+  const list = [...projects];
   if (campaign.scope.type === 'site') {
-    return { ids: projectIds.slice(0, MAX_PROJECTS_PER_RUN), warnings };
+    return { ids: list.map((p) => p.id).slice(0, MAX_PROJECTS_PER_RUN), warnings };
   }
   if (campaign.scope.type === 'projects') {
-    const known = new Set(projectIds);
+    const known = new Set(list.map((p) => p.id));
     const ids = campaign.scope.ids.filter((id) => known.has(id)).slice(0, MAX_PROJECTS_PER_RUN);
     const missing = campaign.scope.ids.length - ids.length;
     if (missing) warnings.push(`${missing} scoped project(s) missing from snapshot`);
     return { ids, warnings };
   }
-  warnings.push('Project category scope is not available yet; no projects selected');
-  return { ids: [], warnings };
+  // category scope: match project.categoryId against scoped category ids
+  const wanted = new Set(campaign.scope.ids.map(String));
+  const ids = list
+    .filter((p) => p.categoryId && wanted.has(String(p.categoryId)))
+    .map((p) => p.id)
+    .slice(0, MAX_PROJECTS_PER_RUN);
+  if (!ids.length)
+    warnings.push(
+      list.some((p) => p.categoryId)
+        ? 'No projects in the selected categories in this snapshot'
+        : 'No project categories in snapshot; re-run a snapshot after upgrading',
+    );
+  return { ids, warnings };
 }
 
 export function resolveAssignee(
@@ -166,8 +180,10 @@ export async function runCampaignMaterialize(runId: string, cursor = 0): Promise
   const campaign = await getCampaign(run.campaignId);
   if (!campaign) return;
   const state = buildState(await loadFacts(run.seq));
-  const allIds = [...state.projects.keys()].sort();
-  const { ids, warnings } = resolveCampaignProjectIds(campaign, allIds);
+  const projectRefs = [...state.projects.entries()]
+    .map(([id, p]) => ({ id, categoryId: p.categoryId ?? null }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  const { ids, warnings } = resolveCampaignProjectIds(campaign, projectRefs);
   if (warnings.length && cursor === 0)
     console.log('[campaign] materialize warnings', { runId, count: warnings.length });
 

@@ -41,6 +41,10 @@ export interface ProjectAttrs {
   typeKey: string;
   schemeId?: string;
   leadAccountId?: string;
+  /** Jira project category id (for campaign scope). */
+  categoryId?: string;
+  /** Jira project category display name. */
+  categoryName?: string;
 }
 export interface SchemeAttrs {
   name: string;

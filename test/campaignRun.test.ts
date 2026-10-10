@@ -22,10 +22,14 @@ const base = (over: Partial<CampaignRow> = {}): CampaignRow => ({
 });
 
 describe('resolveCampaignProjectIds', () => {
-  const all = ['p1', 'p2', 'p3'];
+  const all = [
+    { id: 'p1', categoryId: 'cat1' },
+    { id: 'p2', categoryId: 'cat2' },
+    { id: 'p3', categoryId: null },
+  ];
 
   it('site scope takes all projects up to cap', () => {
-    expect(resolveCampaignProjectIds(base(), all).ids).toEqual(all);
+    expect(resolveCampaignProjectIds(base(), all).ids).toEqual(['p1', 'p2', 'p3']);
   });
 
   it('projects scope filters to known ids and warns on missing', () => {
@@ -37,13 +41,22 @@ describe('resolveCampaignProjectIds', () => {
     expect(warnings[0]).toMatch(/missing/);
   });
 
-  it('category scope returns empty with warning', () => {
+  it('category scope selects projects in those categories', () => {
     const { ids, warnings } = resolveCampaignProjectIds(
-      base({ scope: { type: 'category', ids: ['cat1'] } }),
+      base({ scope: { type: 'category', ids: ['cat1', 'cat2'] } }),
+      all,
+    );
+    expect(ids).toEqual(['p1', 'p2']);
+    expect(warnings).toEqual([]);
+  });
+
+  it('category scope warns when no projects match', () => {
+    const { ids, warnings } = resolveCampaignProjectIds(
+      base({ scope: { type: 'category', ids: ['other'] } }),
       all,
     );
     expect(ids).toEqual([]);
-    expect(warnings.length).toBe(1);
+    expect(warnings[0]).toMatch(/No projects in the selected categories/);
   });
 });
 

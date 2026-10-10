@@ -86,7 +86,7 @@ describe('sanitizeSettings', () => {
 });
 
 describe('normalize Jira payloads', () => {
-  it('maps projects incl. team-managed and lead', () => {
+  it('maps projects incl. team-managed, lead and category', () => {
     expect(
       projectFact({ id: '1', key: 'KAN', name: 'K', simplified: true, lead: { accountId: 'x' } })
         ?.attrs,
@@ -96,6 +96,22 @@ describe('normalize Jira payloads', () => {
       style: 'team',
       typeKey: 'unknown',
       leadAccountId: 'x',
+    });
+    expect(
+      projectFact({
+        id: '2',
+        key: 'PAY',
+        name: 'Pay',
+        projectTypeKey: 'software',
+        projectCategory: { id: '10001', name: 'Finance' },
+      })?.attrs,
+    ).toEqual({
+      key: 'PAY',
+      name: 'Pay',
+      style: 'company',
+      typeKey: 'software',
+      categoryId: '10001',
+      categoryName: 'Finance',
     });
     expect(projectFact({ key: 'X' })).toBeNull();
   });

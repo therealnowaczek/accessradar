@@ -15,6 +15,8 @@ export function projectFact(p: any): Fact<ProjectAttrs> | null {
   if (!id || !key) return null;
   const team = p.simplified === true || p.style === 'next-gen';
   const lead = str(p.lead?.accountId);
+  const categoryId = str(p.projectCategory?.id);
+  const categoryName = str(p.projectCategory?.name);
   return {
     kind: 'project',
     fkey: factKey.project(id),
@@ -24,6 +26,8 @@ export function projectFact(p: any): Fact<ProjectAttrs> | null {
       style: team ? 'team' : 'company',
       typeKey: str(p.projectTypeKey) || 'unknown',
       ...(lead ? { leadAccountId: lead } : {}),
+      ...(categoryId ? { categoryId } : {}),
+      ...(categoryName ? { categoryName } : {}),
     },
   };
 }

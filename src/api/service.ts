@@ -1257,7 +1257,10 @@ export async function campaignPreview(p: any, edition: EditionDecision) {
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
-  const { ids, warnings } = resolveCampaignProjectIds(fake, [...state.projects.keys()]);
+  const { ids, warnings } = resolveCampaignProjectIds(
+    fake,
+    [...state.projects.entries()].map(([id, p]) => ({ id, categoryId: p.categoryId ?? null })),
+  );
   const projects = ids.slice(0, 100).map((id) => {
     const pjt = state.projects.get(id)!;
     return {
