@@ -15,7 +15,7 @@
 - **Pozycjonowanie bez nazywania konkurentów:** „the why” (ścieżka grantu), uczciwa kompletność, dowód z hashem SHA-256, read-only (kontrast z Access Reviewer360, które robi revoke). Konkurentów (AccessLens, Project Access Review, Project Roles) ani JRACLOUD-71967 **nie wymieniamy** w listingu. Ticket to dobry materiał na stronę /docs albo post w Community, ale dopiero po Twojej decyzji.
 - **Ceny (§8, zaktualizowane 2026-10-10, 1:1 z MarginRadar):** Standard $0 do 10 użytkowników (płasko), potem $0.75 / $0.60 / $0.40 / $0.25 (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced $10 płasko do 10 użytkowników, potem $1.99 / $1.49 / $0.99 / $0.49. Rocznie 10× miesięcznie, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $75/mies. = $750/rok. Advanced trafi do Marketplace dopiero po akceptacji płatnej aplikacji; strona www pokazuje Advanced jako „Coming soon”. Progi Standard w Marketplace (dziś 0.75/0.55/0.35/0.20/0.15/0.12) do wyrównania, gdy listing będzie edytowalny.
 - **Privacy & Security:** gotowe odpowiedzi w §9. Dwie rzeczy wymagają uczciwego ujawnienia: (1) manifest deklaruje `allowImpersonation: true` na scope'ach odczytu, (2) Atlassian po instalacji dodaje app usera AccessRadar do grup adminów (week1-findings §3), choć aplikacja ma wyłącznie scope'y `read:*`. Pytania prawne oznaczyłem **[TO CONFIRM]**.
-- **Feature truth check (stan kodu 9.10.2026):** w kodzie są już: Explore (projekty/grupy/osoby) z panelem „Why”, Changes (zakładki Granted / Revoked / Groups / Schemes & roles / People, eksport CSV i PDF), Reviews z decyzjami **Keep / Revoke**, podpisem i hashem SHA-256 oraz eksportem CSV i PDF evidence pack (`static/app/src/export/pdf.ts`), harmonogram daily/weekly, retencja, ryzyka. Teksty listingu dopasowano do etykiet w UI (wcześniej było „OK / To change”, w aplikacji jest „Keep / Revoke”). Przed submitem przeklikaj to na prod (recenzent sprawdza zgodność listingu z aplikacją). Lista w §11.
+- **Feature truth check (stan kodu 2026-10-10, po R1):** Explore (projekty/grupy/osoby) z panelem „Why”, Changes, Reviews z decyzjami **Keep / Revoke / Exception** (uzasadnienie + data wygaśnięcia), rejestr wyjątków, Coverage & limitations w UI/PDF/CSV, podpis **v2** (hash snapshotu + coverage), weryfikacja podpisu i integralności snapshotu, 11 reguł ryzyka, Advanced: weryfikacja remediacji Revoke oraz evidence pack z mapowaniem SOC 2 / ISO. Harmonogram daily/weekly, retencja. Przed submitem przeklikaj na marginradar.atlassian.net (development). Lista w §11.
 - **Produkcja:** wdrożona 9.10.2026 (gałąź `release/production`, workflow Deploy (production) zielony, spike usunięty w CI). **Instalacja prod przez CLI jest zablokowana przez Atlassian** („Installing a licensed app is not permitted”): aplikacji z `licensing.enabled: true` nie da się zainstalować z produkcji, dopóki listing nie zostanie zatwierdzony (instalacja tylko przez Marketplace). Zrzuty do listingu trzeba więc zrobić z dev/staging (z dopiskiem „Dev”/„Staging”) albo jako kompozycje, a finalne zrzuty z prod podmienić po akceptacji.
 - **Strona dokumentacji działa:** https://accessradar.radrly.com z podstronami /docs /support /privacy /terms /dpa /security, wszystkie zwracają HTTP 200 (sprawdzone curl 9.10.2026 ok. 19:30 czasu warszawskiego). §7.
 - **Bez wymyślonych liczb:** brak liczby klientów, instalacji, opinii, cytatów i obietnic certyfikacji. AccessRadar *wspiera* zbieranie dowodów do SOC 2 / ISO 27001; nie jest certyfikowany i nie gwarantuje zgodności.
@@ -55,16 +55,16 @@ Built for Jira admins and compliance teams:
 • The "why": group → project role → permission scheme grant
 • Daily or weekly snapshots, plus one on demand
 • Diff two snapshots: access granted and removed, group and scheme changes
-• Access reviews: mark items Keep or Revoke, then sign off with a SHA-256 evidence hash
-• CSV and PDF evidence export for SOC 2 and ISO 27001 audits
-• Risk indicators: admins, inactive users with access, public (anonymous) grants
-• Completeness shown for every snapshot
+• Access reviews: Keep, Revoke or Exception (justification + expiry), then sign off
+• SHA-256 evidence hash (v2) tied to the snapshot; verify in the app
+• Coverage & limitations in every export; risk indicators and completeness
+• CSV/PDF evidence; Advanced pack with SOC 2 / ISO mapping
 
 Read-only scopes only: AccessRadar never changes Jira. Runs on Atlassian: no data egress; data stays in Atlassian.
 
 Free for up to 10 users.
 ```
-*(979/1000.)* The long-form version for the docs landing page is in §4.
+*(996/1000.)* The long-form version for the docs landing page is in §4.
 
 ---
 
@@ -283,10 +283,11 @@ Advanced (same method):
 | Manual and weekly snapshots | Daily and custom snapshot schedules |
 | 90-day history | Unlimited history |
 | Explore projects, groups and people, with the why path | Reviews delegated to project owners, with reminders *(coming soon)* |
-| Snapshot diff | Recurring review campaigns *(coming soon)* |
-| Reviews with Keep / Revoke / Note and SHA-256 sign-off | Change alerts: new admin, public grant, inactive user with access *(coming soon)* |
-| CSV and PDF export | Audit evidence pack PDF with methodology and decision trail *(coming soon)* |
-| Risk indicators | Rovo agent *(coming soon)* |
+| Snapshot diff; coverage & limitations in exports | Recurring review campaigns *(coming soon)* |
+| Reviews: Keep / Revoke / Exception (expiry), SHA-256 sign-off v2 | Change alerts: new admin, public grant, inactive user *(coming soon)* |
+| CSV/PDF export; verify signature & snapshot integrity | Rovo agent *(coming soon)* |
+| Risk indicators (11 rules); exception register | Remediation verification (confirm Revokes in later snapshots) |
+| | Audit evidence pack PDF with SOC 2 / ISO control mapping |
 
 *(PL) Punkty odniesienia (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2): Access Lens 100, Project Roles 200, AuditAdmin 450, Group Permission Audit 650, Access Auditor 750, Clearance 800, AccessLens 900, Recert 1 250, Keyring 1 360, Access Reviewer360 1 620, Certia 4 000, Access Evidence 4 530; Project Access Review darmowa. Mediana płatnych bezpośrednich konkurentów: $900. Standard $750 jest poniżej mediany; ceny obu edycji 1:1 z MarginRadar.*
 
