@@ -164,10 +164,10 @@ export function ChangesView() {
             })
           }
           onPdf={() =>
-            void exporter('Changes PDF', () => {
+            void exporter('Changes PDF', async () => {
               downloadPdf(
                 changesFileName(filtered!, 'pdf'),
-                changesPdf(filtered!, exportContext(siteUrl)),
+                await changesPdf(filtered!, exportContext(siteUrl)),
               );
               logExport('changes-pdf', `#${d!.a!.seq}-#${d!.b!.seq}`);
             })

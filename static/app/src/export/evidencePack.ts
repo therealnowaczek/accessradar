@@ -65,11 +65,11 @@ export type EvidencePackPayload = {
 };
 
 /** Builds the Advanced evidence-pack PDF from one or more getEvidencePack pages. */
-export function evidencePackPdf(
+export async function evidencePackPdf(
   pack: EvidencePackPayload,
   allItems: EvidencePackPayload['items'],
   ctx: { siteUrl?: string; tz?: string } = {},
-): Uint8Array {
+): Promise<Uint8Array> {
   const h = pack.header;
   const s = pack.sections;
   const tz = h.signerTz || ctx.tz || timeZone();

@@ -167,7 +167,7 @@ export function matrixCsv(
   return out;
 }
 
-export function matrixPdf(
+export async function matrixPdf(
   snapshot: Snapshot,
   coverage: Coverage[],
   rows: Array<Record<string, string>>,
@@ -288,7 +288,7 @@ export function changesCsv(c: Changes, ctx: ExportContext = {}) {
   });
 }
 
-export function changesPdf(c: Changes, ctx: ExportContext = {}) {
+export async function changesPdf(c: Changes, ctx: ExportContext = {}) {
   const tz = ctx.tz ?? timeZone();
   const doc = new PdfDoc(`AccessRadar changes #${c.a?.seq} -> #${c.b?.seq}`);
   doc.title(
@@ -447,7 +447,7 @@ export function reviewCsv(d: ReviewDetail, ctx: ExportContext = {}) {
   });
 }
 
-export function reviewPdf(d: ReviewDetail, ctx: ExportContext = {}) {
+export async function reviewPdf(d: ReviewDetail, ctx: ExportContext = {}) {
   const r = d.review;
   const items = d.items.filter((i) => i.change !== 'removed');
   const flagged = items.filter((i) => i.decision === 'revoke');

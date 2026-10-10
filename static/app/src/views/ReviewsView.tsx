@@ -590,8 +590,8 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               })
             }
             onPdf={() =>
-              void exporter('Review PDF', () => {
-                downloadPdf(reviewFileName(d!, 'pdf'), reviewPdf(d!, exportContext(siteUrl)));
+              void exporter('Review PDF', async () => {
+                downloadPdf(reviewFileName(d!, 'pdf'), await reviewPdf(d!, exportContext(siteUrl)));
                 logExport('review-pdf', id, d!.limitations?.version);
               })
             }
@@ -619,7 +619,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                     if (!first) throw new Error('Empty evidence pack');
                     downloadPdf(
                       evidencePackFileName(d!.review.name, id),
-                      evidencePackPdf(first, allItems, exportContext(siteUrl)),
+                      await evidencePackPdf(first, allItems, exportContext(siteUrl)),
                     );
                     logExport('evidence-pack', id, d!.limitations?.version);
                   })
