@@ -1,5 +1,6 @@
 import { contentHash, factVersionHash, type FactKind, type StoredFact } from '../engine/facts';
 import { ENGINE_VERSION } from '../engine/resolve';
+import { purgeNotices } from './notices';
 import { chunk, exec, limitClause, num, placeholders, q } from './sql';
 
 export type SnapshotStatus = 'queued' | 'running' | 'complete' | 'partial' | 'failed';
@@ -369,10 +370,10 @@ export async function computeContentHash(seq: number): Promise<string> {
 /** Deletes snapshots older than the retention window that no review pins, then orphaned facts. */
 export async function applyRetention(
   retentionDays: number,
-): Promise<{ snapshots: number; facts: number; auditEvents: number }> {
+): Promise<{ snapshots: number; facts: number; auditEvents: number; notices: number }> {
   const cutoff = Date.now() - retentionDays * 86400_000;
-  // The audit log follows the snapshot retention setting (signed reviews keep their own record).
-  const auditEvents = await purgeAudit(cutoff);
+  // The audit log (and in-app notices) follow the snapshot retention setting.
+  const [auditEvents, notices] = await Promise.all([purgeAudit(cutoff), purgeNotices(cutoff)]);
   const latest = await latestCommitted();
   const candidates = await q<{ seq: number }>(
     `SELECT seq FROM snap WHERE started_at < ? AND seq NOT IN (SELECT base_seq FROM review)
@@ -387,7 +388,7 @@ export async function applyRetention(
     Number(r.seq),
   );
   let facts = 0;
-  if (!kept.length) return { snapshots: drop.length, facts, auditEvents };
+  if (!kept.length) return { snapshots: drop.length, facts, auditEvents, notices };
   facts += await exec('DELETE FROM fact WHERE last_seen < ?', kept[0]);
   // Facts that lived only between two kept snapshots (inside a deleted gap) are orphaned too.
   for (let i = 0; i + 1 < kept.length; i++) {
@@ -400,7 +401,7 @@ export async function applyRetention(
   }
   for (const s of drop) await exec('DELETE FROM stage WHERE seq = ?', s);
   if (facts) invalidateFactCache();
-  return { snapshots: drop.length, facts, auditEvents };
+  return { snapshots: drop.length, facts, auditEvents, notices };
 }
 
 /** Deletes audit events older than the cutoff (in bounded batches). */

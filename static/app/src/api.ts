@@ -51,6 +51,8 @@ export type Status = {
   latest: Snapshot | null;
   active: Snapshot | null;
   lastAttempt: Snapshot | null;
+  /** Undismissed admin notices (reminders + alerts). */
+  noticeCount?: number;
 };
 
 export type ProjectRef = {

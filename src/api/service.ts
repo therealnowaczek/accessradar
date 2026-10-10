@@ -13,6 +13,7 @@ import {
 import { computeRisks } from '../engine/risk';
 import { buildState, type AccessState } from '../engine/state';
 import { audit, listAudit } from '../db/audit';
+import { countUndismissed } from '../db/notices';
 import {
   decide,
   deleteDraftReview,
@@ -143,11 +144,12 @@ async function withState<T>(seqInput: unknown, fn: (state: AccessState, snap: Sn
 
 // ---------- status & overview ----------
 export async function status(spike = false) {
-  const [latest, active, settings, list] = await Promise.all([
+  const [latest, active, settings, list, noticeCount] = await Promise.all([
     latestCommitted(),
     activeSnapshot(),
     getSettings(),
     listSnapshots(1),
+    countUndismissed({ audience: 'admin' }).catch(() => 0),
   ]);
   return {
     engineVersion: ENGINE_VERSION,
@@ -157,6 +159,7 @@ export async function status(spike = false) {
     latest: snapshotSummary(latest),
     active: snapshotSummary(active),
     lastAttempt: snapshotSummary(list[0] ?? null),
+    noticeCount,
   };
 }
 

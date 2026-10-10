@@ -6,6 +6,7 @@ import {
   nextDueTimestamp,
   readGateMemo,
   shouldFastPath,
+  soonestDue,
   writeGateMemo,
 } from '../src/collector/gate';
 import { isDue } from '../src/collector/schedule';
@@ -20,6 +21,9 @@ describe('computeGate / nextDueTimestamp', () => {
     const g = computeGate({ frequency: 'off', hourUtc: 2, weekday: 1 }, null, null, now);
     expect(g.staleCheckAfter).toBeNull();
     expect(g.nextDueAt).toBe(now + MAX_FAST_PATH_MS);
+    expect(g.nextCampaignAt).toBeNull();
+    expect(g.nextReminderAt).toBeNull();
+    expect(g.v).toBe(2);
     expect(shouldFastPath(g, now)).toBe(true);
     expect(shouldFastPath(g, now + MAX_FAST_PATH_MS)).toBe(false);
   });
@@ -64,26 +68,75 @@ describe('computeGate / nextDueTimestamp', () => {
     expect(g.nextDueAt).toBe(at(9, 2));
     expect(shouldFastPath(g, now)).toBe(false);
   });
+
+  it('campaign or reminder due forces slow path', () => {
+    const now = at(9, 12);
+    const g = computeGate({ frequency: 'off', hourUtc: 2, weekday: 1 }, null, null, now, {
+      nextCampaignAt: now - 1,
+      nextReminderAt: null,
+    });
+    expect(shouldFastPath(g, now)).toBe(false);
+    const g2 = computeGate({ frequency: 'off', hourUtc: 2, weekday: 1 }, null, null, now, {
+      nextCampaignAt: null,
+      nextReminderAt: now,
+    });
+    expect(shouldFastPath(g2, now)).toBe(false);
+  });
+
+  it('soonestDue prefers the earliest of snapshot/campaign/reminder', () => {
+    const now = at(9, 12);
+    const g = computeGate({ frequency: 'off', hourUtc: 2, weekday: 1 }, null, null, now, {
+      nextCampaignAt: now + 1000,
+      nextReminderAt: now + 500,
+    });
+    expect(soonestDue(g)).toBe(now + 500);
+  });
 });
 
 describe('gate memo', () => {
   afterEach(() => clearGateMemo());
 
-  it('returns memo only when nextDueAt is more than 1h away and fresh', () => {
+  it('returns memo only when soonest due is more than 1h away and fresh', () => {
     const now = Date.UTC(2026, 9, 9, 12);
     const gate = {
       nextDueAt: now + 3 * 3600_000,
       staleCheckAfter: null,
-      v: 1 as const,
+      nextCampaignAt: null,
+      nextReminderAt: null,
+      v: 2 as const,
     };
     writeGateMemo(gate, now);
     expect(readGateMemo(now)).toEqual(gate);
     expect(readGateMemo(now + 11 * 60_000)).toBeNull(); // TTL 10m
   });
 
+  it('skips memo when a campaign is due within an hour even if snapshot is far', () => {
+    const now = Date.UTC(2026, 9, 9, 12);
+    writeGateMemo(
+      {
+        nextDueAt: now + 3 * 3600_000,
+        staleCheckAfter: null,
+        nextCampaignAt: now + 30 * 60_000,
+        nextReminderAt: null,
+        v: 2,
+      },
+      now,
+    );
+    expect(readGateMemo(now)).toBeNull();
+  });
+
   it('skips memo when due within an hour', () => {
     const now = Date.UTC(2026, 9, 9, 12);
-    writeGateMemo({ nextDueAt: now + 30 * 60_000, staleCheckAfter: null, v: 1 }, now);
+    writeGateMemo(
+      {
+        nextDueAt: now + 30 * 60_000,
+        staleCheckAfter: null,
+        nextCampaignAt: null,
+        nextReminderAt: null,
+        v: 2,
+      },
+      now,
+    );
     expect(readGateMemo(now)).toBeNull();
   });
 });
