@@ -168,6 +168,7 @@ export async function overview(payload: any) {
     largeGroupThreshold: settings.largeGroupThreshold,
     wideAdminProjects: settings.wideAdminProjects,
     includeAppAccounts: settings.showAppAccounts,
+    keyPermissions: settings.keyPermissions,
   }).map((r) => ({ ...r, items: r.items.slice(0, 50) }));
   let changes: { granted: number; revoked: number; fromSeq: number } | null = null;
   const prev = await previousCommitted(snap.seq);

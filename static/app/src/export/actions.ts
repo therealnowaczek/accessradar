@@ -1,4 +1,4 @@
-import { call, type Coverage, type Snapshot, type SettingsView } from '../api';
+import { call, type Coverage, type Overview, type Snapshot, type SettingsView } from '../api';
 import { downloadCsv, downloadPdf } from './download';
 import { matrixCsv, matrixFileName, matrixPdf, type ExportContext } from './evidence';
 
@@ -25,9 +25,10 @@ export async function exportMatrix(
   const rows = projectKey ? m.data.filter((r) => r.project_key === projectKey) : m.data;
   const suffix = projectKey ? `_${projectKey}` : '';
   if (format === 'csv') {
+    const overview = await call<Overview>('getOverview', {}).catch(() => null);
     downloadCsv(
       matrixFileName(m.snapshot, 'csv').replace('.csv', `${suffix}.csv`),
-      matrixCsv(m.snapshot, rows, ctx),
+      matrixCsv(m.snapshot, rows, ctx, overview?.risks ?? []),
     );
   } else {
     const detail = await call<Snapshot & { coverage: Coverage[] }>('getSnapshot', {

@@ -135,13 +135,12 @@ describe('evidence hash', () => {
 });
 
 describe('computeRisks', () => {
-  const risks = Object.fromEntries(
-    computeRisks(state, {
-      largeGroupThreshold: 3,
-      wideAdminProjects: 2,
-      includeAppAccounts: false,
-    }).map((r) => [r.id, r]),
-  );
+  const list = computeRisks(state, {
+    largeGroupThreshold: 3,
+    wideAdminProjects: 2,
+    includeAppAccounts: false,
+  });
+  const risks = Object.fromEntries(list.map((r) => [r.id, r]));
   it('finds anonymous grants, inactive users and admins', () => {
     expect(risks.anonymous.items.map((i) => i.label)).toEqual(['ALPHA: BROWSE_PROJECTS']);
     expect(risks.inactive.items.map((i) => i.label)).toEqual(['Ivan']);
@@ -151,5 +150,18 @@ describe('computeRisks', () => {
     expect(risks['broad-app-role'].count).toBe(1);
     expect(risks['wide-admin'].count).toBe(0);
     expect(risks['large-groups'].items.map((i) => i.label)).toEqual(['jira-users']);
+  });
+  it('exposes eleven rules ordered by severity then count', () => {
+    expect(list).toHaveLength(11);
+    const rank = { high: 0, medium: 1, low: 2 } as const;
+    for (let i = 1; i < list.length; i++) {
+      const prev = rank[list[i - 1].severity];
+      const cur = rank[list[i].severity];
+      expect(prev).toBeLessThanOrEqual(cur);
+      if (prev === cur) expect(list[i - 1].count).toBeGreaterThanOrEqual(list[i].count);
+    }
+  });
+  it('flags direct user grants from the fixture scheme', () => {
+    expect(risks['direct-user-grants'].items.some((i) => i.label.includes('Dave'))).toBe(true);
   });
 });

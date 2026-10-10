@@ -78,8 +78,10 @@ export type Risk = {
   severity: 'high' | 'medium' | 'low';
   title: string;
   description: string;
+  learnMore?: string;
   count: number;
   items: Array<{ id: string; label: string; detail?: string }>;
+  partial?: boolean;
 };
 
 export type Overview = {
