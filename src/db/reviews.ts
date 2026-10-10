@@ -30,6 +30,7 @@ export interface ReviewRow {
   engineVersion: string;
   signatureVersion: number;
   coverageHash: string | null;
+  campaignRunId: string | null;
 }
 
 export interface ReviewItemRow {
@@ -71,6 +72,7 @@ const toReview = (r: any): ReviewRow => ({
   engineVersion: r.engine_version,
   signatureVersion: Number(r.signature_version ?? 1),
   coverageHash: r.coverage_hash ?? null,
+  campaignRunId: r.campaign_run_id ?? null,
 });
 
 const toItem = (r: any): ReviewItemRow => ({
@@ -93,7 +95,7 @@ const toItem = (r: any): ReviewItemRow => ({
 });
 
 const REVIEW_COLS =
-  'id, name, scope_json, key_perms, base_seq, compare_seq, status, created_by, created_at, due_at, item_count, signed_by, signed_at, signer_tz, attestation, evidence_hash, engine_version, signature_version, coverage_hash';
+  'id, name, scope_json, key_perms, base_seq, compare_seq, status, created_by, created_at, due_at, item_count, signed_by, signed_at, signer_tz, attestation, evidence_hash, engine_version, signature_version, coverage_hash, campaign_run_id';
 
 export async function insertReview(
   r: Omit<
@@ -145,8 +147,8 @@ export async function insertReview(
     );
   }
   await exec(
-    `INSERT INTO review (id, name, scope_json, key_perms, base_seq, compare_seq, status, created_by, created_at, due_at, item_count, engine_version)
-     VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)`,
+    `INSERT INTO review (id, name, scope_json, key_perms, base_seq, compare_seq, status, created_by, created_at, due_at, item_count, engine_version, campaign_run_id)
+     VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?)`,
     id,
     r.name,
     JSON.stringify(r.scope),
@@ -158,6 +160,7 @@ export async function insertReview(
     r.dueAt,
     items.length,
     r.engineVersion,
+    r.campaignRunId,
   );
   return id;
 }

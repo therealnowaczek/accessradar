@@ -14,7 +14,10 @@ export type CollectStep =
   | 'SELFTEST'
   | 'VERIFY_SNAPSHOT'
   | 'REMEDIATION'
-  | 'ALERTS';
+  | 'ALERTS'
+  | 'CAMPAIGN_RUN'
+  | 'CAMPAIGN_MATERIALIZE'
+  | 'REMINDERS';
 
 export interface CollectEvent extends Record<string, unknown> {
   step: CollectStep;
@@ -24,8 +27,12 @@ export interface CollectEvent extends Record<string, unknown> {
   impersonateAccountId?: string;
   /** VERIFY_SNAPSHOT */
   jobId?: string;
-  /** REMEDIATION */
+  /** REMEDIATION / ALERTS */
   seq?: number;
+  /** CAMPAIGN_RUN / CAMPAIGN_MATERIALIZE */
+  runId?: string;
+  cursor?: number;
+  waits?: number;
 }
 
 export const collectQueue = new Queue<CollectEvent>({ key: COLLECT_QUEUE });

@@ -507,6 +507,7 @@ export async function createReview(p: any, accountId: string) {
       createdAt: now,
       dueAt,
       engineVersion: ENGINE_VERSION,
+      campaignRunId: null,
     },
     items,
   );
@@ -1182,4 +1183,152 @@ export async function getEvidencePack(p: any, edition: EditionDecision) {
     page,
     pageSize,
   };
+}
+
+// ---------- campaigns (Advanced) ----------
+import {
+  deleteCampaign as dbDeleteCampaign,
+  getCampaign,
+  getCampaignRun,
+  insertCampaign,
+  insertCampaignRun,
+  listAssignmentsForRun,
+  listCampaigns as dbListCampaigns,
+  pauseCampaign as dbPauseCampaign,
+  sanitizeCampaignInput,
+  updateCampaign,
+  type CampaignInput,
+} from '../db/campaigns';
+import { exec as sqlExec } from '../db/sql';
+import { resolveAssignee, resolveCampaignProjectIds } from '../collector/campaignRun';
+import { push as queuePush } from '../lib/queue';
+import { nextRunAt } from '../domain/campaignSchedule';
+
+function assertCampaigns(edition: EditionDecision) {
+  if (!edition.features.reviewCampaigns) throw new BadRequest(REQUIRES_ADVANCED);
+}
+
+export async function campaignsList(_p: any, edition: EditionDecision) {
+  assertCampaigns(edition);
+  return { items: await dbListCampaigns() };
+}
+
+export async function campaignSave(p: any, accountId: string, edition: EditionDecision) {
+  assertCampaigns(edition);
+  try {
+    const input = sanitizeCampaignInput(p as CampaignInput);
+    if (typeof p.id === 'string' && p.id) {
+      await updateCampaign(p.id, input);
+      await audit(accountId, 'campaign.updated', p.id, { name: input.name });
+      await refreshGate().catch(() => undefined);
+      return { id: p.id };
+    }
+    const id = await insertCampaign(input, accountId);
+    await audit(accountId, 'campaign.created', id, { name: input.name });
+    await refreshGate().catch(() => undefined);
+    return { id };
+  } catch (e) {
+    throw new BadRequest(e instanceof Error ? e.message : 'Invalid campaign');
+  }
+}
+
+export async function campaignPreview(p: any, edition: EditionDecision) {
+  assertCampaigns(edition);
+  const input = sanitizeCampaignInput(p as CampaignInput);
+  const snap = await latestCommitted();
+  if (!snap) throw new BadRequest('Take a snapshot before previewing a campaign');
+  const state = await stateFor(snap.seq);
+  const settings = await getSettings();
+  const keyPerms = input.keyPermissions?.length ? input.keyPermissions : settings.keyPermissions;
+  const fake = {
+    id: 'preview',
+    name: input.name,
+    scope: input.scope,
+    frequency: input.frequency,
+    startAt: input.startAt,
+    windowDays: input.windowDays ?? 14,
+    delegateRule: input.delegateRule ?? ('projectLead' as const),
+    delegateMap: input.delegateMap ?? null,
+    reminderDays: Array.isArray(input.reminderDays) ? input.reminderDays : [7, 3, 1],
+    keyPermissions: keyPerms,
+    status: 'active' as const,
+    nextRunAt: null,
+    createdBy: 'preview',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+  const { ids, warnings } = resolveCampaignProjectIds(fake, [...state.projects.keys()]);
+  const projects = ids.slice(0, 100).map((id) => {
+    const pjt = state.projects.get(id)!;
+    return {
+      id,
+      key: pjt.key,
+      assignee: resolveAssignee(fake, id, pjt.leadAccountId),
+      items: buildReviewItems(state, { type: 'projects', ids: [id] }, keyPerms).length,
+    };
+  });
+  return { projects, warnings, totalProjects: ids.length };
+}
+
+export async function campaignStartRun(p: any, accountId: string, edition: EditionDecision) {
+  assertCampaigns(edition);
+  const id = v.id(p.campaignId, 'campaign', /^[0-9a-f-]{36}$/);
+  const campaign = await getCampaign(id);
+  if (!campaign || campaign.status === 'deleted') throw new BadRequest('Campaign not found');
+  const now = Date.now();
+  const runId = await insertCampaignRun({
+    campaignId: id,
+    status: 'starting',
+    startedAt: now,
+    dueAt: now + campaign.windowDays * 86400_000,
+  });
+  const next = nextRunAt({ frequency: campaign.frequency, startAt: campaign.startAt }, now, now);
+  await sqlExec(`UPDATE campaign SET next_run_at = ?, updated_at = ? WHERE id = ?`, next, now, id);
+  await queuePush({ step: 'CAMPAIGN_RUN', runId });
+  await audit(accountId, 'campaign.run_started', runId, { campaignId: id, manual: true });
+  await refreshGate().catch(() => undefined);
+  return { runId };
+}
+
+export async function campaignRunGet(p: any, edition: EditionDecision) {
+  assertCampaigns(edition);
+  const id = v.id(p.runId, 'run', /^[0-9a-f-]{36}$/);
+  const run = await getCampaignRun(id);
+  if (!run) throw new BadRequest('Run not found');
+  const assignments = await listAssignmentsForRun(id);
+  return { run, assignments };
+}
+
+export async function campaignPause(p: any, accountId: string, edition: EditionDecision) {
+  assertCampaigns(edition);
+  const id = v.id(p.id, 'campaign', /^[0-9a-f-]{36}$/);
+  await dbPauseCampaign(id, 'paused');
+  await audit(accountId, 'campaign.paused', id, {});
+  await refreshGate().catch(() => undefined);
+  return { ok: true };
+}
+
+export async function campaignDelete(p: any, accountId: string, edition: EditionDecision) {
+  assertCampaigns(edition);
+  const id = v.id(p.id, 'campaign', /^[0-9a-f-]{36}$/);
+  await dbDeleteCampaign(id);
+  await audit(accountId, 'campaign.deleted', id, {});
+  await refreshGate().catch(() => undefined);
+  return { ok: true };
+}
+
+export async function campaignReassign(p: any, accountId: string, edition: EditionDecision) {
+  assertCampaigns(edition);
+  const reviewId = v.id(p.reviewId, 'review', /^[0-9a-f-]{36}$/);
+  const assignee =
+    p.accountId === null || p.accountId === undefined
+      ? null
+      : v.id(p.accountId, 'accountId', /^[\w:-]{1,128}$/);
+  await sqlExec(
+    `UPDATE review_assignment SET assignee = ? WHERE review_id = ?`,
+    assignee,
+    reviewId,
+  );
+  await audit(accountId, 'assignment.reassigned', reviewId, {});
+  return { ok: true };
 }
