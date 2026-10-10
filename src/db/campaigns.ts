@@ -279,6 +279,23 @@ export async function soonestCampaignRunAt(): Promise<number | null> {
   return n != null ? Number(n) : null;
 }
 
+export async function setCampaignNextRunAt(id: string, nextRunAt: number | null, now = Date.now()) {
+  await exec(
+    `UPDATE campaign SET next_run_at = ?, updated_at = ? WHERE id = ?`,
+    nextRunAt,
+    now,
+    id,
+  );
+}
+
+export async function touchAssignmentReminder(reviewId: string, now: number) {
+  await exec(
+    `UPDATE review_assignment SET last_reminder_at = ?, reminder_count = reminder_count + 1 WHERE review_id = ?`,
+    now,
+    reviewId,
+  );
+}
+
 export async function insertCampaignRun(row: {
   campaignId: string;
   seq?: number | null;

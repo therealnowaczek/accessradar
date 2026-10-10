@@ -141,13 +141,24 @@ export async function refreshGate(
   extras: { nextCampaignAt?: number | null; nextReminderAt?: number | null } = {},
 ): Promise<TickGate> {
   const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
-  const gate = computeGate(
-    settings,
-    await lastScheduledStart(),
-    await runningSnapshot(),
-    now,
-    extras,
-  );
+  let nextCampaignAt = extras.nextCampaignAt;
+  let nextReminderAt = extras.nextReminderAt;
+  if (nextCampaignAt === undefined || nextReminderAt === undefined) {
+    try {
+      const { soonestCampaignRunAt, soonestReminderAt } = await import('./campaignRun');
+      if (nextCampaignAt === undefined)
+        nextCampaignAt = await soonestCampaignRunAt().catch(() => null);
+      if (nextReminderAt === undefined)
+        nextReminderAt = await soonestReminderAt(now).catch(() => null);
+    } catch {
+      nextCampaignAt = nextCampaignAt ?? null;
+      nextReminderAt = nextReminderAt ?? null;
+    }
+  }
+  const gate = computeGate(settings, await lastScheduledStart(), await runningSnapshot(), now, {
+    nextCampaignAt: nextCampaignAt ?? null,
+    nextReminderAt: nextReminderAt ?? null,
+  });
   await kvSet(GATE_KEY, gate);
   writeGateMemo(gate, now);
   return gate;

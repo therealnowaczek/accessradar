@@ -253,4 +253,9 @@ export async function scheduledTick(): Promise<void> {
     const r = await startSnapshot('scheduled');
     console.log('[tick] scheduled snapshot', { seq: r.seq, created: r.created });
   } else console.log('[tick] nothing due', { frequency: settings.frequency });
+  const { enqueueDueCampaigns } = await import('./campaignRun');
+  const { push } = await import('../lib/queue');
+  const started = await enqueueDueCampaigns().catch(() => 0);
+  if (started) console.log('[tick] campaign runs started', { started });
+  await push({ step: 'REMINDERS' }).catch(() => undefined);
 }

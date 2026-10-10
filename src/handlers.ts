@@ -110,6 +110,14 @@ def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
 def('listExceptions', (p) => svc.exceptionsList(p));
 def('listAlerts', (p, c) => svc.alertsList(p, c.edition));
 def('dismissAlerts', (p, c) => svc.dismissAlerts(p, c.accountId, c.edition));
+def('listCampaigns', (p, c) => svc.campaignsList(p, c.edition));
+def('saveCampaign', (p, c) => svc.campaignSave(p, c.accountId, c.edition));
+def('previewCampaign', (p, c) => svc.campaignPreview(p, c.edition));
+def('startCampaignRun', (p, c) => svc.campaignStartRun(p, c.accountId, c.edition));
+def('getCampaignRun', (p, c) => svc.campaignRunGet(p, c.edition));
+def('pauseCampaign', (p, c) => svc.campaignPause(p, c.accountId, c.edition));
+def('deleteCampaign', (p, c) => svc.campaignDelete(p, c.accountId, c.edition));
+def('reassign', (p, c) => svc.campaignReassign(p, c.accountId, c.edition));
 def('listRemediation', (p, c) => svc.remediationList(p, c.edition));
 def('acceptRemediationRisk', (p, c) => svc.acceptRemediationRisk(p, c.accountId, c.edition));
 def('getEvidencePack', (p, c) => svc.getEvidencePack(p, c.edition));
@@ -246,6 +254,28 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
     case 'ALERTS': {
       await ensureMigrated();
       if (Number.isInteger(body.seq)) await svc.runAlertsCheck(Number(body.seq));
+      return;
+    }
+    case 'CAMPAIGN_RUN': {
+      await ensureMigrated();
+      if (typeof body.runId === 'string')
+        await (
+          await import('./collector/campaignRun')
+        ).runCampaignRun(body.runId, Number(body.waits) || 0);
+      return;
+    }
+    case 'CAMPAIGN_MATERIALIZE': {
+      await ensureMigrated();
+      if (typeof body.runId === 'string')
+        await (
+          await import('./collector/campaignRun')
+        ).runCampaignMaterialize(body.runId, Number(body.cursor) || 0);
+      return;
+    }
+    case 'REMINDERS': {
+      await ensureMigrated();
+      const n = await (await import('./collector/campaignRun')).runReminders();
+      if (n) console.log('[reminders] issued', { count: n });
       return;
     }
     case 'SELFTEST':
