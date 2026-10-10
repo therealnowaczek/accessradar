@@ -23,15 +23,15 @@ export interface FeatureFlags {
   unlimitedHistory: boolean;
   /** Advanced: verify that Revoke decisions disappear in a later snapshot. */
   remediationVerification: boolean;
-  /** Coming soon: reviews delegated to project owners, with reminders. */
+  /** Advanced: reviews delegated to project owners (project settings page + in-app reminders). */
   delegatedReviews: boolean;
-  /** Coming soon: recurring review campaigns. */
+  /** Advanced: recurring review campaigns. */
   reviewCampaigns: boolean;
-  /** Coming soon: alerts on new admins, public grants, inactive users with access. */
+  /** Advanced: alerts on new admins, public grants, inactive users with access. */
   changeAlerts: boolean;
   /** Advanced: audit evidence pack PDF (methodology + decision trail). */
   evidencePack: boolean;
-  /** Coming soon: Rovo agent. */
+  /** Coming soon: Rovo agent (in manifest; listing/Settings promo until claimed). */
   rovo: boolean;
 }
 

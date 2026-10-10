@@ -720,7 +720,7 @@ const ADVANCED_FEATURES: Array<{
   },
   {
     key: 'delegatedReviews',
-    label: 'Reviews delegated to project owners, with reminders',
+    label: 'Reviews delegated to project owners (project settings + in-app reminders)',
   },
   { key: 'reviewCampaigns', label: 'Recurring review campaigns' },
   {
