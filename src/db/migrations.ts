@@ -299,6 +299,26 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       KEY ix_rem_status (status)
     )`,
   ],
+  // v031–v035 are reserved for R2 campaign tables (R2-03); notice lands first (R2-01).
+  [
+    'v036_notice',
+    `CREATE TABLE IF NOT EXISTS notice (
+      id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      kind VARCHAR(24) NOT NULL,
+      audience VARCHAR(16) NOT NULL,
+      project_id VARCHAR(32) NULL,
+      account_id VARCHAR(128) NULL,
+      ref_id VARCHAR(64) NULL,
+      severity VARCHAR(8) NOT NULL,
+      title VARCHAR(200) NOT NULL,
+      body TEXT NULL,
+      created_at BIGINT NOT NULL,
+      dismissed_by VARCHAR(128) NULL,
+      dismissed_at BIGINT NULL,
+      KEY ix_notice_aud (audience, dismissed_at, created_at),
+      KEY ix_notice_proj (project_id, dismissed_at)
+    )`,
+  ],
 ];
 
 let runner: typeof migrationRunner | null = null;

@@ -3,6 +3,7 @@ import { InvocationError, InvocationErrorCode, type AsyncEvent } from '@forge/ev
 import { assertJiraAdmin, ForbiddenError } from './lib/auth';
 import { push, type CollectEvent } from './lib/queue';
 import { ensureMigrated, runMigrations } from './db/migrations';
+import { purgeNotices } from './db/notices';
 import { failStale, purgeAudit } from './db/snapshots';
 import { getSettings } from './db/settings';
 import {
@@ -224,8 +225,10 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
       await svc.runExpireExceptions();
       // Audit log retention also runs daily, so it applies even when no snapshots are taken.
       const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
-      const auditEvents = await purgeAudit(Date.now() - settings.retentionDays * 86400_000);
-      if (auditEvents) console.log('[retention] audit events deleted', { auditEvents });
+      const cutoff = Date.now() - settings.retentionDays * 86400_000;
+      const auditEvents = await purgeAudit(cutoff);
+      const notices = await purgeNotices(cutoff);
+      if (auditEvents || notices) console.log('[retention] deleted', { auditEvents, notices });
       return;
     }
     case 'VERIFY_SNAPSHOT': {

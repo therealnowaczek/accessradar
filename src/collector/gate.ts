@@ -16,7 +16,11 @@ const MEMO_MIN_DUE_MS = 3600_000;
 export interface TickGate {
   nextDueAt: number | null;
   staleCheckAfter: number | null;
-  v: 1;
+  /** Soonest campaign run (R2); null until campaign runner persists schedules. */
+  nextCampaignAt: number | null;
+  /** Soonest reminder fan-out (R2); null until reminders are scheduled. */
+  nextReminderAt: number | null;
+  v: 2;
 }
 
 type Schedule = Pick<Settings, 'frequency' | 'hourUtc' | 'weekday'>;
@@ -27,13 +31,22 @@ export function clearGateMemo(): void {
   memo = null;
 }
 
+/** Earliest of snapshot / campaign / reminder dues (ignores nulls). */
+export function soonestDue(gate: TickGate): number | null {
+  const times = [gate.nextDueAt, gate.nextCampaignAt, gate.nextReminderAt].filter(
+    (t): t is number => t !== null,
+  );
+  if (!times.length) return null;
+  return Math.min(...times);
+}
+
 export function readGateMemo(now = Date.now()): TickGate | null {
   if (!memo) return null;
   if (now - memo.at > MEMO_TTL_MS) {
     memo = null;
     return null;
   }
-  const due = memo.gate.nextDueAt;
+  const due = soonestDue(memo.gate);
   if (due === null || due - now <= MEMO_MIN_DUE_MS) return null;
   return memo.gate;
 }
@@ -70,18 +83,27 @@ export function computeGate(
   lastScheduledStart: number | null,
   running: { updatedAt: number } | null,
   now = Date.now(),
+  extras: { nextCampaignAt?: number | null; nextReminderAt?: number | null } = {},
 ): TickGate {
   const rawNext = nextDueTimestamp(settings, lastScheduledStart, now);
   // Self-heal: never fast-path for more than 24h without recomputing.
   const nextDueAt =
     rawNext === null ? now + MAX_FAST_PATH_MS : Math.min(rawNext, now + MAX_FAST_PATH_MS);
   const staleCheckAfter = running ? running.updatedAt + 2 * 3600_000 : null;
-  return { nextDueAt, staleCheckAfter, v: 1 };
+  return {
+    nextDueAt,
+    staleCheckAfter,
+    nextCampaignAt: extras.nextCampaignAt ?? null,
+    nextReminderAt: extras.nextReminderAt ?? null,
+    v: 2,
+  };
 }
 
 export function shouldFastPath(gate: TickGate, now = Date.now()): boolean {
   if (gate.nextDueAt === null || now >= gate.nextDueAt) return false;
   if (gate.staleCheckAfter !== null && now >= gate.staleCheckAfter) return false;
+  if (gate.nextCampaignAt !== null && now >= gate.nextCampaignAt) return false;
+  if (gate.nextReminderAt !== null && now >= gate.nextReminderAt) return false;
   return true;
 }
 
@@ -110,10 +132,22 @@ async function runningSnapshot(): Promise<{ updatedAt: number } | null> {
   return rows[0] ? { updatedAt: Number(rows[0].updated_at) } : null;
 }
 
-/** Recompute and persist `tick:gate`. Call after settings/edition/snapshot state changes. */
-export async function refreshGate(now = Date.now()): Promise<TickGate> {
+/**
+ * Optional R2 schedule hooks. Campaign/reminder tables may not exist yet — callers
+ * pass null until R2-04 wires real mins.
+ */
+export async function refreshGate(
+  now = Date.now(),
+  extras: { nextCampaignAt?: number | null; nextReminderAt?: number | null } = {},
+): Promise<TickGate> {
   const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
-  const gate = computeGate(settings, await lastScheduledStart(), await runningSnapshot(), now);
+  const gate = computeGate(
+    settings,
+    await lastScheduledStart(),
+    await runningSnapshot(),
+    now,
+    extras,
+  );
   await kvSet(GATE_KEY, gate);
   writeGateMemo(gate, now);
   return gate;
@@ -122,12 +156,30 @@ export async function refreshGate(now = Date.now()): Promise<TickGate> {
 /** Invalidate the gate so the next tick takes the slow path (avoids circular imports). */
 export async function bumpGate(): Promise<void> {
   clearGateMemo();
-  await kvSet(GATE_KEY, { nextDueAt: 0, staleCheckAfter: null, v: 1 });
+  await kvSet(GATE_KEY, {
+    nextDueAt: 0,
+    staleCheckAfter: null,
+    nextCampaignAt: null,
+    nextReminderAt: null,
+    v: 2,
+  });
 }
 
-/** One SQL read of the gate row (or null). */
+/** One SQL read of the gate row (or null). Accepts legacy v1 rows by filling R2 fields. */
 export async function loadGate(): Promise<TickGate | null> {
-  const stored = await kvGet<TickGate>(GATE_KEY);
-  if (!stored || stored.v !== 1) return null;
-  return stored;
+  const stored = await kvGet<{
+    nextDueAt?: number | null;
+    staleCheckAfter?: number | null;
+    nextCampaignAt?: number | null;
+    nextReminderAt?: number | null;
+    v?: number;
+  }>(GATE_KEY);
+  if (!stored || (stored.v !== 1 && stored.v !== 2)) return null;
+  return {
+    nextDueAt: stored.nextDueAt ?? null,
+    staleCheckAfter: stored.staleCheckAfter ?? null,
+    nextCampaignAt: stored.nextCampaignAt ?? null,
+    nextReminderAt: stored.nextReminderAt ?? null,
+    v: 2,
+  };
 }
