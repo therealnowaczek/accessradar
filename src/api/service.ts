@@ -18,6 +18,13 @@ import {
 } from '../db/reviews';
 import { getSettings, kvGet, saveSettings } from '../db/settings';
 import {
+  effectiveSchedule,
+  REQUIRES_ADVANCED,
+  STANDARD_RETENTION_DAYS,
+  type FeatureFlags,
+} from '../domain/edition';
+import type { EditionDecision } from './edition';
+import {
   activeSnapshot,
   getSnapshot,
   latestCommitted,
@@ -590,10 +597,11 @@ export async function removeReview(p: any, accountId: string) {
 }
 
 // ---------- settings ----------
-export async function settingsView(accountId: string) {
-  const s = await getSettings();
+export async function settingsView(accountId: string, edition: EditionDecision) {
+  const s = effectiveSchedule(await getSettings(), edition.features);
   return {
     settings: { ...s, fallbackAccountId: undefined },
+    edition: editionView(edition),
     fallbackIsMe: s.fallbackAccountId === accountId,
     fallbackEnabled: Boolean(s.fallbackAccountId),
     privacy: await kvGet('privacy:lastRun'),
@@ -601,8 +609,31 @@ export async function settingsView(accountId: string) {
   };
 }
 
-export async function updateSettings(p: any, accountId: string) {
+/** Server-side edition gate for settings; the UI only hides controls. */
+export function assertSettingsAllowed(input: Record<string, unknown>, features: FeatureFlags) {
+  if (!features.customSchedules && input.frequency === 'daily')
+    throw new BadRequest(REQUIRES_ADVANCED);
+  if (
+    !features.unlimitedHistory &&
+    input.retentionDays !== undefined &&
+    Number(input.retentionDays) > STANDARD_RETENTION_DAYS
+  )
+    throw new BadRequest(REQUIRES_ADVANCED);
+}
+
+export function editionView(e: EditionDecision) {
+  return {
+    edition: e.edition,
+    source: e.source,
+    override: e.override,
+    features: e.features,
+    envOverride: e.source === 'env',
+  };
+}
+
+export async function updateSettings(p: any, accountId: string, edition: EditionDecision) {
   const input = { ...(p.settings ?? {}) } as Record<string, unknown>;
+  assertSettingsAllowed(input, edition.features);
   delete input.fallbackAccountId; // never taken from the client
   if (p.fallback === 'me') input.fallbackAccountId = accountId;
   if (p.fallback === 'off') input.fallbackAccountId = null;
@@ -611,7 +642,7 @@ export async function updateSettings(p: any, accountId: string) {
     frequency: saved.frequency,
     retentionDays: saved.retentionDays,
   });
-  return settingsView(accountId);
+  return settingsView(accountId, edition);
 }
 
 export async function activity() {

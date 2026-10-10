@@ -280,8 +280,30 @@ export type Settings = {
   saved?: boolean;
 };
 
+export type Edition = 'standard' | 'advanced';
+
+export type EditionFeatures = {
+  customSchedules: boolean;
+  unlimitedHistory: boolean;
+  delegatedReviews: boolean;
+  reviewCampaigns: boolean;
+  changeAlerts: boolean;
+  evidencePack: boolean;
+  rovo: boolean;
+};
+
+/** Resolved on the server (env > saved override > license); the UI only shows or hides promos. */
+export type EditionView = {
+  edition: Edition;
+  source: 'env' | 'stored' | 'license' | 'development';
+  override: Edition | null;
+  features: EditionFeatures;
+  envOverride: boolean;
+};
+
 export type SettingsView = {
   settings: Settings;
+  edition: EditionView;
   fallbackIsMe: boolean;
   fallbackEnabled: boolean;
   privacy: {

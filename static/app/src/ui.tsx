@@ -4,6 +4,7 @@ import Button from '@atlaskit/button/new';
 import EmptyState from '@atlaskit/empty-state';
 import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
+import LockIcon from '@atlaskit/icon/core/lock-locked';
 import Lozenge from '@atlaskit/lozenge';
 import { Inline, Text } from '@atlaskit/primitives';
 import SectionMessage from '@atlaskit/section-message';
@@ -314,4 +315,38 @@ export function Details({ rows }: { rows: Array<[string, ReactNode]> }) {
 /** Toolbar row above tables: search, filters, actions. Wraps on narrow screens. */
 export function FilterBar({ children }: { children: ReactNode }) {
   return <div className="filter-bar">{children}</div>;
+}
+
+/** Locked Advanced feature (MarginRadar PlanGate): dimmed preview plus a note. */
+export function PlanGate({
+  locked,
+  title,
+  description,
+  children,
+}: {
+  locked: boolean;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  if (!locked) return <>{children}</>;
+  return (
+    <div className="plan-gate">
+      {children ? (
+        <div className="plan-gate-preview" aria-hidden="true">
+          {children}
+        </div>
+      ) : null}
+      <div className="plan-gate-note" role="note">
+        <span className="plan-gate-icon">
+          <LockIcon label="" size="small" />
+        </span>
+        <div className="plan-gate-text">
+          <strong>{title}</strong>
+          <span className="subtle">{description}</span>
+          <span className="subtle">Ask your Jira admin to enable AccessRadar Advanced.</span>
+        </div>
+      </div>
+    </div>
+  );
 }

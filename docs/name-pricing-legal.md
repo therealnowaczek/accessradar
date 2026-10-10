@@ -12,7 +12,7 @@ Zasada: liczby pochodzą wyłącznie z API lub ze stron, które podaję. Czego n
 1. **Nazwa „AccessRadar” jest wolna w Marketplace.** 0 wyników dla `AccessRadar`, `accessradar`, `access-radar`, `PermissionRadar`, `AuditRadar` we wszystkich hostingach (bez filtra, cloud, server, datacenter). Klucze `accessradar`, `access-radar`, `com.radrly.accessradar` i podobne zwracają 404. Poza Marketplace ta sama nazwa jest już używana: skaner dostępności WCAG (WCAG.World, getaccessradar.com) oraz IAM/GRC „Vennx Access Radar” (Brazylia). Rejestrów znaków towarowych (EUIPO/WIPO) **nie udało się sprawdzić** automatycznie, więc ten punkt jest NIESPRAWDZONY.
 2. **Pełna nazwa nie koliduje dosłownie z niczym, ale jej opisowa część jest prawie identyczna z dwoma konkurentami:** *AccessLens — Permission Audit & Access Review for Jira* oraz *Clearance for Jira (Permission Audit & Access Review)*. To nie jest problem prawny (sformułowanie jest opisowe), ale osłabia wyróżnienie w wynikach wyszukiwania. Alternatywa A z LISTING.md (*Permission Audit & Access Reviews*) jest jeszcze bliższa AccessLens, więc jej nie polecam.
 3. **Nisza jest zatłoczona i nikt w niej nie ma trakcji.** Znalazłem **20 aplikacji** typu access review / permission audit dla Jira Cloud (19 płatnych i darmową Akeles). Żadna nie przekracza 114 instalacji, a większość ma 0–3. Cena za 100 użytkowników rocznie wynosi od **$100 do $4 530**, mediana **$900**. Aplikacje adminowe z realną trakcją (750+ instalacji) biorą **$1.00/user** w progu 11–100.
-4. **Rekomendacja cenowa:** darmowo dla 1–10 użytkowników, potem **$0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12** za użytkownika miesięcznie. Daje to **$750 rocznie za 100 użytkowników**, poniżej mediany niszy i tak samo jak w MarginRadar w progu 11–100. Szczegóły i warianty w §2.4.
+4. **Ceny (PRZYJĘTE 2026-10-10, 1:1 z MarginRadar, zastępują rekomendację z §2.4):** Standard $0 płasko do 10 użytkowników, potem **$0.75 / $0.60 / $0.40 / $0.25** (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced **$10** płasko do 10 użytkowników, potem **$1.99 / $1.49 / $0.99 / $0.49**. Rocznie 10× miesięcznie, multi-instance = single-instance. Standard: **$750 rocznie za 100 użytkowników**. Szczegóły w §2.5.
 5. **Błąd w LISTING.md §8:** przykłady cen liczą płatnych użytkowników dopiero od 11. (np. „100 users $54.00 = $540/year”). Atlassian liczy jednak próg 11–100 od pierwszego użytkownika. Zweryfikowałem to na 26 aplikacjach (cena roczna / 10 = suma progresywna od 1. użytkownika). Przy starej propozycji $0.60 prawidłowo wychodzi **100 u. = $60/mies. = $600/rok**, a nie $540. Trzeba to poprawić w LISTING.md.
 6. **Prawo i prywatność:** z 7 pytań [TO CONFIRM] 3 wymagają prawnika (kontroler/procesor, CCPA, transfer poza EOG). Kod ujawnił też 4 rzeczy do poprawy przed submitem (§3.3). Najważniejsza: po zamknięciu konta zamieniamy tylko wyświetlaną nazwę, a accountId zostaje w snapshotach, recenzjach i audit logu. To pseudonimizacja, a nie usunięcie danych.
 
@@ -163,7 +163,7 @@ Uwagi do danych:
 3. **Aplikacje adminowe z trakcją** (User/Group Export 759, User Management TechTime 752) biorą **$1.00/user** w progu 11–100 i mocno obniżają cenę wyżej (1 000 u. = $362–400/mies.). Manage Users (940) jest tani ($0.20), ale ma ocenę 3.39★. Rynek akceptuje około $1 000/rok za 100 u. za narzędzie adminowe, które ma recenzje.
 4. **Kupujący compliance** (SOC 2 / ISO 27001) to zwykle firmy 100–1 000+ użytkowników. Kluczowe są więc progi 101–250 i 251–1 000. Przy 500 u. konkurenci kosztują rocznie: GPA $1 335, AuditAdmin $1 820, Clearance $2 300, AccessLens $2 600, Access Auditor $2 775.
 
-### 2.4 Propozycja dla AccessRadar (PROPOZYCJA, nie decyzja)
+### 2.4 Propozycja dla AccessRadar (historyczna, zastąpiona przez §2.5)
 
 | Próg (miesięcznie, progresywnie) | Standard | Uzasadnienie |
 |---|---:|---|
@@ -187,6 +187,31 @@ Wyliczenia (progresywnie, miesięcznie): 25 u. **$18.75** · 50 u. **$37.50** ·
 Czego **nie wiem** i nie zgaduję: konwersji trial→paid w tej niszy, przychodów konkurentów (API ich nie podaje) ani kosztu Forge po naszej stronie dla 1 000+ użytkowników.
 
 **Do poprawy w LISTING.md §8:** stawki (jeśli przyjmiesz rekomendację) i przykłady. Stare przykłady są policzone błędnie, bo liczą płatność od 11. użytkownika. Poprawnie dla starej propozycji wychodzi: 25 u. $15.00 · 50 u. $30.00 · 100 u. $60.00 (= $600/rok) · 250 u. $132.00 · 500 u. $212.00. W notce PL w §8 trzeba też zaktualizować punkty odniesienia (Access Reviewer360 $1 620 i AccessLens $900 są aktualne; dochodzą Clearance $800, Access Auditor $750, Recert $1 250, Keyring $1 360, Certia $4 000, Access Evidence $4 530).
+
+### 2.5 Przyjęte ceny: edycje Standard i Advanced (2026-10-10, zatwierdził Marcin)
+
+Ceny 1:1 z MarginRadar. Zastępują propozycję z §2.4 (tabela §2.4 zostaje jako historia decyzji).
+
+| Próg (miesięcznie, progresywnie od 1. użytkownika) | Standard | Advanced |
+|---|---:|---:|
+| 1–10 | **$0** (płasko) | **$10** (płasko) |
+| 11–100 | $0.75 | $1.99 |
+| 101–250 | $0.60 | $1.49 |
+| 251–1 000 | $0.40 | $0.99 |
+| 1 001+ (wszystkie wyższe progi do 90 001+) | $0.25 | $0.49 |
+| Rocznie | 10× miesięcznie | 10× miesięcznie |
+| Multi-instance | jak single-instance | jak single-instance |
+
+Wyliczenia Standard (miesięcznie): 25 u. $18.75 · 50 u. $37.50 · 100 u. **$75** ($750/rok) · 250 u. $165 · 500 u. $265 · 1 000 u. $465 · 2 500 u. $840 · 5 000 u. $1 465.
+Wyliczenia Advanced: 10 u. $10 · 25 u. $49.75 · 100 u. **$199** ($1 990/rok) · 250 u. $422.50 · 500 u. $670 · 1 000 u. $1 165 · 5 000 u. $3 125.
+
+**Podział funkcji** (egzekwowany po stronie serwera, `src/domain/edition.ts`):
+- **Standard:** snapshoty ręczne i tygodniowe, historia 90 dni, Explore (projekty / grupy / osoby ze ścieżką „why”), diff snapshotów, przeglądy Keep / Revoke / Note z podpisem SHA-256, eksport CSV i PDF, wskaźniki ryzyka.
+- **Advanced:** harmonogramy dzienne i własne, nieograniczona historia; wkrótce (flagi + „Coming soon”, jeszcze niezbudowane): przeglądy delegowane do właścicieli projektów z przypomnieniami, cykliczne kampanie przeglądów, alerty zmian (nowy admin, publiczny grant, nieaktywny użytkownik z dostępem), audit evidence pack PDF (metodologia + ścieżka decyzji), agent Rovo.
+
+**Uwagi:**
+- Edycja Advanced zostanie dodana w Marketplace dopiero po zatwierdzeniu płatnej aplikacji. Do tego czasu strona www pokazuje Advanced jako **„Coming soon”**.
+- **Do zrobienia w Marketplace:** progi Standard wpisane w Marketplace to wciąż stare stawki (0.75 / 0.55 / 0.35 / 0.20 / 0.15 / 0.12). Wyrównać do 0.75 / 0.60 / 0.40 / 0.25, gdy listing będzie edytowalny (review w toku); razem z `docs/accessradar-pricing-import.csv`.
 
 ---
 

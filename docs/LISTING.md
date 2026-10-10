@@ -13,7 +13,7 @@
 - **Limity (jak w MarginRadar, zweryfikowane tam w docs 2026-10-09):** nazwa ≤60, tagline ≤130 **bez kropki na końcu** (z checklisty), summary ≤250, More details ≤1000, 3 highlighty (tytuł ≤50, opis ≤220, podpis ≤220), 2 kategorie + 4 keywords. Wszystkie pola mieszczą się w limitach; skrypt `docs/listing-check.py` to sprawdza i potwierdza, że każdy tekst występuje w tym pliku dosłownie.
 - **Kategorie:** Security and compliance + Administrative tools. **Keywords:** Audit, Compliance, User permissions, Risk Management. Dokładnie taki zestaw mają Project Access Review (Akeles), a podobny Access Reviewer360 i AuditAdmin (sprawdzone w Marketplace REST 2026-10-09). To standard niszy, więc nie ma sensu z nim walczyć.
 - **Pozycjonowanie bez nazywania konkurentów:** „the why” (ścieżka grantu), uczciwa kompletność, dowód z hashem SHA-256, read-only (kontrast z Access Reviewer360, które robi revoke). Konkurentów (AccessLens, Project Access Review, Project Roles) ani JRACLOUD-71967 **nie wymieniamy** w listingu. Ticket to dobry materiał na stronę /docs albo post w Community, ale dopiero po Twojej decyzji.
-- **Ceny (§8, przyjęta propozycja z `docs/name-pricing-legal.md` §2.4):** Standard $0 do 10 użytkowników (płasko), potem $0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12 za użytkownika miesięcznie na stałych progach Atlassian (11–100 / 101–250 / 251–1 000 / 1 001–2 500 / 2 501–5 000 / 5 001+). Model progresywny **od 1. użytkownika**: 100 u. = $75/mies. = $750/rok. Stare przykłady (liczone od 11. użytkownika, np. „100 u. = $54”) były błędne i zostały poprawione. Advanced dopiero po akceptacji płatnego listingu i po funkcjach fazy 2; w listingu nie ma o nim ani słowa.
+- **Ceny (§8, zaktualizowane 2026-10-10, 1:1 z MarginRadar):** Standard $0 do 10 użytkowników (płasko), potem $0.75 / $0.60 / $0.40 / $0.25 (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced $10 płasko do 10 użytkowników, potem $1.99 / $1.49 / $0.99 / $0.49. Rocznie 10× miesięcznie, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $75/mies. = $750/rok. Advanced trafi do Marketplace dopiero po akceptacji płatnej aplikacji; strona www pokazuje Advanced jako „Coming soon”. Progi Standard w Marketplace (dziś 0.75/0.55/0.35/0.20/0.15/0.12) do wyrównania, gdy listing będzie edytowalny.
 - **Privacy & Security:** gotowe odpowiedzi w §9. Dwie rzeczy wymagają uczciwego ujawnienia: (1) manifest deklaruje `allowImpersonation: true` na scope'ach odczytu, (2) Atlassian po instalacji dodaje app usera AccessRadar do grup adminów (week1-findings §3), choć aplikacja ma wyłącznie scope'y `read:*`. Pytania prawne oznaczyłem **[TO CONFIRM]**.
 - **Feature truth check (stan kodu 9.10.2026):** w kodzie są już: Explore (projekty/grupy/osoby) z panelem „Why”, Changes (zakładki Granted / Revoked / Groups / Schemes & roles / People, eksport CSV i PDF), Reviews z decyzjami **Keep / Revoke**, podpisem i hashem SHA-256 oraz eksportem CSV i PDF evidence pack (`static/app/src/export/pdf.ts`), harmonogram daily/weekly, retencja, ryzyka. Teksty listingu dopasowano do etykiet w UI (wcześniej było „OK / To change”, w aplikacji jest „Keep / Revoke”). Przed submitem przeklikaj to na prod (recenzent sprawdza zgodność listingu z aplikacją). Lista w §11.
 - **Produkcja:** wdrożona 9.10.2026 (gałąź `release/production`, workflow Deploy (production) zielony, spike usunięty w CI). **Instalacja prod przez CLI jest zablokowana przez Atlassian** („Installing a licensed app is not permitted”): aplikacji z `licensing.enabled: true` nie da się zainstalować z produkcji, dopóki listing nie zostanie zatwierdzony (instalacja tylko przez Marketplace). Zrzuty do listingu trzeba więc zrobić z dev/staging (z dopiskiem „Dev”/„Staging”) albo jako kompozycje, a finalne zrzuty z prod podmienić po akceptacji.
@@ -227,22 +227,24 @@ Extra-screenshot caption counts (verified by the script): S4 126 · S5 124 · S6
 
 ---
 
-## 8. Pricing (Standard, USD per month, Paid via Atlassian)
+## 8. Pricing (USD per month, Paid via Atlassian)
 
-> **Adopted 2026-10-09:** the recommendation from `docs/name-pricing-legal.md` §2.4. Free up to 10 users is from the brief and the checklist. Atlassian fixes the tier boundaries; the vendor only sets the price per tier.
+> **Updated 2026-10-10:** editions 1:1 with MarginRadar (approved by Marcin). Replaces the 2026-10-09 Standard-only tiers. Atlassian fixes the tier boundaries; the vendor only sets the price per tier.
 
-| Users (Atlassian's monthly tiers) | **Standard** |
-|---|---:|
-| 1–10 | **$0** (flat, free) |
-| 11–100 | $0.75 / user |
-| 101–250 | $0.55 / user |
-| 251–1,000 | $0.35 / user |
-| 1,001–2,500 | $0.20 / user |
-| 2,501–5,000 | $0.15 / user |
-| 5,001+ (every higher tier up to 90,001+) | $0.12 / user |
-| Annual | 10× monthly (Marketplace rule, automatic), sold in annual user tiers (10, 15, 25, 50, 100, 200, 300, 400, 500, …) |
-| Multi-instance | Same as single-instance (checklist §4) |
-| Trial | 30-day free trial |
+| Users (Atlassian's monthly tiers) | **Standard** | **Advanced** |
+|---|---:|---:|
+| 1–10 | **$0** (flat, free) | **$10** (flat) |
+| 11–100 | $0.75 / user | $1.99 / user |
+| 101–250 | $0.60 / user | $1.49 / user |
+| 251–1,000 | $0.40 / user | $0.99 / user |
+| 1,001+ (every higher tier up to 90,001+) | $0.25 / user | $0.49 / user |
+| Annual | 10× monthly (Marketplace rule, automatic), sold in annual user tiers (10, 15, 25, 50, 100, 200, 300, 400, 500, …) | same |
+| Multi-instance | Same as single-instance (checklist §4) | same |
+| Trial | 30-day free trial | 30-day free trial |
+
+**Advanced is added in Marketplace only after the paid app is approved.** Until then the listing sells Standard only, and the website shows Advanced as **Coming soon**.
+
+**Marketplace action pending:** the Standard tiers currently entered in Marketplace are the old ones ($0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12). Align them with the table above ($0.75 / $0.60 / $0.40 / $0.25 on every tier from 1,001 up) as soon as the listing is editable (Marketplace review is pending). `docs/accessradar-pricing-import.csv` must be updated at the same time.
 
 **How the price is calculated (progressive, from the first user):** once a site has 11 or more users, every user is paid for, including the first ten: users 1–100 at the 11–100 rate, users 101–250 at the 101–250 rate, and so on (verified on 26 Marketplace apps, `name-pricing-legal.md` §2.1).
 
@@ -252,17 +254,41 @@ Extra-screenshot caption counts (verified by the script): S4 126 · S5 124 · S6
 | 25 | $18.75 | 25 × $0.75 | $187.50 |
 | 50 | $37.50 | 50 × $0.75 | $375 |
 | 100 | $75.00 | 100 × $0.75 | $750 |
-| 250 | $157.50 | 100 × $0.75 + 150 × $0.55 | $1,575 (annual licence is sold in the 300-user tier: $1,750) |
-| 500 | $245.00 | $157.50 + 250 × $0.35 | $2,450 |
-| 1,000 | $420.00 | $245.00 + 500 × $0.35 | $4,200 |
-| 2,500 | $720.00 | $420.00 + 1,500 × $0.20 | $7,200 |
-| 5,000 | $1,095.00 | $720.00 + 2,500 × $0.15 | $10,950 |
+| 250 | $165.00 | 100 × $0.75 + 150 × $0.60 | $1,650 |
+| 500 | $265.00 | $165.00 + 250 × $0.40 | $2,650 |
+| 1,000 | $465.00 | $265.00 + 500 × $0.40 | $4,650 |
+| 2,500 | $840.00 | $465.00 + 1,500 × $0.25 | $8,400 |
+| 5,000 | $1,465.00 | $840.00 + 2,500 × $0.25 | $14,650 |
 
-`docs/listing-check.py` recomputes these examples from the tier table.
+Advanced (same method):
 
-*(PL) Punkty odniesienia (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2): Access Lens 100, Project Roles 200, AuditAdmin 450, Group Permission Audit 650, Access Auditor 750, Clearance 800, AccessLens 900, Recert 1 250, Keyring 1 360, Access Reviewer360 1 620, Certia 4 000, Access Evidence 4 530; Project Access Review darmowa. Mediana płatnych bezpośrednich konkurentów: $900. Nasze $750 jest poniżej mediany, a w progu 11–100 tyle samo co MarginRadar. Rewizja po 3 miesiącach albo 10 płatnych instalacjach; koszt Forge SQL na dużych instancjach do zmierzenia.*
+| Users | Advanced monthly | Calculation | Annual equivalent (10×) |
+|---:|---:|---|---:|
+| 10 | $10.00 | flat | $100 |
+| 25 | $49.75 | 25 × $1.99 | $497.50 |
+| 50 | $99.50 | 50 × $1.99 | $995 |
+| 100 | $199.00 | 100 × $1.99 | $1,990 |
+| 250 | $422.50 | 100 × $1.99 + 150 × $1.49 | $4,225 |
+| 500 | $670.00 | $422.50 + 250 × $0.99 | $6,700 |
+| 1,000 | $1,165.00 | $670.00 + 500 × $0.99 | $11,650 |
+| 2,500 | $1,900.00 | $1,165.00 + 1,500 × $0.49 | $19,000 |
+| 5,000 | $3,125.00 | $1,900.00 + 2,500 × $0.49 | $31,250 |
 
-**Advanced edition (later, not in this listing):** only after the paid listing is approved and the phase-2 features exist (multi-reviewer campaigns with project leads, escalation, Jira audit-log context, longer retention). Spec suggests ~1.5–2× Standard. Do not mention Advanced in the listing copy until then.
+`docs/listing-check.py` recomputes these examples from the tier tables.
+
+**What each edition includes** (enforced on the server, `src/domain/edition.ts`):
+
+| Standard | Advanced (everything in Standard, plus) |
+|---|---|
+| Manual and weekly snapshots | Daily and custom snapshot schedules |
+| 90-day history | Unlimited history |
+| Explore projects, groups and people, with the why path | Reviews delegated to project owners, with reminders *(coming soon)* |
+| Snapshot diff | Recurring review campaigns *(coming soon)* |
+| Reviews with Keep / Revoke / Note and SHA-256 sign-off | Change alerts: new admin, public grant, inactive user with access *(coming soon)* |
+| CSV and PDF export | Audit evidence pack PDF with methodology and decision trail *(coming soon)* |
+| Risk indicators | Rovo agent *(coming soon)* |
+
+*(PL) Punkty odniesienia (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2): Access Lens 100, Project Roles 200, AuditAdmin 450, Group Permission Audit 650, Access Auditor 750, Clearance 800, AccessLens 900, Recert 1 250, Keyring 1 360, Access Reviewer360 1 620, Certia 4 000, Access Evidence 4 530; Project Access Review darmowa. Mediana płatnych bezpośrednich konkurentów: $900. Standard $750 jest poniżej mediany; ceny obu edycji 1:1 z MarginRadar.*
 
 Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime Forge revenue, then the standard Forge rate).
 

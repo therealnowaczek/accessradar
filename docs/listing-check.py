@@ -49,18 +49,24 @@ for key, text, limit in FIELDS:
     ok &= not problems
     print(f"{'OK ' if not problems else 'ERR'} {key:24} {n:4}/{limit}  {'; '.join(problems)}")
 # Pricing (§8): progressive from the first user on Atlassian's fixed tiers; 1–10 flat $0.
-TIERS = [(100, 0.75), (250, 0.55), (1000, 0.35), (2500, 0.20), (5000, 0.15), (None, 0.12)]
-def monthly(users):
-    if users <= 10: return 0.0
+TIERS = [(100, 0.75), (250, 0.60), (1000, 0.40), (None, 0.25)]
+ADV_TIERS = [(100, 1.99), (250, 1.49), (1000, 0.99), (None, 0.49)]
+def monthly(users, tiers=TIERS, flat=0.0):
+    if users <= 10: return flat
     total, lo = 0.0, 0
-    for hi, rate in TIERS:
+    for hi, rate in tiers:
         top = users if hi is None else min(users, hi)
         if top > lo: total += (top - lo) * rate
         if hi is None or users <= hi: break
         lo = hi
     return round(total, 2)
-for users, stated in [(10, 0), (25, 18.75), (50, 37.5), (100, 75), (250, 157.5), (500, 245), (1000, 420), (2500, 720), (5000, 1095)]:
-    m = monthly(users); good = abs(m - stated) < 0.005
+EXAMPLES = [
+    (TIERS, 0.0, [(10, 0), (25, 18.75), (50, 37.5), (100, 75), (250, 165), (500, 265), (1000, 465), (2500, 840), (5000, 1465)]),
+    (ADV_TIERS, 10.0, [(10, 10), (25, 49.75), (50, 99.5), (100, 199), (250, 422.5), (500, 670), (1000, 1165), (2500, 1900), (5000, 3125)]),
+]
+for tiers, flat, rows in EXAMPLES:
+  for users, stated in rows:
+    m = monthly(users, tiers, flat); good = abs(m - stated) < 0.005
     row = f"| {users:,} | ${stated:,.2f} |"
     found = row in listing
     ok &= good and found

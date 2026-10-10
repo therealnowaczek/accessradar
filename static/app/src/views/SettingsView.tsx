@@ -5,7 +5,13 @@ import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
 import Textfield from '@atlaskit/textfield';
-import { call, errorText, type Settings, type SettingsView as SettingsDto } from '../api';
+import {
+  call,
+  errorText,
+  type EditionView,
+  type Settings,
+  type SettingsView as SettingsDto,
+} from '../api';
 import { Section } from '../components';
 import { useCall } from '../data';
 import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Drawer';
@@ -26,6 +32,8 @@ import {
   Loading,
   PageFrame,
   PageHeader,
+  Pill,
+  PlanGate,
   RadioField,
   ToggleField,
 } from '../ui';
@@ -134,7 +142,17 @@ function NumberField({
   );
 }
 
-function ScheduleForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () => void }) {
+function ScheduleForm({
+  s,
+  save,
+  cancel,
+  advanced,
+}: {
+  s: Settings;
+  save: Saver;
+  cancel: () => void;
+  advanced: boolean;
+}) {
   const [frequency, setFrequency] = useState(s.frequency);
   const [hourUtc, setHour] = useState(s.hourUtc);
   const [weekday, setWeekday] = useState(s.weekday);
@@ -150,12 +168,19 @@ function ScheduleForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: (
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as Settings['frequency'])}
           options={[
-            { name: 'frequency', value: 'daily', label: 'Daily' },
+            ...(advanced ? [{ name: 'frequency', value: 'daily', label: 'Daily' }] : []),
             { name: 'frequency', value: 'weekly', label: 'Weekly' },
             { name: 'frequency', value: 'off', label: 'Off (manual snapshots only)' },
           ]}
         />
       </RadioField>
+      <PlanGate
+        locked={!advanced}
+        title="Daily and custom schedules need Advanced"
+        description="Standard takes weekly and manual snapshots."
+      >
+        {null}
+      </PlanGate>
       {frequency !== 'off' ? (
         <>
           {frequency === 'weekly' ? (
@@ -226,8 +251,19 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
   );
 }
 
-function RetentionForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () => void }) {
+function RetentionForm({
+  s,
+  save,
+  cancel,
+  advanced,
+}: {
+  s: Settings;
+  save: Saver;
+  cancel: () => void;
+  advanced: boolean;
+}) {
   const [days, setDays] = useState(s.retentionDays);
+  const max = advanced ? 3650 : 90;
   return (
     <EditForm onCancel={cancel} onSave={() => save({ retentionDays: days })}>
       <NumberField
@@ -235,9 +271,16 @@ function RetentionForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: 
         value={days}
         onChange={setDays}
         min={30}
-        max={3650}
-        hint="30 to 3650 days. Snapshots used by a review are always kept with the review."
+        max={max}
+        hint={`30 to ${max} days. Snapshots used by a review are always kept with the review.`}
       />
+      <PlanGate
+        locked={!advanced}
+        title="Unlimited history needs Advanced"
+        description="Standard keeps 90 days of snapshot history."
+      >
+        {null}
+      </PlanGate>
     </EditForm>
   );
 }
@@ -367,6 +410,13 @@ export function SettingsView() {
                 <p>These are the defaults. Saving any section confirms the schedule.</p>
               </SectionMessage>
             ) : null}
+            <EditionSection
+              edition={v.edition}
+              onChanged={() => {
+                r.reload();
+                status.reload();
+              }}
+            />
             <Section
               title="Snapshot schedule"
               description="How often AccessRadar records the access picture of this site."
@@ -376,7 +426,12 @@ export function SettingsView() {
                     edit(
                       'Snapshot schedule',
                       'Scheduled snapshots run in the background.',
-                      <ScheduleForm s={s} save={save} cancel={close} />,
+                      <ScheduleForm
+                        s={s}
+                        save={save}
+                        cancel={close}
+                        advanced={v.edition.features.customSchedules}
+                      />,
                     )
                   }
                 >
@@ -418,7 +473,12 @@ export function SettingsView() {
                     edit(
                       'Retention',
                       'Older snapshots are deleted automatically.',
-                      <RetentionForm s={s} save={save} cancel={close} />,
+                      <RetentionForm
+                        s={s}
+                        save={save}
+                        cancel={close}
+                        advanced={v.edition.features.unlimitedHistory}
+                      />,
                     )
                   }
                 >
@@ -541,5 +601,105 @@ export function SettingsView() {
         onClose={close}
       />
     </PageFrame>
+  );
+}
+
+const ADVANCED_FEATURES: Array<{
+  key: keyof EditionView['features'];
+  label: string;
+  soon: boolean;
+}> = [
+  { key: 'customSchedules', label: 'Daily and custom snapshot schedules', soon: false },
+  { key: 'unlimitedHistory', label: 'Unlimited history (Standard keeps 90 days)', soon: false },
+  {
+    key: 'delegatedReviews',
+    label: 'Reviews delegated to project owners, with reminders',
+    soon: true,
+  },
+  { key: 'reviewCampaigns', label: 'Recurring review campaigns', soon: true },
+  {
+    key: 'changeAlerts',
+    label: 'Change alerts: new admin, public grant, inactive user with access',
+    soon: true,
+  },
+  {
+    key: 'evidencePack',
+    label: 'Audit evidence pack PDF (methodology and decision trail)',
+    soon: true,
+  },
+  { key: 'rovo', label: 'Rovo agent', soon: true },
+];
+
+const SOURCE_TEXT: Record<EditionView['source'], string> = {
+  env: 'Set by the AR_EDITION_OVERRIDE variable',
+  stored: 'Set in AccessRadar (override)',
+  license: 'From your Marketplace license',
+  development: 'Development site (no license): Advanced',
+};
+
+function EditionSection({ edition, onChanged }: { edition: EditionView; onChanged: () => void }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const options: Opt<string>[] = [
+    { label: 'Use the license', value: '' },
+    { label: 'Standard', value: 'standard' },
+    { label: 'Advanced', value: 'advanced' },
+  ];
+  const change = async (value: string) => {
+    setBusy(true);
+    try {
+      await call<EditionView>('setEditionOverride', { edition: value || null });
+      toast.success('Edition override saved');
+      onChanged();
+    } catch (e) {
+      toast.error('Could not save the override', errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Section title="Edition" description="Which AccessRadar features this site can use.">
+      <Details
+        rows={[
+          [
+            'Edition',
+            <span key="e" className="chip-row">
+              <Pill tone={edition.edition === 'advanced' ? 'discovery' : 'neutral'}>
+                {edition.edition === 'advanced' ? 'Advanced' : 'Standard'}
+              </Pill>
+              <span className="subtle">{SOURCE_TEXT[edition.source]}</span>
+            </span>,
+          ],
+          [
+            'Override',
+            <Select
+              key="o"
+              inputId="edition-override"
+              isDisabled={busy || edition.envOverride}
+              options={options}
+              value={options.find((o) => o.value === (edition.override ?? '')) ?? options[0]}
+              onChange={(o) => void change((o as Opt<string> | null)?.value ?? '')}
+            />,
+          ],
+          [
+            'Advanced',
+            <ul key="a" className="plain-list">
+              {ADVANCED_FEATURES.map((f) => (
+                <li key={f.key}>
+                  {f.label}{' '}
+                  {f.soon ? (
+                    <Pill tone="info">Coming soon</Pill>
+                  ) : edition.features[f.key] ? (
+                    <Pill tone="success">Included</Pill>
+                  ) : (
+                    <Pill tone="discovery">Advanced</Pill>
+                  )}
+                </li>
+              ))}
+            </ul>,
+          ],
+        ]}
+      />
+    </Section>
   );
 }

@@ -858,3 +858,38 @@ code {
   flex: none;
   white-space: nowrap;
 }
+
+/* Advanced edition gate (MarginRadar) */
+.plan-gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-150, 12px);
+}
+.plan-gate-preview {
+  max-height: 150px;
+  overflow: hidden;
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+  mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+}
+.plan-gate-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-100, 8px);
+  padding: var(--ds-space-150, 12px);
+  background: var(--ds-background-discovery, #f8eefe);
+  border-radius: var(--ds-radius-large, 8px);
+}
+.plan-gate-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--ds-icon-discovery, #803fa5);
+}
+.plan-gate-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-050, 4px);
+  min-width: 0;
+}

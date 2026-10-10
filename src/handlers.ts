@@ -19,11 +19,19 @@ import { runCollectStep, scheduledTick } from './collector/run';
 import { runPrivacyReport } from './privacy';
 import * as svc from './api/service';
 import { errInfo } from './lib/errors';
+import { backgroundEdition, decideForInvocation, setEditionOverride } from './api/edition';
+import { effectiveSchedule, type EditionLicense } from './domain/edition';
+import { isLicensed, UNLICENSED_MESSAGE } from './domain/license';
 
 // ---------- UI resolver (jira:adminPage) ----------
 const resolver = new Resolver();
 
-type Ctx = { accountId: string; environmentType?: string };
+type Ctx = {
+  accountId: string;
+  environmentType?: string;
+  license?: EditionLicense | null;
+  edition: Awaited<ReturnType<typeof decideForInvocation>>;
+};
 type Handler = (payload: any, ctx: Ctx) => Promise<unknown>;
 
 /**
@@ -34,11 +42,15 @@ function def(name: string, fn: Handler) {
   resolver.define(name, async ({ payload, context }) => {
     const started = Date.now();
     try {
+      const license = (context as { license?: EditionLicense | null }).license ?? null;
+      if (!isLicensed({ license })) return { ok: false, error: UNLICENSED_MESSAGE };
       const accountId = (context as { accountId?: string }).accountId ?? '';
       await assertJiraAdmin(accountId);
       await ensureMigrated();
       const environmentType = (context as { environmentType?: string }).environmentType;
-      const data = await fn(payload ?? {}, { accountId, environmentType });
+      // Edition is resolved on the server for every call; resolvers enforce features.
+      const edition = await decideForInvocation(license);
+      const data = await fn(payload ?? {}, { accountId, environmentType, license, edition });
       console.log(`[ui] ${name} ok`, { ms: Date.now() - started });
       return { ok: true, data };
     } catch (e) {
@@ -56,7 +68,10 @@ function def(name: string, fn: Handler) {
   });
 }
 
-def('getStatus', (_p, c) => svc.status(spikeAllowed(c.environmentType)));
+def('getStatus', async (_p, c) => ({
+  ...(await svc.status(spikeAllowed(c.environmentType))),
+  edition: svc.editionView(c.edition),
+}));
 def('getOverview', (p) => svc.overview(p));
 def('listSnapshots', () => svc.snapshots());
 def('getSnapshot', (p) => svc.snapshotDetail(p));
@@ -80,8 +95,12 @@ def('decideItems', (p, c) => svc.decideItems(p, c.accountId));
 def('signReview', (p, c) => svc.signReview(p, c.accountId));
 def('verifyReview', (p) => svc.verifyReview(p));
 def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
-def('getSettings', (_p, c) => svc.settingsView(c.accountId));
-def('saveSettings', (p, c) => svc.updateSettings(p, c.accountId));
+def('getSettings', (_p, c) => svc.settingsView(c.accountId, c.edition));
+def('saveSettings', (p, c) => svc.updateSettings(p, c.accountId, c.edition));
+def('getEdition', async (_p, c) => svc.editionView(c.edition));
+def('setEditionOverride', async (p, c) =>
+  svc.editionView(await setEditionOverride(c.accountId, p.edition ?? null, c.license)),
+);
 def('getActivity', () => svc.activity());
 def('logExport', (p, c) => svc.logExport(p, c.accountId));
 
@@ -154,7 +173,7 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
       const r = await runPrivacyReport();
       console.log('[privacy] reported', r);
       // Audit log retention also runs daily, so it applies even when no snapshots are taken.
-      const settings = await getSettings();
+      const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
       const auditEvents = await purgeAudit(Date.now() - settings.retentionDays * 86400_000);
       if (auditEvents) console.log('[retention] audit events deleted', { auditEvents });
       return;

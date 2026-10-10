@@ -1,6 +1,8 @@
 import { InvocationError, InvocationErrorCode, type AsyncEvent } from '@forge/events';
 import { exec, q } from '../db/sql';
 import { getSettings } from '../db/settings';
+import { effectiveSchedule } from '../domain/edition';
+import { backgroundEdition } from '../api/edition';
 import {
   addUsage,
   applyRetention,
@@ -164,7 +166,8 @@ export async function runCollectStep(
         gaps: r.coverage.filter((c) => c.status !== 'info').length,
       });
       if (process.env.ACCESSRADAR_SPIKE === '1') await push({ step: 'SELFTEST' }, 5);
-      const retention = await applyRetention(settings.retentionDays);
+      const { retentionDays } = effectiveSchedule(settings, (await backgroundEdition()).features);
+      const retention = await applyRetention(retentionDays);
       if (retention.snapshots || retention.auditEvents)
         console.log('[retention] deleted', retention);
       return;
@@ -247,7 +250,8 @@ export function isDue(
 }
 
 export async function scheduledTick(): Promise<void> {
-  const settings = await getSettings();
+  // Standard runs a saved daily schedule weekly (server-side edition gate).
+  const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
   const rows = await q<{ started_at: number }>(
     "SELECT MAX(started_at) AS started_at FROM snap WHERE trigger_kind = 'scheduled'",
   );
