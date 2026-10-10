@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
+import DynamicTable from '@atlaskit/dynamic-table';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
 import SectionMessage from '@atlaskit/section-message';
 import type { Overview, Risk } from '../api';
@@ -16,7 +17,7 @@ import {
   useTakeSnapshot,
   type Params,
 } from '../shared';
-import { Empty, ErrorState, Loading, Metric, PageFrame, PageHeader, Pill } from '../ui';
+import { Empty, ErrorState, LinkButton, Loading, Metric, PageFrame, PageHeader, Pill } from '../ui';
 
 const SEVERITY_TONE = { high: 'danger', medium: 'warning', low: 'neutral' } as const;
 
@@ -149,9 +150,7 @@ export function OverviewView() {
             <p className="subtle">
               Snapshot #{d.snapshot.seq} · {formatLocal(d.snapshot.startedAt)} (
               {relative(d.snapshot.startedAt)}) ·{' '}
-              <button type="button" className="link-button" onClick={() => go('snapshots')}>
-                Snapshot history
-              </button>
+              <LinkButton onClick={() => go('snapshots')}>Snapshot history</LinkButton>
             </p>
             {d.metrics ? (
               <div className="metric-grid">
@@ -187,22 +186,36 @@ export function OverviewView() {
               description="Signals worth checking in the next review. Select one to see the details."
             >
               {d.risks && d.risks.some((r) => r.count) ? (
-                <ul className="risk-list">
-                  {d.risks
+                <DynamicTable
+                  head={{
+                    cells: [
+                      { key: 'severity', content: 'Severity', width: 12 },
+                      { key: 'indicator', content: 'Indicator' },
+                      { key: 'count', content: 'Count', width: 10 },
+                    ],
+                  }}
+                  rows={d.risks
                     .filter((r) => r.count)
-                    .map((r) => (
-                      <li key={r.id}>
-                        <button type="button" className="risk-row" onClick={() => openRisk(r)}>
-                          <Pill tone={SEVERITY_TONE[r.severity]}>{r.severity}</Pill>
-                          <div>
-                            <strong>{r.title}</strong>
-                            <div className="subtle">{r.description}</div>
-                          </div>
-                          <span className="risk-count">{r.count}</span>
-                        </button>
-                      </li>
-                    ))}
-                </ul>
+                    .map((r) => ({
+                      key: r.id,
+                      cells: [
+                        {
+                          key: 'severity',
+                          content: <Pill tone={SEVERITY_TONE[r.severity]}>{r.severity}</Pill>,
+                        },
+                        {
+                          key: 'indicator',
+                          content: (
+                            <>
+                              <LinkButton onClick={() => openRisk(r)}>{r.title}</LinkButton>
+                              <div className="subtle">{r.description}</div>
+                            </>
+                          ),
+                        },
+                        { key: 'count', content: r.count },
+                      ],
+                    }))}
+                />
               ) : (
                 <p className="subtle">No risk indicators in this snapshot.</p>
               )}

@@ -3,7 +3,6 @@ import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
 import Lozenge from '@atlaskit/lozenge';
 import Select from '@atlaskit/select';
-import Toggle from '@atlaskit/toggle';
 import {
   call,
   errorText,
@@ -18,7 +17,17 @@ import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
 import { formatLocal, permissionLabel, plural } from '../format';
 import { navItem } from '../routes';
 import { NoSnapshot, PartialBanner, useApp, useSnapshots } from '../shared';
-import { Details, ErrorState, FilterBar, Loading, PageFrame, PageHeader, Pill } from '../ui';
+import {
+  Details,
+  ErrorState,
+  FilterBar,
+  LinkButton,
+  Loading,
+  PageFrame,
+  PageHeader,
+  Pill,
+  ToggleField,
+} from '../ui';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
@@ -104,14 +113,11 @@ export function PeopleView() {
                   isSearchable={false}
                 />
               </div>
-              <label className="choice-label">
-                <Toggle
-                  isChecked={showApps}
-                  onChange={() => setShowApps((v) => !v)}
-                  label="Show app accounts"
-                />
-                Show app accounts
-              </label>
+              <ToggleField
+                label="Show app accounts"
+                isChecked={showApps}
+                onChange={() => setShowApps((v) => !v)}
+              />
               <SnapshotPicker
                 snapshots={snaps.data?.snapshots ?? []}
                 value={seq}
@@ -134,23 +140,18 @@ export function PeopleView() {
                   {
                     key: p.name.toLowerCase(),
                     content: (
-                      <button
-                        type="button"
-                        className="link-button"
-                        onClick={() => open(p.accountId, p.name)}
-                      >
-                        <SubjectCell
-                          subject={{
-                            key: p.accountId,
-                            type: 'user',
-                            id: p.accountId,
-                            name: p.name,
-                            accountType: p.accountType,
-                            active: p.active,
-                          }}
-                          compact
-                        />
-                      </button>
+                      <SubjectCell
+                        subject={{
+                          key: p.accountId,
+                          type: 'user',
+                          id: p.accountId,
+                          name: p.name,
+                          accountType: p.accountType,
+                          active: p.active,
+                        }}
+                        compact
+                        onSelect={() => open(p.accountId, p.name)}
+                      />
                     ),
                   },
                   { key: p.projects, content: p.projects },
@@ -306,13 +307,9 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
           <ul className="reason-list">
             {d.projects.map((p) => (
               <li key={p.project.id}>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => go('explore-projects', { projectId: p.project.id })}
-                >
-                  <strong>{p.project.key}</strong> {p.project.name}
-                </button>
+                <LinkButton onClick={() => go('explore-projects', { projectId: p.project.id })}>
+                  {p.project.key} · {p.project.name}
+                </LinkButton>
                 <ReasonList perms={p.perms} keyPermissions={d.keyPermissions} />
               </li>
             ))}

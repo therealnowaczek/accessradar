@@ -29,6 +29,7 @@
     "@atlaskit/dynamic-table": "^19.3.8",
     "@atlaskit/empty-state": "^12.2.4",
     "@atlaskit/flag": "^19.0.0",
+    "@atlaskit/form": "^18.2.0",
     "@atlaskit/heading": "^8.0.0",
     "@atlaskit/icon": "^38.0.2",
     "@atlaskit/lozenge": "^17.0.5",

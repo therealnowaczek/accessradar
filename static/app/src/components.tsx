@@ -2,21 +2,28 @@ import type { ReactNode } from 'react';
 import Avatar from '@atlaskit/avatar';
 import Button from '@atlaskit/button/new';
 import DropdownMenu, { DropdownItem, DropdownItemGroup } from '@atlaskit/dropdown-menu';
+import { IconTile } from '@atlaskit/icon';
 import DownloadIcon from '@atlaskit/icon/core/download';
+import GlobeIcon from '@atlaskit/icon/core/globe';
+import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
+import QuestionCircleIcon from '@atlaskit/icon/core/question-circle';
 import SearchIcon from '@atlaskit/icon/core/search';
 import Lozenge from '@atlaskit/lozenge';
 import Select from '@atlaskit/select';
 import Textfield from '@atlaskit/textfield';
 import type { Coverage, Reason, Snapshot, SubjectView } from './api';
 import { formatLocal, permissionLabel } from './format';
-import { Pill, SectionHeader } from './ui';
+import { LinkButton, Pill, SectionHeader } from './ui';
 
 export function SubjectCell({
   subject,
   compact = false,
+  onSelect,
 }: {
   subject: SubjectView;
   compact?: boolean;
+  /** Makes the name an ADS link button (e.g. open the person or group). */
+  onSelect?: () => void;
 }) {
   const app = subject.type === 'user' && subject.accountType !== 'atlassian';
   return (
@@ -24,13 +31,28 @@ export function SubjectCell({
       {subject.type === 'user' ? (
         <Avatar size="small" name={subject.name} />
       ) : (
-        <span className={`subject-glyph subject-${subject.type}`} aria-hidden="true">
-          {subject.type === 'group' ? 'G' : subject.type === 'anonymous' ? '!' : '?'}
-        </span>
+        <IconTile
+          icon={
+            subject.type === 'group'
+              ? PeopleGroupIcon
+              : subject.type === 'anonymous'
+                ? GlobeIcon
+                : QuestionCircleIcon
+          }
+          label=""
+          size="small"
+          appearance={
+            subject.type === 'group' ? 'gray' : subject.type === 'anonymous' ? 'red' : 'purple'
+          }
+        />
       )}
       <span className="person-name">
         <span className="status-row tight">
-          <span>{subject.name}</span>
+          {onSelect ? (
+            <LinkButton onClick={onSelect}>{subject.name}</LinkButton>
+          ) : (
+            <span>{subject.name}</span>
+          )}
           {subject.type === 'user' && subject.active === false ? (
             <Lozenge appearance="removed">Inactive</Lozenge>
           ) : null}
@@ -135,6 +157,7 @@ export function SnapshotPicker({
   label = 'Snapshot',
   allowLatest = true,
   width = 280,
+  inputId,
 }: {
   snapshots: Snapshot[];
   value: number | null;
@@ -142,6 +165,7 @@ export function SnapshotPicker({
   label?: string;
   allowLatest?: boolean;
   width?: number;
+  inputId?: string;
 }) {
   const committed = snapshots.filter((s) => s.status === 'complete' || s.status === 'partial');
   const options: Option[] = [
@@ -152,7 +176,7 @@ export function SnapshotPicker({
   return (
     <div style={{ width }}>
       <Select<Option>
-        inputId={`snapshot-${label}`}
+        inputId={inputId ?? `snapshot-${label}`}
         aria-label={label}
         options={options}
         value={selected}

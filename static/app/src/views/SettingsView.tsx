@@ -5,7 +5,6 @@ import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
 import Textfield from '@atlaskit/textfield';
-import Toggle from '@atlaskit/toggle';
 import { call, errorText, type Settings, type SettingsView as SettingsDto } from '../api';
 import { Section } from '../components';
 import { useCall } from '../data';
@@ -20,7 +19,16 @@ import {
 import { navItem } from '../routes';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
-import { Details, ErrorState, Loading, PageFrame, PageHeader } from '../ui';
+import {
+  Details,
+  ErrorState,
+  FormField,
+  Loading,
+  PageFrame,
+  PageHeader,
+  RadioField,
+  ToggleField,
+} from '../ui';
 import { SpikePanel } from './SpikePanel';
 
 type Opt<T = string> = { label: string; value: T };
@@ -108,19 +116,21 @@ function NumberField({
   hint?: string;
 }) {
   return (
-    <label className="field">
-      <span className="field-label">{label}</span>
-      <Textfield
-        type="number"
-        min={min}
-        max={max}
-        value={String(value)}
-        onChange={(e) => onChange(Number((e.target as HTMLInputElement).value))}
-      />
-      <span className="subtle">
-        {hint ?? `Between ${min.toLocaleString()} and ${max.toLocaleString()}.`}
-      </span>
-    </label>
+    <FormField
+      label={label}
+      helper={hint ?? `Between ${min.toLocaleString()} and ${max.toLocaleString()}.`}
+    >
+      {(id) => (
+        <Textfield
+          id={id}
+          type="number"
+          min={min}
+          max={max}
+          value={String(value)}
+          onChange={(e) => onChange(Number((e.target as HTMLInputElement).value))}
+        />
+      )}
+    </FormField>
   );
 }
 
@@ -135,8 +145,7 @@ function ScheduleForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: (
   const days: Opt<number>[] = WEEKDAYS.map((label, i) => ({ label, value: i + 1 }));
   return (
     <EditForm onCancel={cancel} onSave={() => save({ frequency, hourUtc, weekday })}>
-      <fieldset className="choice-group">
-        <legend>Frequency</legend>
+      <RadioField label="Frequency">
         <RadioGroup
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as Settings['frequency'])}
@@ -146,32 +155,36 @@ function ScheduleForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: (
             { name: 'frequency', value: 'off', label: 'Off (manual snapshots only)' },
           ]}
         />
-      </fieldset>
+      </RadioField>
       {frequency !== 'off' ? (
         <>
           {frequency === 'weekly' ? (
-            <label className="field">
-              <span className="field-label">Day</span>
+            <FormField label="Day">
+              {(id) => (
+                <Select<Opt<number>>
+                  inputId={id}
+                  options={days}
+                  value={days.find((d) => d.value === weekday)}
+                  onChange={(o) => o && setWeekday(o.value)}
+                  isSearchable={false}
+                />
+              )}
+            </FormField>
+          ) : null}
+          <FormField
+            label="Start time"
+            helper="Pick a quiet hour; collection shares the site’s API quota."
+          >
+            {(id) => (
               <Select<Opt<number>>
-                options={days}
-                value={days.find((d) => d.value === weekday)}
-                onChange={(o) => o && setWeekday(o.value)}
+                inputId={id}
+                options={hours}
+                value={hours.find((h) => h.value === hourUtc)}
+                onChange={(o) => o && setHour(o.value)}
                 isSearchable={false}
               />
-            </label>
-          ) : null}
-          <label className="field">
-            <span className="field-label">Start time</span>
-            <Select<Opt<number>>
-              options={hours}
-              value={hours.find((h) => h.value === hourUtc)}
-              onChange={(o) => o && setHour(o.value)}
-              isSearchable={false}
-            />
-            <span className="subtle">
-              Pick a quiet hour; collection shares the site’s API quota.
-            </span>
-          </label>
+            )}
+          </FormField>
         </>
       ) : null}
     </EditForm>
@@ -195,19 +208,20 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
           : Promise.reject(new Error('Pick at least one permission.'))
       }
     >
-      <label className="field">
-        <span className="field-label">Key permissions (up to 20)</span>
-        <Select<Opt, true>
-          isMulti
-          options={options}
-          value={value}
-          onChange={(v) => setValue([...v].slice(0, 20))}
-        />
-        <span className="subtle">
-          Used by reviews, change reports, the PDF matrix and project columns. Existing reviews keep
-          the permissions they started with.
-        </span>
-      </label>
+      <FormField
+        label="Key permissions (up to 20)"
+        helper="Used by reviews, change reports, the PDF matrix and project columns. Existing reviews keep the permissions they started with."
+      >
+        {(id) => (
+          <Select<Opt, true>
+            inputId={id}
+            isMulti
+            options={options}
+            value={value}
+            onChange={(v) => setValue([...v].slice(0, 20))}
+          />
+        )}
+      </FormField>
     </EditForm>
   );
 }
@@ -243,8 +257,7 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
         )
       }
     >
-      <fieldset className="choice-group">
-        <legend>Group members</legend>
+      <RadioField label="Group members">
         <RadioGroup
           value={groupMembers}
           onChange={(e) => setGroupMembers(e.target.value as Settings['groupMembers'])}
@@ -257,7 +270,7 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
             { name: 'members', value: 'all', label: 'Every group' },
           ]}
         />
-      </fieldset>
+      </RadioField>
       <NumberField
         label="API budget per hour (rate points)"
         value={budget}
@@ -266,14 +279,11 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
         max={65000}
         hint="AccessRadar pauses and resumes the next hour when the budget is used. 500 to 65,000."
       />
-      <label className="choice-label">
-        <Toggle
-          isChecked={fallback}
-          onChange={() => setFallback((x) => !x)}
-          label="Admin fallback"
-        />
-        Use my account when the app is denied access
-      </label>
+      <ToggleField
+        label="Use my account when the app is denied access"
+        isChecked={fallback}
+        onChange={() => setFallback((x) => !x)}
+      />
       <p className="subtle">
         Some Jira endpoints only answer for administrators. With fallback on, AccessRadar retries
         those reads on your behalf (read-only).{' '}
@@ -312,14 +322,11 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
         max={10000}
         hint="People who administer at least this many projects are flagged."
       />
-      <label className="choice-label">
-        <Toggle
-          isChecked={apps}
-          onChange={() => setApps((x) => !x)}
-          label="Include app accounts in risks"
-        />
-        Include app accounts in risk indicators
-      </label>
+      <ToggleField
+        label="Include app accounts in risk indicators"
+        isChecked={apps}
+        onChange={() => setApps((x) => !x)}
+      />
     </EditForm>
   );
 }

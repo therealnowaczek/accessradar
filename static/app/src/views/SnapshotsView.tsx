@@ -17,7 +17,7 @@ import {
   useSnapshots,
   useTakeSnapshot,
 } from '../shared';
-import { Details, Empty, ErrorState, Loading, PageFrame, PageHeader } from '../ui';
+import { Details, Empty, ErrorState, LinkButton, Loading, PageFrame, PageHeader } from '../ui';
 
 const STAT_LABEL: Record<string, string> = {
   project: 'Projects',
@@ -127,10 +127,12 @@ export function SnapshotsView() {
                 {
                   key: s.seq,
                   content: (
-                    <button type="button" className="link-button" onClick={() => open(s)}>
-                      <strong>#{s.seq}</strong> · {formatLocal(s.startedAt)}
+                    <>
+                      <LinkButton onClick={() => open(s)}>
+                        #{s.seq} · {formatLocal(s.startedAt)}
+                      </LinkButton>
                       <div className="subtle">{relative(s.startedAt)}</div>
-                    </button>
+                    </>
                   ),
                 },
                 { key: 'status', content: <SnapshotLozenge status={s.status} /> },

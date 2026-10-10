@@ -4,7 +4,6 @@ import DynamicTable from '@atlaskit/dynamic-table';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import Lozenge from '@atlaskit/lozenge';
 import Select from '@atlaskit/select';
-import Toggle from '@atlaskit/toggle';
 import type {
   ProjectAccess,
   ProjectRow,
@@ -34,7 +33,16 @@ import {
   useExporter,
   useSnapshots,
 } from '../shared';
-import { ErrorState, FilterBar, Loading, PageFrame, PageHeader, Pill } from '../ui';
+import {
+  ErrorState,
+  FilterBar,
+  LinkButton,
+  Loading,
+  PageFrame,
+  PageHeader,
+  Pill,
+  ToggleField,
+} from '../ui';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
@@ -151,9 +159,7 @@ export function ProjectsView() {
                   {
                     key: p.key,
                     content: (
-                      <button
-                        type="button"
-                        className="link-button"
+                      <LinkButton
                         onClick={() =>
                           go('explore-projects', {
                             projectId: p.id,
@@ -161,8 +167,8 @@ export function ProjectsView() {
                           })
                         }
                       >
-                        <strong>{p.key}</strong> {p.name}
-                      </button>
+                        {p.key} · {p.name}
+                      </LinkButton>
                     ),
                   },
                   {
@@ -304,14 +310,11 @@ function ProjectDetail({
                 onChange={setQuery}
                 placeholder="Search people and groups"
               />
-              <label className="choice-label">
-                <Toggle
-                  isChecked={showApps}
-                  onChange={() => setShowApps((v) => !v)}
-                  label="Show app accounts"
-                />
-                Show app accounts
-              </label>
+              <ToggleField
+                label="Show app accounts"
+                isChecked={showApps}
+                onChange={() => setShowApps((v) => !v)}
+              />
             </FilterBar>
             <div className="table-wrap">
               <DynamicTable

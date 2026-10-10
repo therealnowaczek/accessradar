@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import DynamicTable from '@atlaskit/dynamic-table';
 import Select from '@atlaskit/select';
 import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
-import Toggle from '@atlaskit/toggle';
 import type { AccessChange, Changes, FactChange } from '../api';
 import { ExportMenu, SearchField, SnapshotPicker, SubjectCell } from '../components';
 import { useCall } from '../data';
@@ -11,7 +10,16 @@ import { changesCsv, changesFileName, changesPdf } from '../export/evidence';
 import { permissionLabel } from '../format';
 import { navItem } from '../routes';
 import { exportContext, logExport, NoSnapshot, useApp, useExporter, useSnapshots } from '../shared';
-import { Empty, ErrorState, FilterBar, Loading, PageFrame, PageHeader, Pill } from '../ui';
+import {
+  Empty,
+  ErrorState,
+  FilterBar,
+  Loading,
+  PageFrame,
+  PageHeader,
+  Pill,
+  ToggleField,
+} from '../ui';
 
 type Opt = { label: string; value: string };
 const ALL: Opt = { label: 'All', value: '' };
@@ -183,10 +191,7 @@ export function ChangesView() {
           />
           <span className="subtle">→</span>
           <SnapshotPicker snapshots={list} value={b} onChange={setB} label="To" width={250} />
-          <label className="choice-label">
-            <Toggle isChecked={all} onChange={() => setAll((v) => !v)} label="All permissions" />
-            All permissions
-          </label>
+          <ToggleField label="All permissions" isChecked={all} onChange={() => setAll((v) => !v)} />
         </FilterBar>
         {r.error && !d ? (
           <ErrorState title="Changes unavailable" message={r.error} retry={r.reload} />

@@ -637,11 +637,6 @@ code {
   font-weight: 500;
 }
 
-.field-error {
-  margin: var(--ds-space-050, 4px) 0 0;
-  color: var(--ds-text-danger, #ae2e24);
-}
-
 .danger-text {
   color: var(--ds-text-danger, #ae2e24);
 }
@@ -687,27 +682,6 @@ code {
 
 .filter-control {
   width: 240px;
-}
-
-.choice-group {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-050, 4px);
-}
-
-.choice-group legend {
-  padding: 0 0 var(--ds-space-100, 8px);
-  font-weight: 600;
-  color: var(--ds-text-subtle, #44546f);
-  font-size: 12px;
-}
-
-.choice-label {
-  display: flex;
-  flex-direction: column;
 }
 
 .danger-list {
@@ -789,52 +763,12 @@ code {
   min-height: 88px;
 }
 
-.pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--ds-space-100, 8px);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  white-space: nowrap;
-}
-
-.pill-neutral {
-  background: var(--ds-background-neutral, #091e420f);
-  color: var(--ds-text-subtle, #44546f);
-}
-
-.pill-info {
-  background: var(--ds-background-information, #e9f2ff);
-  color: var(--ds-text-information, #0055cc);
-}
-
-.pill-success {
-  background: var(--ds-background-success, #dcfff1);
-  color: var(--ds-text-success, #1c7f55);
-}
-
-.pill-warning {
-  background: var(--ds-background-warning, #fff7d6);
-  color: var(--ds-text-warning, #a54800);
-}
-
-.pill-discovery {
-  background: var(--ds-background-discovery, #f8eefe);
-  color: var(--ds-text-discovery, #803fa5);
-}
-
 .drawer-error {
   flex: none;
   padding: var(--ds-space-150, 12px) var(--ds-space-300, 24px) 0;
 }
 
 /* ---- AccessRadar additions (tokens only) ---- */
-.pill-danger {
-  background: var(--ds-background-danger, #ffeceb);
-  color: var(--ds-text-danger, #ae2e24);
-}
 .status-row.tight {
   gap: var(--ds-space-075, 6px);
   flex-wrap: wrap;
@@ -843,27 +777,6 @@ code {
   display: inline-flex;
   flex-wrap: wrap;
   gap: var(--ds-space-050, 4px);
-}
-.subject-glyph {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  flex: none;
-  border-radius: var(--ds-border-radius, 4px);
-  font: var(--ds-font-body-small, 400 0.75rem/1rem sans-serif);
-  font-weight: 653;
-  background: var(--ds-background-neutral, #091e420f);
-  color: var(--ds-text-subtle, #44546f);
-}
-.subject-anonymous {
-  background: var(--ds-background-danger, #ffeceb);
-  color: var(--ds-text-danger, #ae2e24);
-}
-.subject-conditional {
-  background: var(--ds-background-discovery, #f3f0ff);
-  color: var(--ds-text-discovery, #5e4db2);
 }
 .reason-list,
 .reason-paths,
@@ -905,54 +818,6 @@ code {
   word-break: break-all;
   color: var(--ds-text-subtle, #44546f);
 }
-.risk-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border-top: var(--ds-border-width, 1px) solid var(--ds-border, #091e4224);
-}
-.risk-row {
-  display: flex;
-  width: 100%;
-  gap: var(--ds-space-150, 12px);
-  align-items: center;
-  padding: var(--ds-space-150, 12px) var(--ds-space-100, 8px);
-  border: 0;
-  border-bottom: var(--ds-border-width, 1px) solid var(--ds-border, #091e4224);
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-}
-.risk-row:hover {
-  background: var(--ds-background-neutral-subtle-hovered, #091e420f);
-}
-.risk-row:focus-visible {
-  outline: 2px solid var(--ds-border-focused, #388bff);
-  outline-offset: -2px;
-}
-.risk-row > div {
-  flex: 1;
-  min-width: 0;
-}
-.risk-count {
-  font: var(--ds-font-heading-small, 653 1rem/1.25rem sans-serif);
-  min-width: 3ch;
-  text-align: right;
-}
-.link-button {
-  border: 0;
-  padding: 0;
-  background: none;
-  color: var(--ds-link, #0c66e4);
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-.link-button:hover {
-  text-decoration: underline;
-}
 .progress-block {
   display: grid;
   gap: var(--ds-space-075, 6px);
@@ -974,11 +839,6 @@ code {
 .field {
   display: grid;
   gap: var(--ds-space-050, 4px);
-}
-.field-label {
-  font: var(--ds-font-body-small, 400 0.75rem/1rem sans-serif);
-  font-weight: 653;
-  color: var(--ds-text-subtle, #44546f);
 }
 .brand-hero {
   display: flex;

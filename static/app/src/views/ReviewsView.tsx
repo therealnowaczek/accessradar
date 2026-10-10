@@ -41,11 +41,14 @@ import {
   Empty,
   ErrorState,
   FilterBar,
+  FormField,
+  LinkButton,
   Loading,
   Metric,
   PageFrame,
   PageHeader,
   Pill,
+  RadioField,
 } from '../ui';
 
 const STATUS: Record<ReviewSummary['status'], [string, 'default' | 'inprogress' | 'success']> = {
@@ -135,12 +138,10 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                 {
                   key: r.name.toLowerCase(),
                   content: (
-                    <button
-                      type="button"
-                      className="link-button"
-                      onClick={() => go('reviews', { reviewId: r.id })}
-                    >
-                      <strong>{r.name}</strong>
+                    <>
+                      <LinkButton onClick={() => go('reviews', { reviewId: r.id })}>
+                        {r.name}
+                      </LinkButton>
                       <div className="subtle">
                         {r.scope.type === 'site'
                           ? 'Whole site'
@@ -150,7 +151,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                             )}{' '}
                         · snapshot #{r.baseSeq}
                       </div>
-                    </button>
+                    </>
                   ),
                 },
                 {
@@ -257,16 +258,17 @@ function CreateReview({
     <>
       <DrawerBody>
         <div className="form-stack">
-          <label className="field">
-            <span className="field-label">Name</span>
-            <Textfield
-              value={name}
-              onChange={(e) => setName((e.target as HTMLInputElement).value)}
-              maxLength={200}
-            />
-          </label>
-          <fieldset className="choice-group">
-            <legend>Scope</legend>
+          <FormField label="Name">
+            {(id) => (
+              <Textfield
+                id={id}
+                value={name}
+                onChange={(e) => setName((e.target as HTMLInputElement).value)}
+                maxLength={200}
+              />
+            )}
+          </FormField>
+          <RadioField label="Scope">
             <RadioGroup
               value={scope}
               onChange={(e) => {
@@ -283,62 +285,70 @@ function CreateReview({
                 { name: 'scope', value: 'groups', label: 'Selected groups (membership review)' },
               ]}
             />
-          </fieldset>
+          </RadioField>
           {scope !== 'site' ? (
-            <label className="field">
-              <span className="field-label">{scope === 'projects' ? 'Projects' : 'Groups'}</span>
-              <Select<Opt, true>
-                isMulti
-                options={options}
-                value={ids}
-                onChange={(v) => setIds([...v])}
-                isLoading={projects.loading || groups.loading}
-                placeholder="Search…"
-              />
-            </label>
+            <FormField label={scope === 'projects' ? 'Projects' : 'Groups'}>
+              {(id) => (
+                <Select<Opt, true>
+                  inputId={id}
+                  isMulti
+                  options={options}
+                  value={ids}
+                  onChange={(v) => setIds([...v])}
+                  isLoading={projects.loading || groups.loading}
+                  placeholder="Search…"
+                />
+              )}
+            </FormField>
           ) : null}
-          <label className="field">
-            <span className="field-label">Base snapshot</span>
-            <SnapshotPicker
-              snapshots={snaps.data?.snapshots ?? []}
-              value={base}
-              onChange={(v) => {
-                setBase(v);
-                setCompare(null);
-              }}
-              width={360}
-            />
-          </label>
-          <label className="field">
-            <span className="field-label">Compare with (optional)</span>
-            <Select<{ label: string; value: number }>
-              options={[
-                { label: 'No comparison', value: 0 },
-                ...older.map((s) => ({
-                  label: `#${s.seq} · ${formatLocal(s.startedAt)}`,
-                  value: s.seq,
-                })),
-              ]}
-              value={
-                compare
-                  ? { label: `#${compare}`, value: compare }
-                  : { label: 'No comparison', value: 0 }
-              }
-              onChange={(o) => setCompare(o && o.value ? o.value : null)}
-              isSearchable={false}
-            />
-            <span className="subtle">
-              Marks items as new since the older snapshot, and lists access removed since then.
-            </span>
-          </label>
-          <label className="field">
-            <span className="field-label">Due date (optional)</span>
-            <Textfield
-              type="date"
-              value={due}
-              onChange={(e) => setDue((e.target as HTMLInputElement).value)}
-            />
-          </label>
+          <FormField label="Base snapshot">
+            {(id) => (
+              <SnapshotPicker
+                inputId={id}
+                snapshots={snaps.data?.snapshots ?? []}
+                value={base}
+                onChange={(v) => {
+                  setBase(v);
+                  setCompare(null);
+                }}
+                width={360}
+              />
+            )}
+          </FormField>
+          <FormField
+            label="Compare with (optional)"
+            helper="Marks items as new since the older snapshot, and lists access removed since then."
+          >
+            {(id) => (
+              <Select<{ label: string; value: number }>
+                inputId={id}
+                options={[
+                  { label: 'No comparison', value: 0 },
+                  ...older.map((s) => ({
+                    label: `#${s.seq} · ${formatLocal(s.startedAt)}`,
+                    value: s.seq,
+                  })),
+                ]}
+                value={
+                  compare
+                    ? { label: `#${compare}`, value: compare }
+                    : { label: 'No comparison', value: 0 }
+                }
+                onChange={(o) => setCompare(o && o.value ? o.value : null)}
+                isSearchable={false}
+              />
+            )}
+          </FormField>
+          <FormField label="Due date (optional)">
+            {(id) => (
+              <Textfield
+                id={id}
+                type="date"
+                value={due}
+                onChange={(e) => setDue((e.target as HTMLInputElement).value)}
+              />
+            )}
+          </FormField>
           <p className="subtle">
             Reviewers are Jira administrators. Key permissions from Settings define which access is
             listed.
@@ -832,8 +842,7 @@ function ItemDrawer({
           ) : null
         ) : (
           <div className="form-stack">
-            <fieldset className="choice-group">
-              <legend>Decision</legend>
+            <RadioField label="Decision">
               <RadioGroup
                 value={value ?? ''}
                 onChange={(e) => setValue((e.target.value || null) as typeof value)}
@@ -847,22 +856,21 @@ function ItemDrawer({
                   { name: 'decision', value: '', label: 'Undecided' },
                 ]}
               />
-            </fieldset>
-            <label className="field">
-              <span className="field-label">
-                Note{value === 'revoke' ? ' (recommended: what to remove)' : ''}
-              </span>
-              <Textarea
-                value={note}
-                maxLength={2000}
-                onChange={(e) => setNote(e.target.value)}
-                resize="vertical"
-              />
-              <span className="subtle">
-                Notes become part of the evidence. Do not include personal data beyond what the
-                decision needs.
-              </span>
-            </label>
+            </RadioField>
+            <FormField
+              label={`Note${value === 'revoke' ? ' (recommended: what to remove)' : ''}`}
+              helper="Notes become part of the evidence. Do not include personal data beyond what the decision needs."
+            >
+              {(id) => (
+                <Textarea
+                  id={id}
+                  value={note}
+                  maxLength={2000}
+                  onChange={(e) => setNote(e.target.value)}
+                  resize="vertical"
+                />
+              )}
+            </FormField>
           </div>
         )}
       </DrawerBody>

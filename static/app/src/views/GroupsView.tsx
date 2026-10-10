@@ -8,7 +8,7 @@ import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
 import { permissionLabel, plural } from '../format';
 import { navItem } from '../routes';
 import { NoSnapshot, PartialBanner, useApp, useSnapshots } from '../shared';
-import { ErrorState, FilterBar, Loading, PageFrame, PageHeader, Pill } from '../ui';
+import { ErrorState, FilterBar, LinkButton, Loading, PageFrame, PageHeader, Pill } from '../ui';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
@@ -112,11 +112,7 @@ export function GroupsView() {
                 cells: [
                   {
                     key: g.name.toLowerCase(),
-                    content: (
-                      <button type="button" className="link-button" onClick={() => open(g)}>
-                        {g.name}
-                      </button>
-                    ),
+                    content: <LinkButton onClick={() => open(g)}>{g.name}</LinkButton>,
                   },
                   {
                     key: g.members ?? -1,
@@ -219,13 +215,9 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
           <ul className="reason-list">
             {g.usage.map((u) => (
               <li key={u.project.id}>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => go('explore-projects', { projectId: u.project.id })}
-                >
-                  <strong>{u.project.key}</strong> {u.project.name}
-                </button>
+                <LinkButton onClick={() => go('explore-projects', { projectId: u.project.id })}>
+                  {u.project.key} · {u.project.name}
+                </LinkButton>
                 <ReasonList
                   perms={Object.fromEntries(u.permissions.map((p) => [p.permission, p.reasons]))}
                 />
@@ -265,13 +257,11 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
             <ul className="plain-list">
               {g.members.slice(0, 500).map((m) => (
                 <li key={m.key}>
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => go('explore-people', { accountId: m.id })}
-                  >
-                    <SubjectCell subject={m} compact />
-                  </button>
+                  <SubjectCell
+                    subject={m}
+                    compact
+                    onSelect={() => go('explore-people', { accountId: m.id })}
+                  />
                 </li>
               ))}
               {g.members.length > 500 ? (

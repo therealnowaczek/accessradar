@@ -1,9 +1,14 @@
 import { useId, type ReactNode } from 'react';
+import LinkStyleButton from '@atlaskit/button/standard-button';
 import Button from '@atlaskit/button/new';
 import EmptyState from '@atlaskit/empty-state';
+import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
+import Lozenge from '@atlaskit/lozenge';
+import { Inline } from '@atlaskit/primitives';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
+import Toggle from '@atlaskit/toggle';
 
 // Layout primitives mirror MarginRadar (static/app/src/ui.tsx): blank adminPage layout,
 // sidebar + pinned page header + scrolling content, spacing on design tokens.
@@ -202,15 +207,88 @@ export function Empty({
   );
 }
 
-/** Small rounded status badge (MarginRadar Pill). */
+const PILL_APPEARANCE = {
+  neutral: 'default',
+  info: 'inprogress',
+  success: 'success',
+  warning: 'moved',
+  danger: 'removed',
+  discovery: 'discovery',
+} as const;
+
+/** Small status badge. Always an Atlaskit Lozenge; tone maps onto its appearance. */
 export function Pill({
   tone = 'neutral',
   children,
 }: {
-  tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'discovery';
+  tone?: keyof typeof PILL_APPEARANCE;
   children: ReactNode;
 }) {
-  return <span className={`pill pill-${tone}`}>{children}</span>;
+  return <Lozenge appearance={PILL_APPEARANCE[tone]}>{children}</Lozenge>;
+}
+
+/**
+ * Inline text link that acts on the page (navigate, open a drawer). The new ADS Button has no
+ * link appearance, so this uses the standard Button's `link` appearance.
+ */
+export function LinkButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return (
+    <LinkStyleButton appearance="link" spacing="none" onClick={onClick}>
+      {children}
+    </LinkStyleButton>
+  );
+}
+
+/** Labelled form control: ADS Label above the control, optional ADS HelperMessage below. */
+export function FormField({
+  label,
+  helper,
+  children,
+}: {
+  label: ReactNode;
+  helper?: ReactNode;
+  children: (id: string) => ReactNode;
+}) {
+  const id = useId();
+  return (
+    <div className="field">
+      <Label htmlFor={id}>{label}</Label>
+      {children(id)}
+      {helper ? <HelperMessage>{helper}</HelperMessage> : null}
+    </div>
+  );
+}
+
+/** Toggle with its visible ADS Label (clicking the label flips the toggle). */
+export function ToggleField({
+  label,
+  isChecked,
+  onChange,
+}: {
+  label: string;
+  isChecked: boolean;
+  onChange: () => void;
+}) {
+  const id = useId();
+  return (
+    <Inline space="space.100" alignBlock="center">
+      <Toggle id={id} isChecked={isChecked} onChange={onChange} />
+      <Label htmlFor={id}>{label}</Label>
+    </Inline>
+  );
+}
+
+/** Group heading for a RadioGroup: an ADS Label the group is labelled by. */
+export function RadioField({ label, children }: { label: string; children: ReactNode }) {
+  const id = useId();
+  return (
+    <div className="field" role="group" aria-labelledby={id}>
+      <Label id={id} htmlFor="">
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
 }
 
 /** Definition list on dividers (no nested cards). */
