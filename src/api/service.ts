@@ -17,6 +17,7 @@ import {
   type ReviewRow,
 } from '../db/reviews';
 import { refreshGate } from '../collector/gate';
+import { limitationsPayload } from '../domain/limitations';
 import { getSettings, kvGet, saveSettings } from '../db/settings';
 import {
   effectiveSchedule,
@@ -215,7 +216,13 @@ export async function snapshotDetail(payload: any) {
   if (seq === null) throw new BadRequest('Snapshot is required');
   const s = await getSnapshot(seq);
   if (!s) throw new BadRequest('Snapshot not found');
-  return { ...snapshotSummary(s), coverage: s.coverage };
+  const limitations = limitationsPayload(s.status, s.coverage);
+  return {
+    ...snapshotSummary(s),
+    coverage: s.coverage,
+    limitations,
+    completeness: limitations.completeness,
+  };
 }
 
 export async function takeSnapshot(accountId: string, trigger: 'manual' | 'onboarding') {
@@ -475,6 +482,8 @@ export async function reviewDetail(p: any) {
   const base = await getSnapshot(review.baseSeq, false);
   const compare = review.compareSeq ? await getSnapshot(review.compareSeq, false) : null;
   const baseFull = await getSnapshot(review.baseSeq);
+  const coverage = baseFull?.coverage ?? [];
+  const limitations = limitationsPayload(base?.status, coverage);
   return {
     review: {
       ...review,
@@ -488,7 +497,9 @@ export async function reviewDetail(p: any) {
     },
     base: snapshotSummary(base),
     compare: snapshotSummary(compare),
-    coverage: baseFull?.coverage ?? [],
+    coverage,
+    limitations,
+    completeness: limitations.completeness,
     items: items.map((i) => {
       const subject =
         i.subjectType === 'user'
@@ -666,6 +677,13 @@ export async function activity() {
 export async function logExport(p: any, accountId: string) {
   const kind = v.id(p.kind, 'export kind', /^[a-z-]{1,32}$/);
   const target = p.target === undefined ? null : v.text(String(p.target), 128, 'target');
-  await audit(accountId, 'export', target, { kind });
+  const limitationsVersion =
+    typeof p.limitationsVersion === 'number' && Number.isFinite(p.limitationsVersion)
+      ? Math.floor(p.limitationsVersion)
+      : undefined;
+  await audit(accountId, 'export', target, {
+    kind,
+    ...(limitationsVersion !== undefined ? { limitationsVersion } : {}),
+  });
   return { logged: true };
 }

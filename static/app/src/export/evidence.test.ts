@@ -141,7 +141,21 @@ describe('evidence exports', () => {
       },
       base: snap,
       compare: null,
-      coverage: [],
+      coverage: [
+        {
+          area: 'groups',
+          target: 'g1',
+          status: 'unreadable',
+          reason: 'denied, see "policy"',
+        },
+      ],
+      limitations: {
+        version: 1,
+        statements: ['Team-managed projects use a simplified permission model.'],
+        completeness: 'partial',
+        gapCount: 1,
+        label: 'partial (1 gap)',
+      },
       items: [
         {
           idx: 0,
@@ -169,6 +183,12 @@ describe('evidence exports', () => {
     const rows = parseCsv(reviewCsv(d, ctx));
     expect(rows.some((r) => r[0] === `# Evidence hash (SHA-256): ${'e'.repeat(64)}`)).toBe(true);
     expect(rows.some((r) => r[0].includes('accountId a1'))).toBe(true);
+    expect(rows.some((r) => r[0] === '# limitations_version: 1')).toBe(true);
+    expect(rows.some((r) => r[0] === '# completeness: partial (1 gap)')).toBe(true);
+    const coverageRow = rows.find((r) => r[0] === '# coverage');
+    expect(coverageRow).toBeTruthy();
+    expect(coverageRow).toContain('unreadable');
+    expect(coverageRow?.some((c) => c.includes('denied, see "policy"'))).toBe(true);
     const header = rows.find((r) => r[0] === 'review_id')!;
     expect(header).toEqual(REVIEW_COLUMNS);
     const item = rows[rows.indexOf(header) + 1];
@@ -181,5 +201,7 @@ describe('evidence exports', () => {
     expect(pdf).toContain('e'.repeat(64));
     expect(pdf).toContain('Revocations to perform in Jira');
     expect(pdf).toContain('Jozef');
+    expect(pdf).toContain('Coverage & limitations');
+    expect(pdf).toContain('Team-managed projects use a simplified permission model.');
   });
 });

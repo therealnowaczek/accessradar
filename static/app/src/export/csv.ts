@@ -12,6 +12,8 @@ export function csvCell(value: unknown): string {
 export interface CsvOptions {
   /** Metadata lines written above the header as "# key: value". */
   meta?: Array<[string, string]>;
+  /** Raw comment lines (already formatted, including leading #). */
+  preamble?: string[];
   bom?: boolean;
 }
 
@@ -22,6 +24,8 @@ export function toCsv(
 ): string {
   const lines: string[] = [];
   for (const [k, v] of opts.meta ?? []) lines.push(csvCell(`# ${k}: ${v}`));
+  for (const p of opts.preamble ?? []) lines.push(p);
+  if (opts.preamble?.length) lines.push('');
   lines.push(columns.map(csvCell).join(','));
   for (const row of rows) lines.push(columns.map((c) => csvCell(row[c])).join(','));
   return `${opts.bom === false ? '' : '\uFEFF'}${lines.join('\r\n')}\r\n`;

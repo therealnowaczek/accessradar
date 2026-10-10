@@ -33,8 +33,8 @@ export function exportContext(siteUrl?: string): ExportContext {
 }
 
 /** Records an export in the audit log (best effort; exports themselves are client-side). */
-export const logExport = (kind: string, target?: string) =>
-  void call('logExport', { kind, target }).catch(() => undefined);
+export const logExport = (kind: string, target?: string, limitationsVersion?: number) =>
+  void call('logExport', { kind, target, limitationsVersion }).catch(() => undefined);
 
 export const useSnapshots = () =>
   useCall<{ snapshots: Snapshot[]; active: Snapshot | null }>('listSnapshots');

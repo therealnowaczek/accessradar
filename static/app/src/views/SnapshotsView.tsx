@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
-import type { Coverage, Snapshot } from '../api';
-import { CoverageList, ExportMenu, Hash, Section, SnapshotLozenge } from '../components';
+import type { Coverage, Limitations, Snapshot } from '../api';
+import { CoverageLimitations, ExportMenu, Hash, Section, SnapshotLozenge } from '../components';
 import { useCall } from '../data';
 import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
 import { exportMatrix } from '../export/actions';
+import { downloadCsv } from '../export/download';
+import { coverageOnlyCsv } from '../export/evidence';
 import { duration, formatLocal, formatUtc, relative } from '../format';
 import { navItem } from '../routes';
 import {
@@ -178,7 +180,9 @@ export function SnapshotsView() {
 function SnapshotDrawer({ seq }: { seq: number }) {
   const { siteUrl } = useApp();
   const exporter = useExporter();
-  const r = useCall<Snapshot & { coverage: Coverage[] }>('getSnapshot', { seq });
+  const r = useCall<Snapshot & { coverage: Coverage[]; limitations?: Limitations }>('getSnapshot', {
+    seq,
+  });
   if (r.error && !r.data)
     return (
       <DrawerBody>
@@ -225,12 +229,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
           />
         </Section>
       ) : null}
-      <Section
-        title="What we could not see"
-        description="Areas that could not be read completely in this snapshot."
-      >
-        <CoverageList coverage={s.coverage} />
-      </Section>
+      <CoverageLimitations coverage={s.coverage ?? []} limitations={s.limitations} />
       {committed ? (
         <Section
           title="Export"
@@ -250,6 +249,20 @@ function SnapshotDrawer({ seq }: { seq: number }) {
                 )
               }
             />
+            <div style={{ marginTop: 8 }}>
+              <Button
+                onClick={() =>
+                  void exporter('Coverage CSV', () => {
+                    downloadCsv(
+                      `accessradar_coverage_snapshot-${s.seq}.csv`,
+                      coverageOnlyCsv(s.coverage ?? [], s.limitations, exportContext(siteUrl)),
+                    );
+                  })
+                }
+              >
+                Download coverage CSV
+              </Button>
+            </div>
           </div>
         </Section>
       ) : null}

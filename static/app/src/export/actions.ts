@@ -24,24 +24,32 @@ export async function exportMatrix(
   if (!m.snapshot || !m.data) throw new Error('No snapshot to export');
   const rows = projectKey ? m.data.filter((r) => r.project_key === projectKey) : m.data;
   const suffix = projectKey ? `_${projectKey}` : '';
+  const detail = await call<
+    Snapshot & { coverage: Coverage[]; limitations?: import('../api').Limitations }
+  >('getSnapshot', { seq: m.snapshot.seq });
   if (format === 'csv') {
     const overview = await call<Overview>('getOverview', {}).catch(() => null);
     downloadCsv(
       matrixFileName(m.snapshot, 'csv').replace('.csv', `${suffix}.csv`),
-      matrixCsv(m.snapshot, rows, ctx, overview?.risks ?? []),
+      matrixCsv(
+        m.snapshot,
+        rows,
+        ctx,
+        overview?.risks ?? [],
+        detail.coverage ?? [],
+        detail.limitations,
+      ),
     );
   } else {
-    const detail = await call<Snapshot & { coverage: Coverage[] }>('getSnapshot', {
-      seq: m.snapshot.seq,
-    });
     downloadPdf(
       matrixFileName(m.snapshot, 'pdf').replace('.pdf', `${suffix}.pdf`),
-      matrixPdf(m.snapshot, detail.coverage, rows, ctx),
+      matrixPdf(m.snapshot, detail.coverage, rows, ctx, detail.limitations),
     );
   }
   void call('logExport', {
     kind: `matrix-${format}`,
     target: `#${m.snapshot.seq}${projectKey ? ` ${projectKey}` : ''}`,
+    limitationsVersion: detail.limitations?.version,
   }).catch(() => undefined);
   return rows.length;
 }
