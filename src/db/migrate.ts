@@ -3,7 +3,11 @@ import { errInfo } from '../lib/errors';
 
 /**
  * Detect DDL that already ran on a peer (or a prior half-finished apply).
- * TiDB/MySQL: duplicate column / key / table; Forge wraps these in MigrationExecutionError.
+ * Covers concurrent CREATE TABLE, ALTER ADD COLUMN, and CREATE INDEX:
+ * - table already exists (1050 / ER_TABLE_EXISTS_ERROR)
+ * - duplicate column (1060 / ER_DUP_FIELDNAME)
+ * - duplicate index / key name (1061 / ER_DUP_KEYNAME)
+ * Forge wraps the driver error in MigrationExecutionError.cause.
  */
 export function isAlreadyAppliedSchemaError(e: unknown): boolean {
   const parts = [e];
@@ -17,6 +21,8 @@ export function isAlreadyAppliedSchemaError(e: unknown): boolean {
   return (
     /duplicate column/i.test(text) ||
     /duplicate key name/i.test(text) ||
+    /duplicate index/i.test(text) ||
+    /table ['"`]?[\w.-]+['"`]? already exists/i.test(text) ||
     /already exists/i.test(text) ||
     /\b1060\b/.test(text) || // ER_DUP_FIELDNAME
     /\b1061\b/.test(text) || // ER_DUP_KEYNAME
