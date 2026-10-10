@@ -374,6 +374,23 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
   );
 }
 
+function ReviewsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () => void }) {
+  const [requireKeepNote, setRequireKeepNote] = useState(s.requireKeepNote);
+  return (
+    <EditForm onCancel={cancel} onSave={() => save({ requireKeepNote })}>
+      <ToggleField
+        label="Require justification when keeping access"
+        isChecked={requireKeepNote}
+        onChange={() => setRequireKeepNote((x) => !x)}
+      />
+      <p className="subtle">
+        Revoke and exception already require a justification of at least 10 characters. Turn this on
+        to require the same for Keep.
+      </p>
+    </EditForm>
+  );
+}
+
 export function SettingsView() {
   const { status } = useApp();
   const toast = useToast();
@@ -553,6 +570,33 @@ export function SettingsView() {
                   ['Large group', `${s.largeGroupThreshold}+ members`],
                   ['Admin of many projects', `${s.wideAdminProjects}+ projects`],
                   ['App accounts', s.showAppAccounts ? 'Included' : 'Excluded'],
+                ]}
+              />
+            </Section>
+            <Section
+              title="Reviews"
+              description="Justification rules for access decisions."
+              action={
+                <Button
+                  onClick={() =>
+                    edit(
+                      'Reviews',
+                      'When reviewers must explain a decision.',
+                      <ReviewsForm s={s} save={save} cancel={close} />,
+                    )
+                  }
+                >
+                  Edit
+                </Button>
+              }
+            >
+              <Details
+                rows={[
+                  [
+                    'Keep justification',
+                    s.requireKeepNote ? 'Required (≥10 characters)' : 'Optional',
+                  ],
+                  ['Revoke / exception', 'Always required (≥10 characters)'],
                 ]}
               />
             </Section>

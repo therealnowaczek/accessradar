@@ -1,7 +1,14 @@
 import api, { route } from '@forge/api';
 import { diffEffective, diffFacts, effectiveTuples, type AccessTuple } from '../engine/diff';
 import { ENGINE_VERSION, resolveAll } from '../engine/resolve';
+import { applyExceptions, validateDecisionInput } from '../engine/exceptions';
 import { buildReviewItems, evidenceHash, type ReviewScope } from '../engine/review';
+import {
+  activeExceptionsForKeys,
+  expireExceptions,
+  listExceptions,
+  upsertExceptionsOnSign,
+} from '../db/exceptions';
 import { computeRisks } from '../engine/risk';
 import { buildState, type AccessState } from '../engine/state';
 import { audit, listAudit } from '../db/audit';
@@ -436,14 +443,18 @@ export async function createReview(p: any, accountId: string) {
   if (type !== 'site' && ids.some((id) => !known.has(id)))
     throw new BadRequest('Scope contains unknown projects or groups');
   const scope: ReviewScope = { type, ids };
-  const items = buildReviewItems(
+  const drafts = buildReviewItems(
     state,
     scope,
     settings.keyPermissions,
     compare ? await stateFor(compare.seq) : undefined,
   );
-  if (items.length > 20000)
-    throw new BadRequest(`Scope too large (${items.length} items); narrow it down`);
+  if (drafts.length > 20000)
+    throw new BadRequest(`Scope too large (${drafts.length} items); narrow it down`);
+  const now = Date.now();
+  await expireExceptions(now);
+  const active = await activeExceptionsForKeys(drafts.map((i) => i.itemKey));
+  const items = applyExceptions(drafts, active, now);
   const id = await insertReview(
     {
       name,
@@ -452,7 +463,7 @@ export async function createReview(p: any, accountId: string) {
       baseSeq: base.seq,
       compareSeq: compare?.seq ?? null,
       createdBy: accountId,
-      createdAt: Date.now(),
+      createdAt: now,
       dueAt,
       engineVersion: ENGINE_VERSION,
     },
@@ -525,7 +536,7 @@ export async function decideItems(p: any, accountId: string) {
   const review = await loadReview(p.id);
   if (review.status === 'signed') throw new BadRequest('Signed reviews are read-only');
   const decision =
-    p.decision === 'keep' || p.decision === 'revoke'
+    p.decision === 'keep' || p.decision === 'revoke' || p.decision === 'exception'
       ? p.decision
       : p.decision === null
         ? null
@@ -539,12 +550,31 @@ export async function decideItems(p: any, accountId: string) {
       throw new BadRequest('Invalid item');
     return n;
   });
-  const note = p.note === undefined ? undefined : v.text(p.note, 2000, 'Note') || null;
-  if (decision === 'revoke' && idxs.length === 1 && note === null) {
-    // Allowed, but the UI asks for a note; nothing to enforce server-side.
+  const settings = await getSettings();
+  const rawNote = p.note === undefined ? undefined : v.text(p.note, 2000, 'Note');
+  let note: string | null | undefined = rawNote === undefined ? undefined : rawNote || null;
+  let expiresAt: number | null = null;
+  if (decision !== null) {
+    try {
+      const checked = validateDecisionInput({
+        decision,
+        note: note ?? '',
+        expiresAt: p.expiresAt ?? null,
+        requireKeepNote: settings.requireKeepNote,
+        tz: typeof p.tz === 'string' ? p.tz : 'UTC',
+      });
+      note = checked.note;
+      expiresAt = checked.expiresAt;
+    } catch (e) {
+      throw new BadRequest(String((e as Error).message ?? e));
+    }
   }
-  const changed = await decide(review.id, idxs, decision, note, accountId);
-  await audit(accountId, 'review.decided', review.id, { count: changed, decision });
+  const changed = await decide(review.id, idxs, decision, note, accountId, expiresAt);
+  await audit(accountId, 'review.decided', review.id, {
+    count: changed,
+    decision,
+    withNote: Boolean(note),
+  });
   return { changed };
 }
 
@@ -575,9 +605,33 @@ export async function signReview(p: any, accountId: string) {
     'I confirm that I reviewed every access item in this scope and that the decisions recorded here reflect my assessment.';
   if (!(await markSigned(review.id, accountId, signedAt, tz, attestation, hash)))
     throw new BadRequest('This review is already signed');
+  const exc = await upsertExceptionsOnSign(review.id, items, accountId, signedAt);
+  if (exc.granted) await audit(accountId, 'exception.granted', review.id, { count: exc.granted });
+  if (exc.superseded)
+    await audit(accountId, 'exception.superseded', review.id, { count: exc.superseded });
   await audit(accountId, 'review.signed', review.id, { hash });
   console.log('[review] signed', { items: items.length, hash: hash.slice(0, 12) });
   return { evidenceHash: hash, signedAt };
+}
+
+export async function exceptionsList(p: any) {
+  const status =
+    typeof p.status === 'string' &&
+    ['active', 'expired', 'superseded', 'revoked', 'all'].includes(p.status)
+      ? p.status
+      : undefined;
+  const page = Number.isInteger(Number(p.page)) ? Number(p.page) : 1;
+  return listExceptions({ status, page });
+}
+
+/** Called from the daily privacy consumer; returns how many rows flipped to expired. */
+export async function runExpireExceptions(now = Date.now()): Promise<number> {
+  const count = await expireExceptions(now);
+  if (count) {
+    await audit('system', 'exception.expired', null, { count });
+    console.log('[exceptions] expired', { count });
+  }
+  return count;
 }
 
 /** Recomputes the evidence hash from stored records; any edit after sign-off shows up as a mismatch. */

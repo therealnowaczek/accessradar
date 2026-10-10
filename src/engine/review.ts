@@ -15,7 +15,7 @@ export interface ReviewScope {
 }
 
 export type ItemChange = 'new' | 'unchanged' | 'removed' | null;
-export type Decision = 'keep' | 'revoke' | null;
+export type Decision = 'keep' | 'revoke' | 'exception' | null;
 
 export interface ReviewItemDraft {
   itemKey: string;

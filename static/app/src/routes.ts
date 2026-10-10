@@ -6,6 +6,7 @@ export type ViewId =
   | 'explore-people'
   | 'changes'
   | 'reviews'
+  | 'exceptions'
   | 'snapshots'
   | 'settings'
   | 'activity';
@@ -62,6 +63,12 @@ export const NAV: Array<{ group: string; items: NavItem[] }> = [
         label: 'Reviews',
         title: 'Access reviews',
         description: 'Periodic access reviews with sign-off and evidence export.',
+      },
+      {
+        id: 'exceptions',
+        label: 'Exceptions',
+        title: 'Exceptions',
+        description: 'Access exceptions granted during reviews, with expiry dates.',
       },
       {
         id: 'snapshots',

@@ -240,6 +240,29 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       closed_at BIGINT NULL
     )`,
   ],
+  ['v025_review_item_exception', `ALTER TABLE review_item ADD COLUMN expires_at BIGINT NULL`],
+  [
+    'v026_access_exception',
+    `CREATE TABLE IF NOT EXISTS access_exception (
+      id VARCHAR(36) NOT NULL PRIMARY KEY,
+      item_key VARCHAR(512) NOT NULL,
+      subject_type VARCHAR(16) NOT NULL,
+      subject_id VARCHAR(256) NOT NULL,
+      project_id VARCHAR(32) NULL,
+      group_id VARCHAR(128) NULL,
+      permissions TEXT NOT NULL,
+      justification TEXT NOT NULL,
+      expires_at BIGINT NOT NULL,
+      status VARCHAR(16) NOT NULL,
+      review_id VARCHAR(36) NOT NULL,
+      granted_by VARCHAR(128) NOT NULL,
+      granted_at BIGINT NOT NULL,
+      closed_at BIGINT NULL,
+      closed_reason VARCHAR(32) NULL,
+      KEY ix_exc_item (item_key(191), status),
+      KEY ix_exc_exp (status, expires_at)
+    )`,
+  ],
 ];
 
 let runner: typeof migrationRunner | null = null;

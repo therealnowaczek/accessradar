@@ -21,6 +21,8 @@ export interface Settings {
   /** Own rate-point budget per hour for this site (Jira app quota is shared by all sites). */
   hourlyPointBudget: number;
   showAppAccounts: boolean;
+  /** When true, Keep decisions also require a ≥10 character note. */
+  requireKeepNote: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -35,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   fallbackAccountId: null,
   hourlyPointBudget: 20000,
   showAppAccounts: false,
+  requireKeepNote: false,
 };
 
 const PERMISSION_KEY = /^[A-Z][A-Z0-9_]{1,63}$/;
@@ -79,6 +82,8 @@ export function sanitizeSettings(input: unknown, base: Settings = DEFAULT_SETTIN
     hourlyPointBudget: int(i.hourlyPointBudget, 500, 65000, base.hourlyPointBudget),
     showAppAccounts:
       typeof i.showAppAccounts === 'boolean' ? i.showAppAccounts : base.showAppAccounts,
+    requireKeepNote:
+      typeof i.requireKeepNote === 'boolean' ? i.requireKeepNote : base.requireKeepNote,
   };
 }
 

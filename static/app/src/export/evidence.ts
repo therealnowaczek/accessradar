@@ -365,12 +365,18 @@ export const REVIEW_COLUMNS = [
   'change',
   'decision',
   'note',
+  'expires_at_utc',
+  'expires_at_local',
   'decided_by',
   'decided_at_utc',
   'decided_at_local',
 ];
 
-const DECISION = { keep: 'keep', revoke: 'revoke (to do in Jira)' } as const;
+const DECISION = {
+  keep: 'keep',
+  revoke: 'revoke (to do in Jira)',
+  exception: 'exception',
+} as const;
 
 export function reviewRows(d: ReviewDetail, tz = timeZone()) {
   return d.items.map((i) => ({
@@ -387,6 +393,8 @@ export function reviewRows(d: ReviewDetail, tz = timeZone()) {
     change: i.change ?? '',
     decision: i.decision ? DECISION[i.decision] : '',
     note: i.note ?? '',
+    expires_at_utc: formatUtc(i.expiresAt ?? null),
+    expires_at_local: formatLocalExport(i.expiresAt ?? null, tz),
     decided_by: i.decidedBy ?? '',
     decided_at_utc: formatUtc(i.decidedAt),
     decided_at_local: formatLocalExport(i.decidedAt, tz),
@@ -443,6 +451,7 @@ export function reviewPdf(d: ReviewDetail, ctx: ExportContext = {}) {
   const items = d.items.filter((i) => i.change !== 'removed');
   const flagged = items.filter((i) => i.decision === 'revoke');
   const kept = items.filter((i) => i.decision === 'keep');
+  const exceptions = items.filter((i) => i.decision === 'exception');
   const doc = new PdfDoc(`AccessRadar evidence pack - ${r.name}`);
   doc.title(r.name, 'Jira access review, evidence pack');
   doc.keyValues(reviewMeta(d, ctx));
@@ -463,7 +472,8 @@ export function reviewPdf(d: ReviewDetail, ctx: ExportContext = {}) {
     ['Items reviewed', String(items.length)],
     ['Keep', String(kept.length)],
     ['Revoke (to do in Jira)', String(flagged.length)],
-    ['Undecided', String(items.length - kept.length - flagged.length)],
+    ['Exception', String(exceptions.length)],
+    ['Undecided', String(items.length - kept.length - flagged.length - exceptions.length)],
     ['New since comparison', String(items.filter((i) => i.change === 'new').length)],
     ['Removed since comparison', String(d.items.filter((i) => i.change === 'removed').length)],
   ]);
