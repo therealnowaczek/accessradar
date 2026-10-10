@@ -43,7 +43,7 @@ export async function exportMatrix(
   } else {
     downloadPdf(
       matrixFileName(m.snapshot, 'pdf').replace('.pdf', `${suffix}.pdf`),
-      matrixPdf(m.snapshot, detail.coverage, rows, ctx, detail.limitations),
+      await matrixPdf(m.snapshot, detail.coverage, rows, ctx, detail.limitations),
     );
   }
   void call('logExport', {

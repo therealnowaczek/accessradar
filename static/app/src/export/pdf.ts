@@ -1,10 +1,13 @@
 /**
- * Minimal dependency-free PDF writer for the evidence pack (A4, Helvetica, text + tables).
- * Generated in the browser, bundled with the app: no CDN, no egress (Runs on Atlassian).
- * Standard fonts only cover WinAnsi, so text is transliterated (ą→a, “→", →→->).
+ * PDF writer for evidence packs (A4, Noto Sans, text + tables).
+ * Generated in the browser with pdf-lib + bundled fonts: no CDN, no egress (Runs on Atlassian).
  */
 
-// Helvetica advance widths (AFM, 1/1000 em) for ASCII 32..126.
+import fontkit from '@pdf-lib/fontkit';
+import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { loadNotoFonts } from './fonts';
+
+// Approximate Helvetica advance widths (AFM, 1/1000 em) for wrap layout only.
 const W = [
   278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556,
   556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556, 1015, 667, 667, 722, 722, 667,
@@ -13,25 +16,8 @@ const W = [
   222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584,
 ];
 
+/** Punctuation / symbol normalisations; letters (incl. Polish) are kept as-is for Noto Sans. */
 const MAP: Record<string, string> = {
-  ą: 'a',
-  ć: 'c',
-  ę: 'e',
-  ł: 'l',
-  ń: 'n',
-  ó: 'o',
-  ś: 's',
-  ź: 'z',
-  ż: 'z',
-  Ą: 'A',
-  Ć: 'C',
-  Ę: 'E',
-  Ł: 'L',
-  Ń: 'N',
-  Ó: 'O',
-  Ś: 'S',
-  Ź: 'Z',
-  Ż: 'Z',
   '→': '->',
   '←': '<-',
   '“': '"',
@@ -48,20 +34,14 @@ const MAP: Record<string, string> = {
   '•': '-',
 };
 
-/** Restricts text to printable Latin-1 so standard PDF fonts can render it. */
+/** Normalises punctuation; keeps Unicode letters (Polish) for the bundled Noto Sans font. */
 export function pdfSafe(text: string): string {
   let out = '';
   for (const ch of text.normalize('NFC')) {
     if (MAP[ch] !== undefined) out += MAP[ch];
-    else {
-      const c = ch.charCodeAt(0);
-      if ((c >= 32 && c <= 126) || (c >= 0xa0 && c <= 0xff)) out += ch;
-      else if (ch === '\n' || ch === '\t') out += ' ';
-      else {
-        const base = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        out += base && base.charCodeAt(0) < 127 ? base : '?';
-      }
-    }
+    else if (ch === '\n' || ch === '\t') out += ' ';
+    else if (ch.codePointAt(0)! < 32) out += ' ';
+    else out += ch;
   }
   return out;
 }
@@ -102,8 +82,6 @@ export function wrap(text: string, width: number, size: number, bold = false): s
   return lines;
 }
 
-const esc = (s: string) => s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
-
 export interface Column {
   header: string;
   /** Relative width. */
@@ -114,8 +92,25 @@ const PAGE_W = 595.28;
 const PAGE_H = 841.89;
 const M = 42;
 
+type Op =
+  | { t: 'text'; x: number; y: number; s: string; size: number; bold: boolean; gray: number }
+  | { t: 'line'; x1: number; y1: number; x2: number; y2: number; gray: number; width: number };
+
+function drawable(font: PDFFont, s: string): string {
+  let out = '';
+  for (const ch of s) {
+    try {
+      font.widthOfTextAtSize(ch, 10);
+      out += ch;
+    } catch {
+      out += '?';
+    }
+  }
+  return out;
+}
+
 export class PdfDoc {
-  private pages: string[][] = [];
+  private pages: Op[][] = [];
   private y = 0;
   private readonly contentW = PAGE_W - 2 * M;
 
@@ -137,15 +132,11 @@ export class PdfDoc {
   }
 
   private text(x: number, y: number, s: string, size: number, bold = false, gray = 0) {
-    this.ops.push(
-      `BT ${gray ? `${gray} g ` : '0 g '}/${bold ? 'F2' : 'F1'} ${size} Tf ${x.toFixed(2)} ${y.toFixed(2)} Td (${esc(pdfSafe(s))}) Tj ET`,
-    );
+    this.ops.push({ t: 'text', x, y, s: pdfSafe(s), size, bold, gray });
   }
 
   private line(x1: number, y1: number, x2: number, y2: number, gray = 0.8, width = 0.5) {
-    this.ops.push(
-      `${gray} G ${width} w ${x1.toFixed(2)} ${y1.toFixed(2)} m ${x2.toFixed(2)} ${y2.toFixed(2)} l S`,
-    );
+    this.ops.push({ t: 'line', x1, y1, x2, y2, gray, width });
   }
 
   title(text: string, subtitle?: string) {
@@ -232,37 +223,48 @@ export class PdfDoc {
     this.y -= 6;
   }
 
-  /** Serialises to PDF bytes (all text is Latin-1, so one char = one byte). */
-  toBytes(): Uint8Array {
-    const n = this.pages.length;
-    const objects: string[] = [];
-    objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
-    const pageIds = this.pages.map((_, i) => 5 + i * 2);
-    objects[2] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(' ')}] /Count ${n} >>`;
-    objects[3] =
-      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
-    objects[4] =
-      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
-    this.pages.forEach((ops, i) => {
-      const footer = `BT 0.45 g /F1 8 Tf ${M} ${M - 14} Td (${esc(pdfSafe(`${this.footer}  |  Page ${i + 1} of ${n}`))}) Tj ET`;
-      const stream = [...ops, footer].join('\n');
-      objects[pageIds[i]] =
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${pageIds[i] + 1} 0 R >>`;
-      objects[pageIds[i] + 1] = `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`;
-    });
-    let out = '%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n';
-    const offsets: number[] = [];
-    for (let id = 1; id < objects.length; id++) {
-      offsets[id] = out.length;
-      out += `${id} 0 obj\n${objects[id]}\nendobj\n`;
+  private paint(page: PDFPage, ops: Op[], f1: PDFFont, f2: PDFFont) {
+    for (const op of ops) {
+      if (op.t === 'line') {
+        page.drawLine({
+          start: { x: op.x1, y: op.y1 },
+          end: { x: op.x2, y: op.y2 },
+          thickness: op.width,
+          color: rgb(op.gray, op.gray, op.gray),
+        });
+        continue;
+      }
+      const font = op.bold ? f2 : f1;
+      const g = Math.min(1, Math.max(0, op.gray));
+      page.drawText(drawable(font, op.s), {
+        x: op.x,
+        y: op.y,
+        size: op.size,
+        font,
+        color: rgb(g, g, g),
+      });
     }
-    const xref = out.length;
-    out += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
-    for (let id = 1; id < objects.length; id++)
-      out += `${String(offsets[id]).padStart(10, '0')} 00000 n \n`;
-    out += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
-    const bytes = new Uint8Array(out.length);
-    for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i) & 0xff;
-    return bytes;
+  }
+
+  /** Serialises to PDF bytes with subsetted Noto Sans (Polish letters preserved). */
+  async toBytes(): Promise<Uint8Array> {
+    const pdf = await PDFDocument.create();
+    pdf.registerFontkit(fontkit);
+    const { regular, bold } = await loadNotoFonts();
+    const f1 = await pdf.embedFont(regular, { subset: true });
+    const f2 = await pdf.embedFont(bold, { subset: true });
+    const n = this.pages.length;
+    this.pages.forEach((ops, i) => {
+      const page = pdf.addPage([PAGE_W, PAGE_H]);
+      this.paint(page, ops, f1, f2);
+      page.drawText(drawable(f1, `${this.footer}  |  Page ${i + 1} of ${n}`), {
+        x: M,
+        y: M - 14,
+        size: 8,
+        font: f1,
+        color: rgb(0.45, 0.45, 0.45),
+      });
+    });
+    return pdf.save();
   }
 }

@@ -52,6 +52,8 @@
     "@forge/events": "^3.0.7",
     "@forge/resolver": "^2.0.0",
     "@forge/sql": "^4.0.7",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "pdf-lib": "^1.17.1",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },

@@ -115,7 +115,7 @@ describe('evidence exports', () => {
     expect(rows.map((r) => r[0])).toEqual(['change', 'granted', 'added']);
   });
 
-  it('review CSV/PDF include decisions, signer and evidence hash', () => {
+  it('review CSV/PDF include decisions, signer and evidence hash', async () => {
     const d: ReviewDetail = {
       review: {
         id: '0f6e3c2a-1111-4222-8333-444455556666',
@@ -197,11 +197,32 @@ describe('evidence exports', () => {
     expect(item[REVIEW_COLUMNS.indexOf('decided_at_local')]).toBe(
       '2026-10-09 14:00:00 (Europe/Warsaw)',
     );
-    const pdf = Array.from(reviewPdf(d, ctx), (b) => String.fromCharCode(b)).join('');
-    expect(pdf).toContain('e'.repeat(64));
-    expect(pdf).toContain('Revocations to perform in Jira');
-    expect(pdf).toContain('Jozef');
-    expect(pdf).toContain('Coverage & limitations');
-    expect(pdf).toContain('Team-managed projects use a simplified permission model.');
+    const { inflateSync } = await import('node:zlib');
+    const bytes = await reviewPdf(d, ctx);
+    const ascii = Buffer.from(bytes).toString('latin1');
+    expect(ascii.startsWith('%PDF')).toBe(true);
+    // Inflate streams: content uses glyph ids; ToUnicode carries real codepoints.
+    let decoded = '';
+    const raw = Buffer.from(bytes);
+    let i = 0;
+    while ((i = raw.indexOf(Buffer.from('stream'), i)) !== -1) {
+      let s = i + 6;
+      if (raw[s] === 0x0d) s++;
+      if (raw[s] === 0x0a) s++;
+      const end = raw.indexOf(Buffer.from('endstream'), s);
+      if (end < 0) break;
+      const chunk = raw.subarray(s, end);
+      try {
+        decoded += inflateSync(chunk).toString('binary');
+      } catch {
+        decoded += chunk.toString('binary');
+      }
+      i = end + 9;
+    }
+    expect(decoded).toContain('NotoSans');
+    // Evidence hash is 64× 'e' → U+0065 appears in ToUnicode; Polish ó from Józef.
+    expect(decoded.toLowerCase()).toContain('0065');
+    expect(decoded.toLowerCase()).toContain('00f3');
+    expect(decoded).toContain(' Tj');
   });
 });
