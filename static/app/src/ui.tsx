@@ -1,13 +1,13 @@
 import { useId, type ReactNode } from 'react';
 import LinkStyleButton from '@atlaskit/button/standard-button';
-import Button from '@atlaskit/button/new';
 import EmptyState from '@atlaskit/empty-state';
 import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
 import LockIcon from '@atlaskit/icon/core/lock-locked';
 import Lozenge from '@atlaskit/lozenge';
 import { Inline, Text } from '@atlaskit/primitives';
-import SectionMessage from '@atlaskit/section-message';
+import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
+import Select from '@atlaskit/select';
 import Spinner from '@atlaskit/spinner';
 import Toggle from '@atlaskit/toggle';
 
@@ -90,14 +90,48 @@ export function BrandHeader({ subtitle }: { subtitle: string }) {
   );
 }
 
-/** Header stays pinned at the top; only the content below it scrolls. */
-export function PageFrame({ header, children }: { header: ReactNode; children: ReactNode }) {
+/**
+ * Header stays pinned at the top; only the content below it scrolls.
+ * `fixed` is for pages with tabs: the page does not scroll, the content owns its scroll areas
+ * (see PageTabs) so the tab bar stays pinned.
+ */
+export function PageFrame({
+  header,
+  children,
+  fixed = false,
+}: {
+  header: ReactNode;
+  children: ReactNode;
+  fixed?: boolean;
+}) {
   return (
     <div className="page-frame">
       {header}
-      <main className="page-scroll">{children}</main>
+      <main className={fixed ? 'page-fixed' : 'page-scroll'}>{children}</main>
     </div>
   );
+}
+
+/** Scrolling area for one tab panel. Always wrap panel content in this (ADS TabPanel is a flex row). */
+export function PageScroll({ children }: { children: ReactNode }) {
+  return (
+    <div className="page-scroll">
+      <div className="page-stack">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * Page with tabs (use inside `PageFrame fixed` with `PageHeader flush`):
+ * `<PageTabs><Tabs><PageTabBar><TabList>…</TabList></PageTabBar><TabPanel><PageScroll>…</PageScroll></TabPanel></Tabs></PageTabs>`.
+ */
+export function PageTabs({ children }: { children: ReactNode }) {
+  return <div className="page-tabs">{children}</div>;
+}
+
+/** Pinned tab bar. It replaces the header separator and fades the content out underneath. */
+export function PageTabBar({ children }: { children: ReactNode }) {
+  return <div className="page-tabs-bar">{children}</div>;
 }
 
 export function PageHeader({
@@ -105,14 +139,17 @@ export function PageHeader({
   description,
   status,
   actions,
+  flush = false,
 }: {
   title: string;
   description?: string;
   status?: ReactNode;
   actions?: ReactNode;
+  /** Pages with tabs: the tab bar replaces the separator under the header. */
+  flush?: boolean;
 }) {
   return (
-    <header className="page-header">
+    <header className={flush ? 'page-header is-flush' : 'page-header'}>
       <div>
         <div className="status-row">
           <Heading size="large" as="h1">
@@ -177,11 +214,12 @@ export function ErrorState({
   retry: () => void;
 }) {
   return (
-    <SectionMessage appearance="error" title={title}>
-      <div className="section-stack">
-        <p>{message}</p>
-        <Button onClick={retry}>Try again</Button>
-      </div>
+    <SectionMessage
+      appearance="error"
+      title={title}
+      actions={<SectionMessageAction onClick={retry}>Try again</SectionMessageAction>}
+    >
+      <p>{message}</p>
     </SectionMessage>
   );
 }
@@ -315,6 +353,54 @@ export function Details({ rows }: { rows: Array<[string, ReactNode]> }) {
 /** Toolbar row above tables: search, filters, actions. Wraps on narrow screens. */
 export function FilterBar({ children }: { children: ReactNode }) {
   return <div className="filter-bar">{children}</div>;
+}
+
+type FilterSize = 'narrow' | 'medium' | 'wide' | 'fill';
+const FILTER_SIZE_CLASS: Record<FilterSize, string> = {
+  narrow: 'filter-control is-narrow',
+  medium: 'filter-control',
+  wide: 'filter-control is-wide',
+  fill: 'filter-control is-fill',
+};
+
+/**
+ * The one Select for filter bars: compact, labelled for screen readers, and its menu is fixed so it
+ * is never clipped by the scrolling page. `value: null` shows the placeholder.
+ */
+export function FilterSelect<T extends { label: string; value: string | number }>({
+  label,
+  options,
+  value,
+  onChange,
+  size = 'medium',
+  placeholder,
+  isSearchable = false,
+  inputId,
+}: {
+  label: string;
+  options: T[];
+  value: T | null | undefined;
+  onChange: (option: T | null) => void;
+  size?: FilterSize;
+  placeholder?: string;
+  isSearchable?: boolean;
+  inputId?: string;
+}) {
+  return (
+    <div className={FILTER_SIZE_CLASS[size]}>
+      <Select<T>
+        inputId={inputId}
+        aria-label={label}
+        options={options}
+        value={value ?? null}
+        onChange={(option) => onChange((option as T | null) ?? null)}
+        placeholder={placeholder ?? label}
+        spacing="compact"
+        isSearchable={isSearchable}
+        menuPosition="fixed"
+      />
+    </div>
+  );
 }
 
 /** Locked Advanced feature (MarginRadar PlanGate): dimmed preview plus a note. */

@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import Checkbox from '@atlaskit/checkbox';
 import { DatePicker } from '@atlaskit/datetime-picker';
+import { DropdownItem } from '@atlaskit/dropdown-menu';
 import DynamicTable from '@atlaskit/dynamic-table';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
-import Lozenge from '@atlaskit/lozenge';
 import ProgressBar from '@atlaskit/progress-bar';
 import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
@@ -25,12 +25,14 @@ import {
   CoverageLimitations,
   ExportMenu,
   Hash,
+  RowMenu,
   SearchField,
   Section,
   SnapshotPicker,
   SubjectCell,
 } from '../components';
 import { useCall } from '../data';
+import { useConfirm } from '../Confirm';
 import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Drawer';
 import { downloadCsv, downloadPdf } from '../export/download';
 import { reviewCsv, reviewFileName, reviewPdf } from '../export/evidence';
@@ -48,6 +50,7 @@ import {
   Empty,
   ErrorState,
   FilterBar,
+  FilterSelect,
   FormField,
   LinkButton,
   Loading,
@@ -58,9 +61,9 @@ import {
   RadioField,
 } from '../ui';
 
-const STATUS: Record<ReviewSummary['status'], [string, 'default' | 'inprogress' | 'success']> = {
-  draft: ['Draft', 'default'],
-  in_progress: ['In progress', 'inprogress'],
+const STATUS: Record<ReviewSummary['status'], [string, 'neutral' | 'info' | 'success']> = {
+  draft: ['Draft', 'neutral'],
+  in_progress: ['In progress', 'info'],
   signed: ['Signed', 'success'],
 };
 
@@ -181,9 +184,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                 },
                 {
                   key: r.status,
-                  content: (
-                    <Lozenge appearance={STATUS[r.status][1]}>{STATUS[r.status][0]}</Lozenge>
-                  ),
+                  content: <Pill tone={STATUS[r.status][1]}>{STATUS[r.status][0]}</Pill>,
                 },
                 {
                   key: r.chainSeq ?? 0,
@@ -328,6 +329,7 @@ function CreateReview({
             <FormField label={scope === 'projects' ? 'Projects' : 'Groups'}>
               {(id) => (
                 <Select<Opt, true>
+                  menuPosition="fixed"
                   inputId={id}
                   isMulti
                   options={options}
@@ -349,7 +351,7 @@ function CreateReview({
                   setBase(v);
                   setCompare(null);
                 }}
-                width="100%"
+                size="fill"
               />
             )}
           </FormField>
@@ -359,6 +361,7 @@ function CreateReview({
           >
             {(id) => (
               <Select<{ label: string; value: number }>
+                menuPosition="fixed"
                 inputId={id}
                 options={[
                   { label: 'No comparison', value: 0 },
@@ -379,11 +382,12 @@ function CreateReview({
           </FormField>
           <FormField label="Due date (optional)">
             {(id) => (
-              <Textfield
+              <DatePicker
                 id={id}
-                type="date"
                 value={due}
-                onChange={(e) => setDue((e.target as HTMLInputElement).value)}
+                onChange={(v) => setDue(v)}
+                dateFormat="YYYY-MM-DD"
+                placeholder="YYYY-MM-DD"
               />
             )}
           </FormField>
@@ -426,6 +430,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   const toast = useToast();
   const r = useCall<ReviewDetail>('getReview', { id });
   const [drawer, setDrawer] = useState<DrawerLevel[]>([]);
+  const [confirmDialog, confirm] = useConfirm();
   const [query, setQuery] = useState('');
   const [decision, setDecision] = useState('');
   const [change, setChange] = useState('');
@@ -559,39 +564,25 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
     ]);
 
   const openDelete = () =>
-    setDrawer([
-      {
-        key: 'delete',
-        title: 'Delete review',
-        description: d?.review.name,
-        content: (
-          <>
-            <DrawerBody>
-              <p>
-                This deletes the draft review and its decisions. Snapshots are not affected. Signed
-                reviews cannot be deleted.
-              </p>
-            </DrawerBody>
-            <DrawerFooter onCancel={() => setDrawer([])}>
-              <Button
-                appearance="danger"
-                onClick={async () => {
-                  try {
-                    await call('deleteReview', { id });
-                    toast.success('Review deleted');
-                    onBack();
-                  } catch (e) {
-                    toast.error('Review not deleted', errorText(e));
-                  }
-                }}
-              >
-                Delete review
-              </Button>
-            </DrawerFooter>
-          </>
-        ),
+    confirm({
+      title: `Delete review "${d?.review.name ?? ''}"?`,
+      confirmLabel: 'Delete review',
+      onConfirm: async () => {
+        try {
+          await call('deleteReview', { id });
+          toast.success('Review deleted');
+          onBack();
+        } catch (e) {
+          toast.error('Review not deleted', errorText(e));
+        }
       },
-    ]);
+      body: (
+        <p>
+          This deletes the draft review and its decisions. Snapshots are not affected. Signed
+          reviews cannot be deleted.
+        </p>
+      ),
+    });
 
   const header = (
     <PageHeader
@@ -602,9 +593,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           : undefined
       }
       status={
-        d ? (
-          <Lozenge appearance={STATUS[d.review.status][1]}>{STATUS[d.review.status][0]}</Lozenge>
-        ) : null
+        d ? <Pill tone={STATUS[d.review.status][1]}>{STATUS[d.review.status][0]}</Pill> : null
       }
       actions={
         <>
@@ -613,7 +602,6 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           </Button>
           <ExportMenu
             isDisabled={!d}
-            label={signed ? 'Export' : 'Export'}
             onCsv={() =>
               void exporter('Review CSV', () => {
                 downloadCsv(reviewFileName(d!, 'csv'), reviewCsv(d!, exportContext(siteUrl)));
@@ -756,16 +744,14 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               ...(d.review.compareSeq ? [['Change', CHANGES, change, setChange]] : []),
             ] as Array<[string, Opt[], string, (v: string) => void]>
           ).map(([label, opts, value, set]) => (
-            <div style={{ width: 210 }} key={label}>
-              <Select<Opt>
-                aria-label={label}
-                options={opts}
-                value={opts.find((o) => o.value === value)}
-                onChange={(o) => set(o?.value ?? '')}
-                spacing="compact"
-                isSearchable={false}
-              />
-            </div>
+            <FilterSelect<Opt>
+              key={label}
+              label={label}
+              options={opts}
+              value={opts.find((o) => o.value === value)}
+              onChange={(o) => set(o?.value ?? '')}
+              size="narrow"
+            />
           ))}
           {!signed ? (
             <>
@@ -846,19 +832,19 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                   ) : (
                     <span className="section-stack">
                       {i.decision === 'keep' ? (
-                        <Lozenge appearance="success">Keep</Lozenge>
+                        <Pill tone="success">Keep</Pill>
                       ) : i.decision === 'revoke' ? (
-                        <Lozenge appearance="removed">Revoke</Lozenge>
+                        <Pill tone="danger">Revoke</Pill>
                       ) : i.decision === 'exception' ? (
-                        <Lozenge appearance="moved">
+                        <Pill tone="warning">
                           {i.expiresAt
                             ? `Exception until ${formatLocal(i.expiresAt)}`
                             : 'Exception'}
-                        </Lozenge>
+                        </Pill>
                       ) : i.reasons.includes('Exception expired') ? (
-                        <Lozenge appearance="removed">Exception expired</Lozenge>
+                        <Pill tone="danger">Exception expired</Pill>
                       ) : (
-                        <Lozenge>Undecided</Lozenge>
+                        <Pill>Undecided</Pill>
                       )}
                       {i.note ? <span className="subtle">“{i.note}”</span> : null}
                     </span>
@@ -888,16 +874,12 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                       >
                         Revoke…
                       </Button>
-                      <Button
-                        spacing="compact"
-                        isDisabled={busy}
-                        onClick={() => openNote(i, 'exception')}
-                      >
-                        Exception…
-                      </Button>
-                      <Button spacing="compact" appearance="subtle" onClick={() => openNote(i)}>
-                        Note
-                      </Button>
+                      <RowMenu label={`More actions for ${i.subject.name}`}>
+                        <DropdownItem isDisabled={busy} onClick={() => openNote(i, 'exception')}>
+                          Exception…
+                        </DropdownItem>
+                        <DropdownItem onClick={() => openNote(i)}>Note</DropdownItem>
+                      </RowMenu>
                     </span>
                   ),
               },
@@ -922,6 +904,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           />
         </Section>
       </div>
+      {confirmDialog}
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
@@ -1097,13 +1080,13 @@ type RemediationRow = {
 
 const REMEDIATION_LOZENGE: Record<
   RemediationRow['status'],
-  [string, 'default' | 'inprogress' | 'success' | 'removed' | 'moved']
+  [string, 'neutral' | 'info' | 'success' | 'danger' | 'warning']
 > = {
-  pending: ['Pending', 'inprogress'],
+  pending: ['Pending', 'info'],
   verified: ['Verified', 'success'],
-  still_present: ['Still present', 'removed'],
-  inconclusive: ['Inconclusive', 'default'],
-  accepted: ['Accepted risk', 'moved'],
+  still_present: ['Still present', 'danger'],
+  inconclusive: ['Inconclusive', 'neutral'],
+  accepted: ['Accepted risk', 'warning'],
 };
 
 function RemediationPanel({ reviewId, items }: { reviewId: string; items: ReviewItem[] }) {
@@ -1153,7 +1136,7 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
           }}
           rows={rem.data.rows.map((r) => {
             const item = byIdx.get(r.idx);
-            const [label, appearance] = REMEDIATION_LOZENGE[r.status];
+            const [label, tone] = REMEDIATION_LOZENGE[r.status];
             return {
               key: String(r.idx),
               cells: [
@@ -1169,11 +1152,11 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
                   key: 's',
                   content: (
                     <span className="section-stack">
-                      <Lozenge appearance={appearance}>
+                      <Pill tone={tone}>
                         {r.status === 'verified' && r.verifiedSeq
                           ? `Verified #${r.verifiedSeq}`
                           : label}
-                      </Lozenge>
+                      </Pill>
                       {r.detail && r.checkCount >= 3 ? (
                         <span className="subtle">{r.detail}</span>
                       ) : null}
@@ -1237,11 +1220,11 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
           <Loading />
         ) : (
           <div className="section-stack">
-            <Lozenge appearance={result.ok ? 'success' : 'removed'}>
+            <Pill tone={result.ok ? 'success' : 'danger'}>
               {result.ok
                 ? `Intact · ${result.length} signed`
                 : `Broken at #${result.brokenAt ?? '?'}`}
-            </Lozenge>
+            </Pill>
             {!result.ok && result.reason ? (
               <SectionMessage appearance="error">
                 <p>{result.reason}</p>
@@ -1263,9 +1246,7 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
                     {
                       key: l.ok ? 'ok' : 'bad',
                       content: (
-                        <Lozenge appearance={l.ok ? 'success' : 'removed'}>
-                          {l.ok ? 'OK' : 'Break'}
-                        </Lozenge>
+                        <Pill tone={l.ok ? 'success' : 'danger'}>{l.ok ? 'OK' : 'Break'}</Pill>
                       ),
                     },
                     {
@@ -1389,9 +1370,7 @@ function VerifyDrawer({
             <Loading />
           ) : (
             <div className="section-stack">
-              <Lozenge appearance={sig.ok ? 'success' : 'removed'}>
-                {sig.ok ? 'Verified' : 'Mismatch'}
-              </Lozenge>
+              <Pill tone={sig.ok ? 'success' : 'danger'}>{sig.ok ? 'Verified' : 'Mismatch'}</Pill>
               <Details
                 rows={[
                   ['Signature version', String(sig.signatureVersion)],
@@ -1435,9 +1414,9 @@ function VerifyDrawer({
           ) : null}
           {deepDone && job.status !== 'purged' ? (
             <div className="section-stack">
-              <Lozenge appearance={job.status === 'ok' ? 'success' : 'removed'}>
+              <Pill tone={job.status === 'ok' ? 'success' : 'danger'}>
                 {job.status === 'ok' ? 'Verified' : 'Mismatch'}
-              </Lozenge>
+              </Pill>
               <Details
                 rows={[
                   ['Expected', <Hash key="eh" value={job.expectedHash} />],
@@ -1453,7 +1432,7 @@ function VerifyDrawer({
           ) : null}
         </Section>
       </DrawerBody>
-      <DrawerFooter onCancel={onClose}>
+      <DrawerFooter>
         <Button appearance="primary" onClick={onClose}>
           Done
         </Button>

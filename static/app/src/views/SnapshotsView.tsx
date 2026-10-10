@@ -71,6 +71,7 @@ export function SnapshotsView() {
     if (s && !drawer.length) open(s);
   }, [snaps.data]);
 
+  const list = snaps.data?.snapshots ?? [];
   const header = (
     <PageHeader
       title={meta.title}
@@ -81,7 +82,7 @@ export function SnapshotsView() {
             Refresh
           </Button>
           <Button
-            appearance="primary"
+            appearance={list.length || active ? 'primary' : 'default'}
             isLoading={take.busy}
             isDisabled={Boolean(active)}
             onClick={() => void take.run()}
@@ -92,7 +93,6 @@ export function SnapshotsView() {
       }
     />
   );
-  const list = snaps.data?.snapshots ?? [];
   return (
     <PageFrame header={header}>
       <div className="page-stack">
@@ -235,7 +235,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
           title="Export"
           description="Access matrix: who has which permission in which project, and why."
         >
-          <div>
+          <div className="actions">
             <ExportMenu
               label="Export access matrix"
               onCsv={() =>
@@ -249,20 +249,18 @@ function SnapshotDrawer({ seq }: { seq: number }) {
                 )
               }
             />
-            <div style={{ marginTop: 8 }}>
-              <Button
-                onClick={() =>
-                  void exporter('Coverage CSV', () => {
-                    downloadCsv(
-                      `accessradar_coverage_snapshot-${s.seq}.csv`,
-                      coverageOnlyCsv(s.coverage ?? [], s.limitations, exportContext(siteUrl)),
-                    );
-                  })
-                }
-              >
-                Download coverage CSV
-              </Button>
-            </div>
+            <Button
+              onClick={() =>
+                void exporter('Coverage CSV', () => {
+                  downloadCsv(
+                    `accessradar_coverage_snapshot-${s.seq}.csv`,
+                    coverageOnlyCsv(s.coverage ?? [], s.limitations, exportContext(siteUrl)),
+                  );
+                })
+              }
+            >
+              Download coverage CSV
+            </Button>
           </div>
         </Section>
       ) : null}

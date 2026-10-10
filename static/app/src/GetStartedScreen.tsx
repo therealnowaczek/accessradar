@@ -2,14 +2,13 @@ import { router } from '@forge/bridge';
 import Button from '@atlaskit/button/new';
 import Heading from '@atlaskit/heading';
 import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
-import Lozenge from '@atlaskit/lozenge';
 import ProgressBar from '@atlaskit/progress-bar';
 import { useState } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import { call, errorText } from './api';
 import { usePoll, useStatus } from './data';
 import { MODULE_KEYS } from './routes';
-import { BrandMark, ErrorState, Loading, PageFrame, PageHeader } from './ui';
+import { BrandMark, ErrorState, Loading, PageFrame, PageHeader, Pill } from './ui';
 
 const openApp = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.main });
 const openConfig = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.config });
@@ -130,7 +129,7 @@ export default function GetStartedScreen() {
                   <Heading size="small" as="h2">
                     {step.title}
                   </Heading>
-                  {step.done ? <Lozenge appearance="success">Done</Lozenge> : null}
+                  {step.done ? <Pill tone="success">Done</Pill> : null}
                 </div>
                 <p className="subtle">{step.detail}</p>
                 {!step.done && step.action ? (

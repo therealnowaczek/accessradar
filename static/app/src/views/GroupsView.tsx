@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import DynamicTable from '@atlaskit/dynamic-table';
-import Select from '@atlaskit/select';
 import type { GroupDetail, GroupRow, SettingsView, WithSnapshot } from '../api';
 import { ReasonList, SearchField, Section, SnapshotPicker, SubjectCell } from '../components';
 import { useCall } from '../data';
@@ -8,7 +7,16 @@ import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
 import { permissionLabel, plural } from '../format';
 import { navItem } from '../routes';
 import { NoSnapshot, PartialBanner, useApp, useSnapshots } from '../shared';
-import { ErrorState, FilterBar, LinkButton, Loading, PageFrame, PageHeader, Pill } from '../ui';
+import {
+  ErrorState,
+  FilterBar,
+  FilterSelect,
+  LinkButton,
+  Loading,
+  PageFrame,
+  PageHeader,
+  Pill,
+} from '../ui';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
@@ -81,16 +89,12 @@ export function GroupsView() {
             />
             <FilterBar>
               <SearchField value={query} onChange={setQuery} placeholder="Search groups" />
-              <div style={{ width: 220 }}>
-                <Select<Opt>
-                  aria-label="Filter groups"
-                  options={FILTERS}
-                  value={FILTERS.find((f) => f.value === filter)}
-                  onChange={(o) => setFilter(o?.value ?? 'all')}
-                  spacing="compact"
-                  isSearchable={false}
-                />
-              </div>
+              <FilterSelect<Opt>
+                label="Filter groups"
+                options={FILTERS}
+                value={FILTERS.find((f) => f.value === filter)}
+                onChange={(o) => setFilter(o?.value ?? 'all')}
+              />
               <SnapshotPicker
                 snapshots={snaps.data?.snapshots ?? []}
                 value={seq}

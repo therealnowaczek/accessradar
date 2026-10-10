@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import Button from '@atlaskit/button/new';
 import ProgressBar from '@atlaskit/progress-bar';
-import SectionMessage from '@atlaskit/section-message';
+import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import { call, errorText, type Snapshot, type Status } from './api';
 import { useCall, usePoll, type Loadable } from './data';
 import type { ExportContext } from './export/evidence';
@@ -136,18 +136,19 @@ export function PartialBanner({
 }) {
   if (!snapshot || snapshot.status !== 'partial') return null;
   return (
-    <SectionMessage appearance="warning" title={`Snapshot #${snapshot.seq} is partial`}>
-      <div className="section-stack">
-        <p>
-          {snapshot.gaps} area{snapshot.gaps === 1 ? '' : 's'} could not be read completely. Results
-          below may miss access granted through those areas.
-        </p>
-        {onDetails ? (
-          <div>
-            <Button onClick={onDetails}>What we could not see</Button>
-          </div>
-        ) : null}
-      </div>
+    <SectionMessage
+      appearance="warning"
+      title={`Snapshot #${snapshot.seq} is partial`}
+      actions={
+        onDetails ? (
+          <SectionMessageAction onClick={onDetails}>What we could not see</SectionMessageAction>
+        ) : undefined
+      }
+    >
+      <p>
+        {snapshot.gaps} area{snapshot.gaps === 1 ? '' : 's'} could not be read completely. Results
+        below may miss access granted through those areas.
+      </p>
     </SectionMessage>
   );
 }

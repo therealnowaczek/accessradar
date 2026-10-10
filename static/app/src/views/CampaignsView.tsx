@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
-import EmptyState from '@atlaskit/empty-state';
-import Lozenge from '@atlaskit/lozenge';
+import { DropdownItem } from '@atlaskit/dropdown-menu';
 import { DatePicker } from '@atlaskit/datetime-picker';
 import { RadioGroup } from '@atlaskit/radio';
 import Select from '@atlaskit/select';
@@ -10,13 +9,25 @@ import Textfield from '@atlaskit/textfield';
 import ProgressBar from '@atlaskit/progress-bar';
 import SectionMessage from '@atlaskit/section-message';
 import { call, errorText } from '../api';
+import { RowMenu } from '../components';
 import { useCall } from '../data';
+import { useConfirm } from '../Confirm';
 import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Drawer';
 import { formatLocal } from '../format';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
-import { Empty, ErrorState, FormField, Loading, PageFrame, PageHeader, RadioField } from '../ui';
+import {
+  Empty,
+  ErrorState,
+  FormField,
+  Loading,
+  PageFrame,
+  PageHeader,
+  Pill,
+  PlanGate,
+  RadioField,
+} from '../ui';
 
 type Campaign = {
   id: string;
@@ -61,10 +72,9 @@ const DELEGATE_RADIOS = [
 ];
 
 function statusLozenge(status: string) {
-  if (status === 'active') return <Lozenge appearance="success">active</Lozenge>;
-  if (status === 'paused' || status === 'paused_edition')
-    return <Lozenge appearance="moved">paused</Lozenge>;
-  return <Lozenge>{status}</Lozenge>;
+  if (status === 'active') return <Pill tone="success">active</Pill>;
+  if (status === 'paused' || status === 'paused_edition') return <Pill tone="warning">paused</Pill>;
+  return <Pill>{status}</Pill>;
 }
 
 function toDateInput(ms: number) {
@@ -132,6 +142,7 @@ export function CampaignsView() {
     {},
   );
   const [drawer, setDrawer] = useState<DrawerLevel[]>([]);
+  const [confirmDialog, confirm] = useConfirm();
   const [busy, setBusy] = useState(false);
   const advanced = status.data?.edition?.features?.reviewCampaigns;
 
@@ -231,11 +242,13 @@ export function CampaignsView() {
   if (status.data && advanced === false) {
     return (
       <PageFrame header={header}>
-        <Empty
-          title="Campaigns are Advanced"
-          description="Upgrade to Advanced to schedule recurring reviews delegated to project owners."
-          action={null}
-        />
+        <PlanGate
+          locked
+          title="Campaigns need Advanced"
+          description="Advanced schedules recurring reviews and delegates them to project owners."
+        >
+          {null}
+        </PlanGate>
       </PageFrame>
     );
   }
@@ -285,6 +298,18 @@ export function CampaignsView() {
       toast.error('Could not delete', errorText(e));
     }
   };
+  const confirmDelete = (c: Campaign) =>
+    confirm({
+      title: `Delete campaign "${c.name}"?`,
+      confirmLabel: 'Delete campaign',
+      onConfirm: () => remove(c.id),
+      body: (
+        <p>
+          The campaign stops scheduling runs and disappears from this list. Reviews it already
+          created are not deleted.
+        </p>
+      ),
+    });
   const openRun = (runId: string) => {
     setDrawer([
       {
@@ -312,9 +337,10 @@ export function CampaignsView() {
           </p>
         </SectionMessage>
         {!items.length ? (
-          <EmptyState
-            header="Schedule your first recurring review"
+          <Empty
+            title="Schedule your first recurring review"
             description="Campaigns create per-project reviews on a schedule and assign them to project leads."
+            action={null}
           />
         ) : (
           <DynamicTable
@@ -340,24 +366,18 @@ export function CampaignsView() {
                 {
                   key: 'act',
                   content: (
-                    <span className="chip-row">
+                    <span className="row-actions">
                       {c.status === 'active' ? (
-                        <Button
-                          appearance="primary"
-                          isDisabled={busy}
-                          onClick={() => void run(c.id)}
-                        >
+                        <Button isDisabled={busy} onClick={() => void run(c.id)}>
                           Run now
                         </Button>
                       ) : null}
-                      {c.status === 'active' ? (
-                        <Button appearance="subtle" onClick={() => void pause(c.id)}>
-                          Pause
-                        </Button>
-                      ) : null}
-                      <Button appearance="subtle" onClick={() => void remove(c.id)}>
-                        Delete
-                      </Button>
+                      <RowMenu label={`More actions for ${c.name}`}>
+                        {c.status === 'active' ? (
+                          <DropdownItem onClick={() => void pause(c.id)}>Pause</DropdownItem>
+                        ) : null}
+                        <DropdownItem onClick={() => confirmDelete(c)}>Delete…</DropdownItem>
+                      </RowMenu>
                     </span>
                   ),
                 },
@@ -368,6 +388,7 @@ export function CampaignsView() {
           />
         )}
       </div>
+      {confirmDialog}
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
@@ -416,6 +437,7 @@ function CampaignForm({
             <FormField label="Projects">
               {(id) => (
                 <Select
+                  menuPosition="fixed"
                   inputId={id}
                   isMulti
                   options={projects}
@@ -434,6 +456,7 @@ function CampaignForm({
             <FormField label="Categories" helper="From the latest snapshot’s project categories.">
               {(id) => (
                 <Select
+                  menuPosition="fixed"
                   inputId={id}
                   isMulti
                   options={categories}
@@ -451,6 +474,7 @@ function CampaignForm({
           <FormField label="Frequency">
             {(id) => (
               <Select
+                menuPosition="fixed"
                 inputId={id}
                 options={FREQ}
                 value={FREQ.find((o) => o.value === d.frequency) ?? FREQ[0]}
@@ -589,7 +613,6 @@ function RunDetail({
   onClose: () => void;
   goReview: (reviewId: string) => void;
 }) {
-  const toast = useToast();
   const r = useCall<{
     run: {
       id: string;
@@ -679,14 +702,9 @@ function RunDetail({
           ) : null}
         </div>
       </DrawerBody>
-      <DrawerFooter onCancel={onClose} cancelLabel="Close">
-        <Button
-          appearance="subtle"
-          onClick={() => {
-            toast.success('Use Reassign from a review when needed');
-          }}
-        >
-          Done
+      <DrawerFooter>
+        <Button appearance="primary" onClick={onClose}>
+          Close
         </Button>
       </DrawerFooter>
     </>

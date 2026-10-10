@@ -1,13 +1,20 @@
 import { useState } from 'react';
 import DynamicTable from '@atlaskit/dynamic-table';
-import EmptyState from '@atlaskit/empty-state';
-import Lozenge from '@atlaskit/lozenge';
-import Select from '@atlaskit/select';
 import { useCall } from '../data';
 import { formatLocal, permissionLabel } from '../format';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
-import { Empty, ErrorState, LinkButton, Loading, PageFrame, PageHeader } from '../ui';
+import {
+  Empty,
+  ErrorState,
+  FilterBar,
+  FilterSelect,
+  LinkButton,
+  Loading,
+  PageFrame,
+  PageHeader,
+  Pill,
+} from '../ui';
 
 type ExceptionRow = {
   id: string;
@@ -33,19 +40,20 @@ const STATUS_OPTS = [
   { label: 'All', value: 'all' },
 ];
 
-function expiryLozenge(status: ExceptionRow['status'], expiresAt: number) {
+function expiryLozenge(status: ExceptionRow['status'], expiresAt: number, now: number) {
   if (status === 'expired' || status === 'revoked' || status === 'superseded') {
-    return <Lozenge appearance={status === 'expired' ? 'removed' : 'default'}>{status}</Lozenge>;
+    return <Pill tone={status === 'expired' ? 'danger' : 'neutral'}>{status}</Pill>;
   }
-  const days = Math.ceil((expiresAt - Date.now()) / 86400_000);
-  if (days <= 14) return <Lozenge appearance="moved">expires in {days}d</Lozenge>;
-  return <Lozenge appearance="success">active</Lozenge>;
+  const days = Math.ceil((expiresAt - now) / 86400_000);
+  if (days <= 14) return <Pill tone="warning">expires in {days}d</Pill>;
+  return <Pill tone="success">active</Pill>;
 }
 
 export function ExceptionsView() {
   const { go } = useApp();
   const meta = navItem('exceptions');
   const [status, setStatus] = useState('active');
+  const [now] = useState(() => Date.now());
   const list = useCall<{ items: ExceptionRow[]; total: number }>('listExceptions', {
     status,
     page: 1,
@@ -70,18 +78,20 @@ export function ExceptionsView() {
   return (
     <PageFrame header={header}>
       <div className="page-stack">
-        <div className="filter-bar">
-          <Select
+        <FilterBar>
+          <FilterSelect
+            label="Exception status"
             inputId="exc-status"
             options={STATUS_OPTS}
             value={STATUS_OPTS.find((o) => o.value === status) ?? STATUS_OPTS[0]}
             onChange={(o) => setStatus(o?.value ?? 'active')}
           />
-        </div>
+        </FilterBar>
         {!items.length ? (
-          <EmptyState
-            header="No exceptions yet"
+          <Empty
+            title="No exceptions yet"
             description="Exceptions you grant during a review appear here with their expiry date."
+            action={null}
           />
         ) : (
           <DynamicTable
@@ -106,10 +116,10 @@ export function ExceptionsView() {
                 {
                   key: 'exp',
                   content: (
-                    <span className="section-stack">
-                      {expiryLozenge(e.status, e.expiresAt)}
-                      <span className="subtle">{formatLocal(e.expiresAt)}</span>
-                    </span>
+                    <>
+                      <div>{expiryLozenge(e.status, e.expiresAt, now)}</div>
+                      <div className="subtle nowrap">{formatLocal(e.expiresAt)}</div>
+                    </>
                   ),
                 },
                 { key: 'by', content: e.grantedBy },

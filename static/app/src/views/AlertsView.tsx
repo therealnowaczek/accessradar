@@ -1,16 +1,24 @@
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
-import EmptyState from '@atlaskit/empty-state';
-import Lozenge from '@atlaskit/lozenge';
-import Select from '@atlaskit/select';
 import { call, errorText } from '../api';
 import { useCall } from '../data';
 import { formatLocal } from '../format';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
-import { Empty, ErrorState, Loading, PageFrame, PageHeader } from '../ui';
+import {
+  Empty,
+  ErrorState,
+  FilterBar,
+  FilterSelect,
+  LinkButton,
+  Loading,
+  PageFrame,
+  PageHeader,
+  PlanGate,
+  Pill,
+} from '../ui';
 
 type AlertRow = {
   id: number;
@@ -54,11 +62,13 @@ export function AlertsView() {
   if (status.data && advanced === false) {
     return (
       <PageFrame header={header}>
-        <Empty
-          title="Change alerts are Advanced"
-          description="Upgrade to Advanced to get in-app alerts when admins, anonymous grants, or inactive accounts change."
-          action={null}
-        />
+        <PlanGate
+          locked
+          title="Change alerts need Advanced"
+          description="Advanced raises in-app alerts when admins, anonymous grants, or inactive accounts change."
+        >
+          {null}
+        </PlanGate>
       </PageFrame>
     );
   }
@@ -94,18 +104,20 @@ export function AlertsView() {
   return (
     <PageFrame header={header}>
       <div className="page-stack">
-        <div className="filter-bar">
-          <Select
+        <FilterBar>
+          <FilterSelect
+            label="Alert status"
             inputId="alert-status"
             options={STATUS_OPTS}
             value={STATUS_OPTS.find((o) => o.value === filter) ?? STATUS_OPTS[0]}
             onChange={(o) => setFilter(o?.value ?? 'undismissed')}
           />
-        </div>
+        </FilterBar>
         {!items.length ? (
-          <EmptyState
-            header="No alerts"
+          <Empty
+            title="No alerts"
             description="When a snapshot detects new admins, anonymous access, or inactive accounts with access, alerts appear here. Detection latency follows your snapshot schedule (typically ≤24h on Advanced daily)."
+            action={null}
           />
         ) : (
           <DynamicTable
@@ -125,9 +137,7 @@ export function AlertsView() {
                 {
                   key: 'sev',
                   content: (
-                    <Lozenge appearance={a.severity === 'high' ? 'removed' : 'moved'}>
-                      {a.severity}
-                    </Lozenge>
+                    <Pill tone={a.severity === 'high' ? 'danger' : 'warning'}>{a.severity}</Pill>
                   ),
                 },
                 { key: 'rule', content: RULE_LABEL[a.rule] ?? a.rule },
@@ -140,16 +150,16 @@ export function AlertsView() {
                     </div>
                   ),
                 },
-                { key: 'when', content: formatLocal(a.createdAt) },
+                {
+                  key: 'when',
+                  content: <span className="nowrap">{formatLocal(a.createdAt)}</span>,
+                },
                 {
                   key: 'snap',
                   content: a.seq ? (
-                    <Button
-                      appearance="subtle"
-                      onClick={() => go('snapshots', { seq: String(a.seq) })}
-                    >
+                    <LinkButton onClick={() => go('snapshots', { seq: String(a.seq) })}>
                       #{a.seq}
-                    </Button>
+                    </LinkButton>
                   ) : (
                     '—'
                   ),

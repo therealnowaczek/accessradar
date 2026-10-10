@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
-import Lozenge from '@atlaskit/lozenge';
-import Select from '@atlaskit/select';
 import {
   call,
   errorText,
@@ -21,6 +19,7 @@ import {
   Details,
   ErrorState,
   FilterBar,
+  FilterSelect,
   LinkButton,
   Loading,
   PageFrame,
@@ -103,16 +102,12 @@ export function PeopleView() {
                 onChange={setQuery}
                 placeholder="Search by name or account ID"
               />
-              <div style={{ width: 240 }}>
-                <Select<Opt>
-                  aria-label="Filter people"
-                  options={FILTERS}
-                  value={FILTERS.find((f) => f.value === filter)}
-                  onChange={(o) => setFilter(o?.value ?? 'all')}
-                  spacing="compact"
-                  isSearchable={false}
-                />
-              </div>
+              <FilterSelect<Opt>
+                label="Filter people"
+                options={FILTERS}
+                value={FILTERS.find((f) => f.value === filter)}
+                onChange={(o) => setFilter(o?.value ?? 'all')}
+              />
               <ToggleField
                 label="Show app accounts"
                 isChecked={showApps}
@@ -229,10 +224,7 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
             </code>,
           ],
           ['Account type', d.person.accountType ?? 'unknown'],
-          [
-            'Status',
-            d.person.active === false ? <Lozenge appearance="removed">Inactive</Lozenge> : 'Active',
-          ],
+          ['Status', d.person.active === false ? <Pill tone="danger">Inactive</Pill> : 'Active'],
           [
             'Jira administrator',
             d.adminVia.length

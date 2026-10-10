@@ -2,8 +2,6 @@ import { useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
-import Lozenge from '@atlaskit/lozenge';
-import Select from '@atlaskit/select';
 import type {
   ProjectAccess,
   ProjectRow,
@@ -36,6 +34,7 @@ import {
 import {
   ErrorState,
   FilterBar,
+  FilterSelect,
   LinkButton,
   Loading,
   PageFrame,
@@ -126,16 +125,12 @@ export function ProjectsView() {
             />
             <FilterBar>
               <SearchField value={query} onChange={setQuery} placeholder="Search projects" />
-              <div style={{ width: 240 }}>
-                <Select<Opt>
-                  aria-label="Filter projects"
-                  options={FILTERS}
-                  value={FILTERS.find((f) => f.value === filter)}
-                  onChange={(o) => setFilter(o?.value ?? 'all')}
-                  spacing="compact"
-                  isSearchable={false}
-                />
-              </div>
+              <FilterSelect<Opt>
+                label="Filter projects"
+                options={FILTERS}
+                value={FILTERS.find((f) => f.value === filter)}
+                onChange={(o) => setFilter(o?.value ?? 'all')}
+              />
               <SnapshotPicker
                 snapshots={snaps.data?.snapshots ?? []}
                 value={seq}
@@ -188,7 +183,7 @@ export function ProjectsView() {
                     key: 'flags',
                     content: (
                       <span className="chip-row">
-                        {p.anonymous ? <Lozenge appearance="removed">Anonymous</Lozenge> : null}
+                        {p.anonymous ? <Pill tone="danger">Anonymous</Pill> : null}
                         {p.unexpanded ? (
                           <Pill tone="warning">{p.unexpanded} unread groups</Pill>
                         ) : null}

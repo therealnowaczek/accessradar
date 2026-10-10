@@ -56,7 +56,7 @@ export function OverviewView() {
             Refresh
           </Button>
           <Button
-            appearance="primary"
+            appearance={ov.data?.snapshot || active ? 'primary' : 'default'}
             isLoading={take.busy}
             isDisabled={Boolean(active)}
             onClick={() => void take.run()}
@@ -311,9 +311,7 @@ export function OverviewView() {
               title="No reviews yet"
               description="Start a review of the latest snapshot: reviewers mark each access as keep or revoke and sign off."
               action={
-                <Button appearance="primary" onClick={() => go('reviews', { create: '1' })}>
-                  Start a review
-                </Button>
+                <Button onClick={() => go('reviews', { create: '1' })}>Start a review</Button>
               }
             />
           ) : (

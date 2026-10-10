@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
-import Lozenge from '@atlaskit/lozenge';
 import SectionMessage from '@atlaskit/section-message';
 import { call, errorText, type Probe, type SpikeResult } from '../api';
 import { useToast } from '../Toast';
-import { SectionHeader } from '../ui';
+import { Pill, SectionHeader } from '../ui';
 
 /** Shown only when the backend reports ACCESSRADAR_SPIKE=1 (development). */
 function Code({ probe }: { probe?: Probe }) {
@@ -13,9 +12,7 @@ function Code({ probe }: { probe?: Probe }) {
   const ok = probe.status >= 200 && probe.status < 300;
   return (
     <span className="status-row" title={probe.error}>
-      <Lozenge appearance={ok ? 'success' : 'removed'}>
-        {probe.status < 0 ? 'Error' : probe.status}
-      </Lozenge>
+      <Pill tone={ok ? 'success' : 'danger'}>{probe.status < 0 ? 'Error' : probe.status}</Pill>
       {probe.count !== undefined ? <span className="subtle">{probe.count}</span> : null}
     </span>
   );

@@ -5,9 +5,7 @@ import { ProjectReviewView } from './views/ProjectReviewView';
 export default function ProjectReviewScreen() {
   return (
     <ToastProvider>
-      <div className="app-shell project-shell">
-        <ProjectReviewView />
-      </div>
+      <ProjectReviewView />
     </ToastProvider>
   );
 }

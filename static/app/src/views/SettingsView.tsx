@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from 'react';
 import Button from '@atlaskit/button/new';
-import Lozenge from '@atlaskit/lozenge';
 import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
@@ -187,6 +186,7 @@ function ScheduleForm({
             <FormField label="Day">
               {(id) => (
                 <Select<Opt<number>>
+                  menuPosition="fixed"
                   inputId={id}
                   options={days}
                   value={days.find((d) => d.value === weekday)}
@@ -202,6 +202,7 @@ function ScheduleForm({
           >
             {(id) => (
               <Select<Opt<number>>
+                menuPosition="fixed"
                 inputId={id}
                 options={hours}
                 value={hours.find((h) => h.value === hourUtc)}
@@ -239,6 +240,7 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
       >
         {(id) => (
           <Select<Opt, true>
+            menuPosition="fixed"
             inputId={id}
             isMulti
             options={options}
@@ -511,7 +513,7 @@ export function SettingsView() {
             >
               <span className="chip-row">
                 {s.keyPermissions.map((k) => (
-                  <Lozenge key={k}>{permissionLabel(k)}</Lozenge>
+                  <Pill key={k}>{permissionLabel(k)}</Pill>
                 ))}
               </span>
             </Section>
@@ -777,6 +779,7 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
           [
             'Override',
             <Select
+              menuPosition="fixed"
               key="o"
               inputId="edition-override"
               isDisabled={busy || edition.envOverride}

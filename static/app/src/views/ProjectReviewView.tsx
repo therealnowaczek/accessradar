@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
-import Lozenge from '@atlaskit/lozenge';
-import SectionMessage from '@atlaskit/section-message';
+import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import { call, errorText, type ReviewItem, type ReviewSummary } from '../api';
 import { SubjectCell } from '../components';
 import { useCall } from '../data';
@@ -95,7 +94,8 @@ export function ProjectReviewView() {
         d?.assignment && d.access !== 'not-assigned' ? (
           <Button
             appearance="primary"
-            isDisabled={busy || pending > 0 || d.assignment.status !== 'open'}
+            isLoading={busy}
+            isDisabled={pending > 0 || d.assignment.status !== 'open'}
             onClick={() => void submit()}
           >
             Submit review
@@ -126,13 +126,13 @@ export function ProjectReviewView() {
             key={n.id}
             appearance={n.severity === 'high' ? 'warning' : 'information'}
             title={n.title}
-          >
-            <div className="section-stack">
-              {n.body ? <p>{n.body}</p> : null}
-              <Button appearance="subtle" onClick={() => void dismiss(n.id)}>
+            actions={
+              <SectionMessageAction onClick={() => void dismiss(n.id)}>
                 Dismiss
-              </Button>
-            </div>
+              </SectionMessageAction>
+            }
+          >
+            {n.body ? <p>{n.body}</p> : null}
           </SectionMessage>
         ))}
 
@@ -153,7 +153,7 @@ export function ProjectReviewView() {
                 {d.access === 'site-admin' ? (
                   <Pill tone="info">Viewing as Jira admin</Pill>
                 ) : (
-                  <Lozenge appearance="inprogress">Assigned to you</Lozenge>
+                  <Pill tone="info">Assigned to you</Pill>
                 )}
               </p>
               <p className="subtle">
@@ -221,17 +221,17 @@ export function ProjectReviewView() {
                   {
                     key: i.decision ?? '',
                     content: i.decision ? (
-                      <Lozenge
-                        appearance={
+                      <Pill
+                        tone={
                           i.decision === 'revoke'
-                            ? 'removed'
+                            ? 'danger'
                             : i.decision === 'exception'
-                              ? 'moved'
+                              ? 'warning'
                               : 'success'
                         }
                       >
                         {i.decision}
-                      </Lozenge>
+                      </Pill>
                     ) : (
                       <span className="subtle">—</span>
                     ),

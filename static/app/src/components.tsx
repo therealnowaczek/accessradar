@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import Avatar from '@atlaskit/avatar';
-import Button from '@atlaskit/button/new';
+import Button, { IconButton } from '@atlaskit/button/new';
 import DropdownMenu, { DropdownItem, DropdownItemGroup } from '@atlaskit/dropdown-menu';
 import { IconTile } from '@atlaskit/icon';
 import DownloadIcon from '@atlaskit/icon/core/download';
@@ -8,13 +8,12 @@ import GlobeIcon from '@atlaskit/icon/core/globe';
 import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
 import QuestionCircleIcon from '@atlaskit/icon/core/question-circle';
 import SearchIcon from '@atlaskit/icon/core/search';
-import Lozenge from '@atlaskit/lozenge';
+import ShowMoreIcon from '@atlaskit/icon/core/show-more-horizontal';
 import SectionMessage from '@atlaskit/section-message';
-import Select from '@atlaskit/select';
 import Textfield from '@atlaskit/textfield';
 import type { Coverage, Limitations, Reason, Snapshot, SubjectView } from './api';
 import { formatLocal, permissionLabel } from './format';
-import { LinkButton, Pill, SectionHeader } from './ui';
+import { FilterSelect, LinkButton, Pill, SectionHeader } from './ui';
 
 export function SubjectCell({
   subject,
@@ -55,10 +54,10 @@ export function SubjectCell({
             <span>{subject.name}</span>
           )}
           {subject.type === 'user' && subject.active === false ? (
-            <Lozenge appearance="removed">Inactive</Lozenge>
+            <Pill tone="danger">Inactive</Pill>
           ) : null}
           {app ? <Pill>App</Pill> : null}
-          {subject.type === 'anonymous' ? <Lozenge appearance="removed">Anonymous</Lozenge> : null}
+          {subject.type === 'anonymous' ? <Pill tone="danger">Anonymous</Pill> : null}
           {subject.type === 'group' ? <Pill tone="warning">Members unknown</Pill> : null}
           {subject.type === 'conditional' ? <Pill tone="discovery">Issue-dependent</Pill> : null}
         </span>
@@ -131,17 +130,20 @@ export function ReasonList({
   );
 }
 
+const SNAPSHOT_STATUS: Record<
+  Snapshot['status'],
+  [string, 'success' | 'warning' | 'info' | 'neutral' | 'danger']
+> = {
+  complete: ['Complete', 'success'],
+  partial: ['Partial', 'warning'],
+  running: ['Running', 'info'],
+  queued: ['Queued', 'neutral'],
+  failed: ['Failed', 'danger'],
+};
+
 export function SnapshotLozenge({ status }: { status: Snapshot['status'] }) {
-  const map: Record<string, [string, 'success' | 'moved' | 'inprogress' | 'removed' | 'default']> =
-    {
-      complete: ['Complete', 'success'],
-      partial: ['Partial', 'moved'],
-      running: ['Running', 'inprogress'],
-      queued: ['Queued', 'default'],
-      failed: ['Failed', 'removed'],
-    };
-  const [label, appearance] = map[status] ?? [status, 'default'];
-  return <Lozenge appearance={appearance}>{label}</Lozenge>;
+  const [label, tone] = SNAPSHOT_STATUS[status] ?? [status, 'neutral'];
+  return <Pill tone={tone}>{label}</Pill>;
 }
 
 type Option = { label: string; value: number };
@@ -157,7 +159,7 @@ export function SnapshotPicker({
   onChange,
   label = 'Snapshot',
   allowLatest = true,
-  width = 280,
+  size = 'wide',
   inputId,
 }: {
   snapshots: Snapshot[];
@@ -165,7 +167,7 @@ export function SnapshotPicker({
   onChange: (seq: number | null) => void;
   label?: string;
   allowLatest?: boolean;
-  width?: number | string;
+  size?: 'medium' | 'wide' | 'fill';
   inputId?: string;
 }) {
   const committed = snapshots.filter((s) => s.status === 'complete' || s.status === 'partial');
@@ -175,18 +177,15 @@ export function SnapshotPicker({
   ];
   const selected = options.find((o) => o.value === (value ?? 0)) ?? null;
   return (
-    <div style={{ width }}>
-      <Select<Option>
-        inputId={inputId ?? `snapshot-${label}`}
-        aria-label={label}
-        options={options}
-        value={selected}
-        onChange={(o) => onChange(o && o.value ? o.value : null)}
-        placeholder={allowLatest ? undefined : 'Previous snapshot'}
-        spacing="compact"
-        isSearchable={false}
-      />
-    </div>
+    <FilterSelect<Option>
+      label={label}
+      inputId={inputId ?? `snapshot-${label}`}
+      options={options}
+      value={selected}
+      onChange={(o) => onChange(o && o.value ? o.value : null)}
+      placeholder={allowLatest ? undefined : 'Previous snapshot'}
+      size={size}
+    />
   );
 }
 
@@ -334,5 +333,25 @@ export function Section({
       <SectionHeader title={title} description={description} action={action} />
       {children}
     </section>
+  );
+}
+
+/** Kebab menu for row actions in tables (`DropdownItem`s go inside). */
+export function RowMenu({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <DropdownMenu
+      placement="bottom-end"
+      trigger={({ triggerRef, ...props }) => (
+        <IconButton
+          {...props}
+          ref={triggerRef}
+          icon={ShowMoreIcon}
+          label={label}
+          appearance="subtle"
+        />
+      )}
+    >
+      <DropdownItemGroup>{children}</DropdownItemGroup>
+    </DropdownMenu>
   );
 }

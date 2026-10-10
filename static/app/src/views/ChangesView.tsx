@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import DynamicTable from '@atlaskit/dynamic-table';
-import Select from '@atlaskit/select';
 import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
 import type { AccessChange, Changes, FactChange } from '../api';
 import { ExportMenu, SearchField, SnapshotPicker, SubjectCell } from '../components';
@@ -14,9 +13,13 @@ import {
   Empty,
   ErrorState,
   FilterBar,
+  FilterSelect,
   Loading,
   PageFrame,
   PageHeader,
+  PageScroll,
+  PageTabBar,
+  PageTabs,
   Pill,
   ToggleField,
 } from '../ui';
@@ -106,6 +109,7 @@ export function ChangesView() {
   const [perm, setPerm] = useState('');
   const exporter = useExporter();
   const d = r.data;
+  const tabbed = Boolean(d?.a && d?.b);
 
   const options = useMemo(() => {
     const projects = new Map<string, string>();
@@ -149,6 +153,7 @@ export function ChangesView() {
 
   const header = (
     <PageHeader
+      flush={tabbed}
       title={meta.title}
       description={meta.description}
       actions={
@@ -177,115 +182,109 @@ export function ChangesView() {
     />
   );
   const list = snaps.data?.snapshots ?? [];
+
+  const pickers = (
+    <FilterBar>
+      <SnapshotPicker
+        snapshots={list}
+        value={a}
+        onChange={setA}
+        label="From"
+        allowLatest={false}
+        size="medium"
+      />
+      <span className="subtle">→</span>
+      <SnapshotPicker snapshots={list} value={b} onChange={setB} label="To" size="medium" />
+      <ToggleField label="All permissions" isChecked={all} onChange={() => setAll((v) => !v)} />
+    </FilterBar>
+  );
+
+  if (!tabbed) {
+    return (
+      <PageFrame header={header}>
+        <div className="page-stack">
+          {pickers}
+          {r.error && !d ? (
+            <ErrorState title="Changes unavailable" message={r.error} retry={r.reload} />
+          ) : !d ? (
+            <Loading />
+          ) : !d.b ? (
+            <NoSnapshot what="what changed" />
+          ) : (
+            <Empty
+              title="One snapshot so far"
+              description="Changes compare two snapshots. The next scheduled or manual snapshot will show what changed since this one."
+              action={null}
+            />
+          )}
+        </div>
+      </PageFrame>
+    );
+  }
+
+  // Search and filters scroll with each tab's content; the snapshot pickers and tab bar stay pinned.
+  const filters = (
+    <FilterBar>
+      <SearchField value={query} onChange={setQuery} placeholder="Search people, projects, paths" />
+      {(
+        [
+          ['Project', options.projects, project, setProject],
+          ['Group', options.groups, group, setGroup],
+          ['Permission', options.perms, perm, setPerm],
+        ] as Array<[string, Opt[], string, (v: string) => void]>
+      ).map(([label, opts, value, set]) => (
+        <FilterSelect<Opt>
+          key={label}
+          label={label}
+          options={opts}
+          value={value ? opts.find((o) => o.value === value) : null}
+          onChange={(o) => set(o?.value ?? '')}
+          size="narrow"
+        />
+      ))}
+    </FilterBar>
+  );
+  const panel = (content: ReactNode) => (
+    <TabPanel>
+      <PageScroll>
+        {filters}
+        {content}
+      </PageScroll>
+    </TabPanel>
+  );
+  const groupFacts = facts.filter((f) => f.category === 'groups');
+  const schemeFacts = facts.filter((f) => f.category === 'schemes' || f.category === 'projects');
+  const peopleFacts = facts.filter((f) => f.category === 'people');
+
   return (
-    <PageFrame header={header}>
-      <div className="page-stack">
-        <FilterBar>
-          <SnapshotPicker
-            snapshots={list}
-            value={a}
-            onChange={setA}
-            label="From"
-            allowLatest={false}
-            width={250}
-          />
-          <span className="subtle">→</span>
-          <SnapshotPicker snapshots={list} value={b} onChange={setB} label="To" width={250} />
-          <ToggleField label="All permissions" isChecked={all} onChange={() => setAll((v) => !v)} />
-        </FilterBar>
-        {r.error && !d ? (
-          <ErrorState title="Changes unavailable" message={r.error} retry={r.reload} />
-        ) : !d ? (
-          <Loading />
-        ) : !d.b ? (
-          <NoSnapshot what="what changed" />
-        ) : !d.a ? (
-          <Empty
-            title="One snapshot so far"
-            description="Changes compare two snapshots. The next scheduled or manual snapshot will show what changed since this one."
-            action={null}
-          />
-        ) : (
-          <>
-            <p className="subtle">
-              Comparing snapshot #{d.a.seq} with #{d.b.seq} ·{' '}
-              {all
-                ? 'all permissions'
-                : `key permissions: ${d.keyPermissions.map(permissionLabel).join(', ')}`}
-            </p>
-            <FilterBar>
-              <SearchField
-                value={query}
-                onChange={setQuery}
-                placeholder="Search people, projects, paths"
-              />
-              {(
-                [
-                  ['Project', options.projects, project, setProject],
-                  ['Group', options.groups, group, setGroup],
-                  ['Permission', options.perms, perm, setPerm],
-                ] as Array<[string, Opt[], string, (v: string) => void]>
-              ).map(([label, opts, value, set]) => (
-                <div style={{ width: 200 }} key={label}>
-                  <Select<Opt>
-                    aria-label={label}
-                    placeholder={label}
-                    options={opts}
-                    value={value ? opts.find((o) => o.value === value) : null}
-                    onChange={(o) => set(o?.value ?? '')}
-                    spacing="compact"
-                  />
-                </div>
-              ))}
-            </FilterBar>
-            <Tabs id="changes-tabs">
-              <TabList>
-                <Tab>Granted ({granted.length})</Tab>
-                <Tab>Revoked ({revoked.length})</Tab>
-                <Tab>Groups ({facts.filter((f) => f.category === 'groups').length})</Tab>
-                <Tab>
-                  Schemes & roles (
-                  {
-                    facts.filter((f) => f.category === 'schemes' || f.category === 'projects')
-                      .length
-                  }
-                  )
-                </Tab>
-                <Tab>People ({facts.filter((f) => f.category === 'people').length})</Tab>
-              </TabList>
-              <TabPanel>
-                <div className="tab-body">
-                  <AccessTable rows={granted} empty="No access was granted." />
-                </div>
-              </TabPanel>
-              <TabPanel>
-                <div className="tab-body">
-                  <AccessTable rows={revoked} empty="No access was revoked." />
-                </div>
-              </TabPanel>
-              <TabPanel>
-                <div className="tab-body">
-                  <FactTable rows={facts.filter((f) => f.category === 'groups')} />
-                </div>
-              </TabPanel>
-              <TabPanel>
-                <div className="tab-body">
-                  <FactTable
-                    rows={facts.filter(
-                      (f) => f.category === 'schemes' || f.category === 'projects',
-                    )}
-                  />
-                </div>
-              </TabPanel>
-              <TabPanel>
-                <div className="tab-body">
-                  <FactTable rows={facts.filter((f) => f.category === 'people')} />
-                </div>
-              </TabPanel>
-            </Tabs>
-          </>
-        )}
+    <PageFrame header={header} fixed>
+      <div className="page-pinned">
+        {pickers}
+        <p className="subtle">
+          Comparing snapshot #{d!.a!.seq} with #{d!.b!.seq} ·{' '}
+          {all
+            ? 'all permissions'
+            : `key permissions: ${d!.keyPermissions.map(permissionLabel).join(', ')}`}
+        </p>
       </div>
+      <PageTabs>
+        <Tabs id="changes-tabs">
+          <PageTabBar>
+            <TabList>
+              <Tab>Granted ({granted.length})</Tab>
+              <Tab>Revoked ({revoked.length})</Tab>
+              <Tab>Groups ({groupFacts.length})</Tab>
+              <Tab>Schemes & roles ({schemeFacts.length})</Tab>
+              <Tab>People ({peopleFacts.length})</Tab>
+            </TabList>
+          </PageTabBar>
+          {panel(<AccessTable rows={granted} empty="No access was granted." />)}
+          {panel(<AccessTable rows={revoked} empty="No access was revoked." />)}
+          {panel(<FactTable rows={groupFacts} />)}
+          {panel(<FactTable rows={schemeFacts} />)}
+          {panel(<FactTable rows={peopleFacts} />)}
+        </Tabs>
+      </PageTabs>
     </PageFrame>
   );
 }
