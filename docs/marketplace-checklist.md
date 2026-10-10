@@ -49,7 +49,8 @@
 - [ ] Prod deploy z poprawkami dozwolony; NIE zmieniać scope'ów ani egressu; listing i privacy zablokowane
 
 ## 9. Po zatwierdzeniu
-- [ ] Finalne zrzuty z prod, edycja Advanced, kolekcja Rovo, opcjonalnie bug bounty / Cloud Fortified
+- [ ] Finalne zrzuty z prod (w tym Campaigns, Alerts, Verify chain), edycja Advanced, kolekcja Rovo dopiero po R2-08, opcjonalnie bug bounty / Cloud Fortified
+- [ ] Listing Privacy tab: nadal zero egress; przypomnienia/alerty tylko in-app (zgodne z `docs/LISTING.md` §9–§10)
 
 ## Do skopiowania 1:1 z MarginRadar
 Workflowy GH Actions (ci z audit, codeql, dependabot, deploy-development, deploy-production), moduł privacy, struktura strony radrly.com, schemat cennika, kontakty partnera. Listing MarginRadar: /workspace/atlassian-marketplace-research/LISTING.md
