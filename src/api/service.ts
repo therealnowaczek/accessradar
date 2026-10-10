@@ -26,6 +26,12 @@ import {
 } from '../db/reviews';
 import { refreshGate } from '../collector/gate';
 import { LIMITATIONS_VERSION, limitationsPayload } from '../domain/limitations';
+import {
+  CONTROL_MAPPINGS,
+  CONTROLS_DISCLAIMER,
+  CONTROLS_VERSION,
+  EVIDENCE_DATA_SOURCES,
+} from '../domain/controls';
 import { contentHash, coverageHash } from '../engine/facts';
 import { getVerifyJob, insertVerifyJob, patchVerifyJob, streamContentHashPage } from '../db/verify';
 import { push } from '../lib/queue';
@@ -1014,4 +1020,85 @@ export async function logExport(p: any, accountId: string) {
     ...(limitationsVersion !== undefined ? { limitationsVersion } : {}),
   });
   return { logged: true };
+}
+
+/** Paginated evidence-pack payload for Advanced PDF export (built in the browser). */
+export async function getEvidencePack(p: any, edition: EditionDecision) {
+  if (!edition.features.evidencePack) throw new BadRequest(REQUIRES_ADVANCED);
+  const review = await loadReview(p.id);
+  if (review.status !== 'signed') throw new BadRequest('Sign the review first');
+  const page = Math.max(1, Math.floor(Number(p.page) || 1));
+  const pageSize = Math.min(1000, Math.max(1, Math.floor(Number(p.pageSize) || 500)));
+  const items = await getItems(review.id);
+  const decidable = items.filter((i) => i.change !== 'removed');
+  const start = (page - 1) * pageSize;
+  const slice = decidable.slice(start, start + pageSize);
+  const nextPage = start + pageSize < decidable.length ? page + 1 : null;
+  const base = await getSnapshot(review.baseSeq, false);
+  const baseFull = await getSnapshot(review.baseSeq);
+  const compare = review.compareSeq ? await getSnapshot(review.compareSeq, false) : null;
+  const limitations = limitationsPayload(base?.status, baseFull?.coverage ?? []);
+  const rem = await listRemediation(review.id);
+  const exceptions = await listExceptions({ status: 'all', page: 1, pageSize: 200 });
+  const scopeKeys = new Set(decidable.map((i) => i.itemKey));
+  const excRelevant = exceptions.items.filter((e) => scopeKeys.has(e.itemKey));
+  const auditEvents = (await listAudit(200)).filter((e) => e.target === review.id).slice(0, 50);
+  const header = {
+    reviewId: review.id,
+    name: review.name,
+    scope: review.scope,
+    status: review.status,
+    base: snapshotSummary(base),
+    compare: snapshotSummary(compare),
+    signedBy: review.signedBy,
+    signedAt: review.signedAt,
+    signerTz: review.signerTz,
+    evidenceHash: review.evidenceHash,
+    signatureVersion: review.signatureVersion,
+    coverageHash: review.coverageHash,
+    engineVersion: review.engineVersion,
+    attestation: review.attestation,
+    itemCount: decidable.length,
+  };
+  if (page > 1) {
+    return { header, items: slice, nextPage, page, pageSize };
+  }
+  const summary = {
+    keep: decidable.filter((i) => i.decision === 'keep').length,
+    revoke: decidable.filter((i) => i.decision === 'revoke').length,
+    exception: decidable.filter((i) => i.decision === 'exception').length,
+    undecided: decidable.filter((i) => !i.decision).length,
+    new: decidable.filter((i) => i.change === 'new').length,
+    removed: items.filter((i) => i.change === 'removed').length,
+  };
+  return {
+    header,
+    sections: {
+      methodology: {
+        engineVersion: ENGINE_VERSION,
+        dataSources: [...EVIDENCE_DATA_SOURCES],
+        note: 'Effective access is resolved by expanding permission-scheme grants, project roles, and group membership into why-paths (read-only).',
+      },
+      limitations,
+      coverage: baseFull?.coverage ?? [],
+      summary,
+      controls: {
+        version: CONTROLS_VERSION,
+        mappings: CONTROL_MAPPINGS,
+        disclaimer: CONTROLS_DISCLAIMER,
+      },
+      exceptions: excRelevant,
+      remediation: rem,
+      audit: auditEvents.map((e) => ({
+        at: e.at,
+        actor: e.actor,
+        action: e.action,
+        detail: e.detail,
+      })),
+    },
+    items: slice,
+    nextPage,
+    page,
+    pageSize,
+  };
 }

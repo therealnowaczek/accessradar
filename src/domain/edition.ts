@@ -29,7 +29,7 @@ export interface FeatureFlags {
   reviewCampaigns: boolean;
   /** Coming soon: alerts on new admins, public grants, inactive users with access. */
   changeAlerts: boolean;
-  /** Coming soon: audit evidence pack PDF (methodology + decision trail). */
+  /** Advanced: audit evidence pack PDF (methodology + decision trail). */
   evidencePack: boolean;
   /** Coming soon: Rovo agent. */
   rovo: boolean;
@@ -40,6 +40,7 @@ export const RELEASED_FEATURES = [
   'customSchedules',
   'unlimitedHistory',
   'remediationVerification',
+  'evidencePack',
 ] as const satisfies ReadonlyArray<keyof FeatureFlags>;
 
 export type ReleasedFeature = (typeof RELEASED_FEATURES)[number];
