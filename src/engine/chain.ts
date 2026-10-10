@@ -58,9 +58,6 @@ export function isDuplicateKey(e: unknown): boolean {
   const msg = String((e as { message?: string })?.message ?? e);
   const code = String((e as { code?: string })?.code ?? '');
   return (
-    /duplicate/i.test(msg) ||
-    code === 'ER_DUP_ENTRY' ||
-    code === '1062' ||
-    msg.includes('1062')
+    /duplicate/i.test(msg) || code === 'ER_DUP_ENTRY' || code === '1062' || msg.includes('1062')
   );
 }

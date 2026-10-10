@@ -2,12 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { isDuplicateKey, walkChain, type ChainLink } from '../src/engine/chain';
 import { evidenceHash } from '../src/engine/review';
 
-const link = (
-  seq: number,
-  hash: string,
-  prev: string | null,
-  id = `r${seq}`,
-): ChainLink => ({
+const link = (seq: number, hash: string, prev: string | null, id = `r${seq}`): ChainLink => ({
   id,
   chainSeq: seq,
   evidenceHash: hash,
@@ -23,11 +18,7 @@ describe('walkChain', () => {
     const h1 = 'a'.repeat(64);
     const h2 = 'b'.repeat(64);
     const h3 = 'c'.repeat(64);
-    const r = walkChain([
-      link(1, h1, null),
-      link(2, h2, h1),
-      link(3, h3, h2),
-    ]);
+    const r = walkChain([link(1, h1, null), link(2, h2, h1), link(3, h3, h2)]);
     expect(r.ok).toBe(true);
     expect(r.length).toBe(3);
     expect(r.links.every((l) => l.ok)).toBe(true);

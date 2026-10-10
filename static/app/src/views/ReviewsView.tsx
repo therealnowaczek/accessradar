@@ -709,10 +709,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                     `Snapshot #${d.review.baseSeq} hash`,
                     <Hash key="s" value={d.base?.contentHash} />,
                   ],
-                  [
-                    'Chain #',
-                    d.review.chainSeq != null ? String(d.review.chainSeq) : 'pre-chain',
-                  ],
+                  ['Chain #', d.review.chainSeq != null ? String(d.review.chainSeq) : 'pre-chain'],
                   [
                     'Previous hash',
                     d.review.prevReviewHash ? (
