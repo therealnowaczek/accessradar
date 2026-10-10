@@ -10,11 +10,29 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       FORGE_EMAIL: ${{ secrets.FORGE_EMAIL }}
       FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect manifest.yml change
+        id: manifest
+        run: |
+          set -euo pipefail
+          before="${{ github.event.before }}"
+          changed=false
+          if [ -n "$before" ] && [[ ! "$before" =~ ^0+$ ]] && git cat-file -e "${before}^{commit}" 2>/dev/null; then
+            git diff --name-only "$before" "$GITHUB_SHA" | grep -qx 'manifest.yml' && changed=true || true
+          elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            git diff --name-only HEAD~1 HEAD | grep -qx 'manifest.yml' && changed=true || true
+          else
+            changed=true
+          fi
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+          echo "manifest.yml changed: ${changed}"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -27,12 +45,15 @@ jobs:
       - run: npm run build:ui
       - run: npm install -g @forge/cli@14
       - run: forge settings set usage-analytics false
-      - name: forge lint (retried on Forge API timeouts)
+      - name: forge lint (manifest.yml only; 1 retry, 3 min)
+        if: steps.manifest.outputs.changed == 'true'
         run: |
-          for attempt in 1 2 3; do
-            if timeout 240 forge lint --environment production; then exit 0; fi
-            echo "forge lint attempt $attempt failed; retrying in $((attempt * 20))s"
-            sleep $((attempt * 20))
+          for attempt in 1 2; do
+            if timeout 180 forge lint --environment production; then exit 0; fi
+            if [ "$attempt" -eq 1 ]; then
+              echo "forge lint failed; retrying once"
+              sleep 15
+            fi
           done
           exit 1
       # Deploy only. No install/upgrade in production from CI. Never change scopes during Marketplace review.

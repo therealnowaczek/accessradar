@@ -2,6 +2,9 @@ name: Deploy (development)
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
   workflow_dispatch:
     inputs:
       upgrade_install:
@@ -10,33 +13,81 @@ on:
         default: false
 concurrency:
   group: deploy-development
-  cancel-in-progress: false
+  cancel-in-progress: true
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       FORGE_EMAIL: ${{ secrets.FORGE_EMAIL }}
       FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require green CI from merged PR
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          prs=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
+            -H "Accept: application/vnd.github.groot-preview+json")
+          pr=$(echo "$prs" | jq -r '.[0].number // empty')
+          head_sha=$(echo "$prs" | jq -r '.[0].head.sha // empty')
+          if [ -z "$pr" ] || [ -z "$head_sha" ]; then
+            echo "::error::No associated PR for ${GITHUB_SHA}. Merge via PR (with green CI) or use workflow_dispatch."
+            exit 1
+          fi
+          conclusion=$(gh run list --workflow CI --commit "$head_sha" --limit 5 \
+            --json conclusion,status --jq '[.[] | select(.status=="completed")][0].conclusion // empty')
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::CI did not succeed for PR #${pr} (head ${head_sha}); conclusion=${conclusion:-none}"
+            exit 1
+          fi
+          echo "CI success for PR #${pr} (head ${head_sha})"
+      - name: Detect manifest.yml change
+        id: manifest
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          before="${{ github.event.before }}"
+          changed=false
+          if [ -n "$before" ] && [[ ! "$before" =~ ^0+$ ]] && git cat-file -e "${before}^{commit}" 2>/dev/null; then
+            git diff --name-only "$before" "$GITHUB_SHA" | grep -qx 'manifest.yml' && changed=true || true
+          elif git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            git diff --name-only HEAD~1 HEAD | grep -qx 'manifest.yml' && changed=true || true
+          else
+            # Unknown base — lint to stay safe
+            changed=true
+          fi
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+          echo "manifest.yml changed: ${changed}"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npm run format:check && npm run lint && npm run typecheck && npm test
+      # Full lint/test suite runs on the PR (CI workflow). Deploy only builds UI + forge lint.
       - run: npm run build:ui
       - run: npm install -g @forge/cli@14
       - run: forge settings set usage-analytics false
-      - name: forge lint (fails only on errors; retried on Forge API timeouts)
+      - name: forge lint (manifest.yml only; 1 retry, 3 min)
+        if: steps.manifest.outputs.changed == 'true'
         run: |
-          for attempt in 1 2 3; do
-            if timeout 240 forge lint --environment development; then exit 0; fi
-            echo "forge lint attempt $attempt failed; retrying in $((attempt * 20))s"
-            sleep $((attempt * 20))
+          for attempt in 1 2; do
+            if timeout 180 forge lint --environment development; then exit 0; fi
+            if [ "$attempt" -eq 1 ]; then
+              echo "forge lint failed; retrying once"
+              sleep 15
+            fi
           done
           exit 1
       - run: forge deploy --environment development --non-interactive --approve MAJOR_VERSION_RULE
