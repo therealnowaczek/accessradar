@@ -230,6 +230,8 @@ export type ReviewSummary = {
   attestation: string | null;
   evidenceHash: string | null;
   engineVersion: string;
+  signatureVersion?: number;
+  coverageHash?: string | null;
   decided?: number;
   flagged?: number;
 };

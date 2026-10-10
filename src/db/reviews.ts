@@ -28,6 +28,8 @@ export interface ReviewRow {
   attestation: string | null;
   evidenceHash: string | null;
   engineVersion: string;
+  signatureVersion: number;
+  coverageHash: string | null;
 }
 
 export interface ReviewItemRow {
@@ -67,6 +69,8 @@ const toReview = (r: any): ReviewRow => ({
   attestation: r.attestation ?? null,
   evidenceHash: r.evidence_hash ?? null,
   engineVersion: r.engine_version,
+  signatureVersion: Number(r.signature_version ?? 1),
+  coverageHash: r.coverage_hash ?? null,
 });
 
 const toItem = (r: any): ReviewItemRow => ({
@@ -89,7 +93,7 @@ const toItem = (r: any): ReviewItemRow => ({
 });
 
 const REVIEW_COLS =
-  'id, name, scope_json, key_perms, base_seq, compare_seq, status, created_by, created_at, due_at, item_count, signed_by, signed_at, signer_tz, attestation, evidence_hash, engine_version';
+  'id, name, scope_json, key_perms, base_seq, compare_seq, status, created_by, created_at, due_at, item_count, signed_by, signed_at, signer_tz, attestation, evidence_hash, engine_version, signature_version, coverage_hash';
 
 export async function insertReview(
   r: Omit<
@@ -102,6 +106,8 @@ export async function insertReview(
     | 'signerTz'
     | 'attestation'
     | 'evidenceHash'
+    | 'signatureVersion'
+    | 'coverageHash'
   >,
   items: Array<
     ReviewItemDraft & {
@@ -244,15 +250,22 @@ export async function markSigned(
   tz: string,
   attestation: string,
   hash: string,
+  opts: { signatureVersion: number; coverageHash: string | null } = {
+    signatureVersion: 2,
+    coverageHash: null,
+  },
 ): Promise<boolean> {
   const n = await exec(
-    `UPDATE review SET status = 'signed', signed_by = ?, signed_at = ?, signer_tz = ?, attestation = ?, evidence_hash = ?
+    `UPDATE review SET status = 'signed', signed_by = ?, signed_at = ?, signer_tz = ?, attestation = ?, evidence_hash = ?,
+        signature_version = ?, coverage_hash = ?
      WHERE id = ? AND status <> 'signed'`,
     signedBy,
     signedAt,
     tz,
     attestation,
     hash,
+    opts.signatureVersion,
+    opts.coverageHash,
     id,
   );
   return n > 0;
@@ -271,7 +284,32 @@ export function evidenceInput(
   compare: { seq: number; contentHash: string | null } | null,
   signedBy: string,
   signedAt: number,
+  opts?: {
+    signatureVersion?: 1 | 2;
+    coverageHash?: string | null;
+    limitationsVersion?: number;
+    prevReviewHash?: string | null;
+    signerTz?: string | null;
+  },
 ): EvidenceInput {
+  const version = opts?.signatureVersion ?? 1;
+  const baseItems = items.map((i) => ({
+    itemKey: i.itemKey,
+    subjectType: i.subjectType,
+    subjectId: i.subjectId,
+    projectId: i.projectId,
+    groupId: i.groupId,
+    permissions: i.permissions,
+    pathCodes: i.pathCodes,
+    change: i.change,
+    decision: i.decision,
+    note: i.note,
+    decidedBy: i.decidedBy,
+    decidedAt: i.decidedAt ? new Date(i.decidedAt).toISOString() : null,
+    ...(version >= 2
+      ? { expiresAt: i.expiresAt ? new Date(i.expiresAt).toISOString() : null }
+      : {}),
+  }));
   return {
     reviewId: review.id,
     name: review.name,
@@ -281,20 +319,16 @@ export function evidenceInput(
     engineVersion: review.engineVersion,
     signedBy,
     signedAt: new Date(signedAt).toISOString(),
-    items: items.map((i) => ({
-      itemKey: i.itemKey,
-      subjectType: i.subjectType,
-      subjectId: i.subjectId,
-      projectId: i.projectId,
-      groupId: i.groupId,
-      permissions: i.permissions,
-      pathCodes: i.pathCodes,
-      change: i.change,
-      decision: i.decision,
-      note: i.note,
-      decidedBy: i.decidedBy,
-      decidedAt: i.decidedAt ? new Date(i.decidedAt).toISOString() : null,
-    })),
+    items: baseItems,
+    ...(version >= 2
+      ? {
+          signatureVersion: 2 as const,
+          coverageHash: opts?.coverageHash ?? null,
+          limitationsVersion: opts?.limitationsVersion ?? 1,
+          prevReviewHash: opts?.prevReviewHash ?? null,
+          signerTz: opts?.signerTz ?? review.signerTz ?? null,
+        }
+      : {}),
   };
 }
 

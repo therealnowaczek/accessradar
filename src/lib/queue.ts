@@ -11,7 +11,8 @@ export type CollectStep =
   | 'FINALIZE'
   | 'PRIVACY'
   | 'SPIKE'
-  | 'SELFTEST';
+  | 'SELFTEST'
+  | 'VERIFY_SNAPSHOT';
 
 export interface CollectEvent extends Record<string, unknown> {
   step: CollectStep;
@@ -19,6 +20,8 @@ export interface CollectEvent extends Record<string, unknown> {
   batch?: number;
   /** SPIKE only: accountId to impersonate (never logged). */
   impersonateAccountId?: string;
+  /** VERIFY_SNAPSHOT */
+  jobId?: string;
 }
 
 export const collectQueue = new Queue<CollectEvent>({ key: COLLECT_QUEUE });

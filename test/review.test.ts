@@ -121,6 +121,13 @@ describe('evidence hash', () => {
       evidenceDocument(input).indexOf('"itemKey":"b"'),
     );
   });
+  it('keeps a golden v1 hash (legacy path, no signatureVersion)', () => {
+    expect(evidenceHash(input)).toBe(
+      'ae3e8e012fe86f314a6413f1694098713966e5b74cfe22fe57ae1ed203afb0d6',
+    );
+    expect(evidenceDocument(input)).not.toContain('signatureVersion');
+    expect(evidenceDocument(input)).not.toContain('expiresAt');
+  });
   it('changes when any decision, note or signer changes', () => {
     const h = evidenceHash(input);
     expect(
@@ -131,6 +138,25 @@ describe('evidence hash', () => {
     ).not.toBe(h);
     expect(evidenceHash({ ...input, signedBy: 'acc-2' })).not.toBe(h);
     expect(evidenceHash({ ...input, base: { seq: 3, contentHash: 'b'.repeat(64) } })).not.toBe(h);
+  });
+  it('v2 includes coverage hash, expiresAt and differs from v1', () => {
+    const v2 = {
+      ...input,
+      signatureVersion: 2 as const,
+      coverageHash: 'c'.repeat(64),
+      limitationsVersion: 1,
+      prevReviewHash: null,
+      signerTz: 'Europe/Warsaw',
+      items: input.items.map((i) => ({
+        ...i,
+        expiresAt: i.decision === 'revoke' ? null : '2026-11-01T22:59:59.999Z',
+      })),
+    };
+    expect(evidenceHash(v2)).not.toBe(evidenceHash(input));
+    expect(evidenceDocument(v2)).toContain('"signatureVersion":2');
+    expect(evidenceDocument(v2)).toContain('expiresAt');
+    const v2b = { ...v2, coverageHash: 'd'.repeat(64) };
+    expect(evidenceHash(v2b)).not.toBe(evidenceHash(v2));
   });
 });
 
