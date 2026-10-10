@@ -246,8 +246,9 @@ export type ReviewItem = {
   pathCodes: string[];
   change: 'new' | 'unchanged' | 'removed' | null;
   risk: number;
-  decision: 'keep' | 'revoke' | null;
+  decision: 'keep' | 'revoke' | 'exception' | null;
   note: string | null;
+  expiresAt?: number | null;
   decidedBy: string | null;
   decidedAt: number | null;
   subject: SubjectView;
@@ -289,6 +290,7 @@ export type Settings = {
   wideAdminProjects: number;
   hourlyPointBudget: number;
   showAppAccounts: boolean;
+  requireKeepNote: boolean;
   saved?: boolean;
 };
 

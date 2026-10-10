@@ -44,6 +44,7 @@ export interface ReviewItemRow {
   risk: number;
   decision: Decision;
   note: string | null;
+  expiresAt: number | null;
   decidedBy: string | null;
   decidedAt: number | null;
 }
@@ -82,6 +83,7 @@ const toItem = (r: any): ReviewItemRow => ({
   risk: Number(r.risk),
   decision: r.decision ?? null,
   note: r.note ?? null,
+  expiresAt: num(r.expires_at),
   decidedBy: r.decided_by ?? null,
   decidedAt: num(r.decided_at),
 });
@@ -101,12 +103,20 @@ export async function insertReview(
     | 'attestation'
     | 'evidenceHash'
   >,
-  items: ReviewItemDraft[],
+  items: Array<
+    ReviewItemDraft & {
+      decision?: Decision;
+      note?: string | null;
+      expiresAt?: number | null;
+      decidedBy?: string | null;
+    }
+  >,
 ): Promise<string> {
   const id = randomUUID();
+  const now = Date.now();
   for (const [n, part] of chunk(items, 100).entries()) {
     await exec(
-      `INSERT INTO review_item (review_id, idx, item_key, subject_type, subject_id, project_id, group_id, permissions, reasons, path_codes, change_kind, risk) VALUES ${placeholders(part.length, 12)}`,
+      `INSERT INTO review_item (review_id, idx, item_key, subject_type, subject_id, project_id, group_id, permissions, reasons, path_codes, change_kind, risk, decision, note, expires_at, decided_by, decided_at) VALUES ${placeholders(part.length, 17)}`,
       ...part.flatMap((it, i) => [
         id,
         n * 100 + i,
@@ -120,6 +130,11 @@ export async function insertReview(
         JSON.stringify(it.pathCodes.slice(0, 20)),
         it.change,
         it.risk,
+        it.decision ?? null,
+        it.note ?? null,
+        it.expiresAt ?? null,
+        it.decision ? (it.decidedBy ?? null) : null,
+        it.decision ? now : null,
       ]),
     );
   }
@@ -185,29 +200,35 @@ export async function decide(
   decision: Decision,
   note: string | null | undefined,
   actor: string,
+  expiresAt: number | null = null,
 ): Promise<number> {
   let changed = 0;
   const now = Date.now();
   for (const part of chunk(idxs, 500)) {
     const ph = part.map(() => '?').join(', ');
+    const expiry = decision === 'exception' ? expiresAt : null;
     changed +=
       note === undefined
         ? await exec(
-            `UPDATE review_item SET decision = ?, decided_by = ?, decided_at = ? WHERE review_id = ? AND idx IN (${ph})
+            `UPDATE review_item SET decision = ?, expires_at = ?, decided_by = ?, decided_at = ?
+             WHERE review_id = ? AND idx IN (${ph})
                AND review_id IN (SELECT id FROM review WHERE status <> 'signed')`,
             decision,
+            expiry,
             decision ? actor : null,
             decision ? now : null,
             id,
             ...part,
           )
         : await exec(
-            `UPDATE review_item SET decision = ?, note = ?, decided_by = ?, decided_at = ? WHERE review_id = ? AND idx IN (${ph})
+            `UPDATE review_item SET decision = ?, note = ?, expires_at = ?, decided_by = ?, decided_at = ?
+             WHERE review_id = ? AND idx IN (${ph})
                AND review_id IN (SELECT id FROM review WHERE status <> 'signed')`,
             decision,
             note,
-            actor,
-            now,
+            expiry,
+            decision ? actor : null,
+            decision ? now : null,
             id,
             ...part,
           );

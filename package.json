@@ -26,6 +26,7 @@
     "@atlaskit/checkbox": "^19.3.0",
     "@atlaskit/css": "^1.1.6",
     "@atlaskit/css-reset": "^8.4.6",
+    "@atlaskit/datetime-picker": "^14.1.2",
     "@atlaskit/dropdown-menu": "^21.0.0",
     "@atlaskit/dynamic-table": "^19.3.8",
     "@atlaskit/empty-state": "^12.2.4",

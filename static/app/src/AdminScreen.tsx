@@ -18,6 +18,7 @@ import { GroupsView } from './views/GroupsView';
 import { OverviewView } from './views/OverviewView';
 import { PeopleView } from './views/PeopleView';
 import { ProjectsView } from './views/ProjectsView';
+import { ExceptionsView } from './views/ExceptionsView';
 import { ReviewsView } from './views/ReviewsView';
 import { SettingsView } from './views/SettingsView';
 import { SnapshotsView } from './views/SnapshotsView';
@@ -37,6 +38,7 @@ const VIEWS: Record<ViewId, () => JSX.Element> = {
   'explore-people': PeopleView,
   changes: ChangesView,
   reviews: ReviewsView,
+  exceptions: ExceptionsView,
   snapshots: SnapshotsView,
   settings: SettingsView,
   activity: ActivityView,

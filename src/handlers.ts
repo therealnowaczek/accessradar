@@ -104,6 +104,7 @@ def('decideItems', (p, c) => svc.decideItems(p, c.accountId));
 def('signReview', (p, c) => svc.signReview(p, c.accountId));
 def('verifyReview', (p) => svc.verifyReview(p));
 def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
+def('listExceptions', (p) => svc.exceptionsList(p));
 def('getSettings', (_p, c) => svc.settingsView(c.accountId, c.edition));
 def('saveSettings', (p, c) => svc.updateSettings(p, c.accountId, c.edition));
 def('getEdition', async (_p, c) => svc.editionView(c.edition));
@@ -215,6 +216,7 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
       await ensureMigrated();
       const r = await runPrivacyReport();
       console.log('[privacy] reported', r);
+      await svc.runExpireExceptions();
       // Audit log retention also runs daily, so it applies even when no snapshots are taken.
       const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
       const auditEvents = await purgeAudit(Date.now() - settings.retentionDays * 86400_000);

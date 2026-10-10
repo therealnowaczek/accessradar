@@ -7,6 +7,7 @@ import Lozenge from '@atlaskit/lozenge';
 import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
+import { DatePicker } from '@atlaskit/datetime-picker';
 import Textarea from '@atlaskit/textarea';
 import Textfield from '@atlaskit/textfield';
 import {
@@ -374,6 +375,7 @@ const DECISIONS: Opt[] = [
   { label: 'Undecided', value: 'none' },
   { label: 'Keep', value: 'keep' },
   { label: 'Revoke', value: 'revoke' },
+  { label: 'Exception', value: 'exception' },
 ];
 const CHANGES: Opt[] = [
   { label: 'All items', value: '' },
@@ -416,7 +418,12 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   const flagged = decidable.filter((i) => i.decision === 'revoke').length;
   const pending = decidable.length - decided;
 
-  const decide = async (idxs: number[], value: 'keep' | 'revoke' | null, note?: string) => {
+  const decide = async (
+    idxs: number[],
+    value: 'keep' | 'revoke' | 'exception' | null,
+    note?: string,
+    expiresAt?: string | null,
+  ) => {
     if (!idxs.length) return;
     setBusy(true);
     try {
@@ -424,31 +431,52 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         id,
         idxs,
         decision: value,
+        tz: timeZone(),
         ...(note !== undefined ? { note } : {}),
+        ...(expiresAt ? { expiresAt } : {}),
       });
-      if (idxs.length > 1) toast.success(`${plural(res.changed, 'item')} updated`);
+      if (idxs.length > 1) toast.success(`${plural(res.changed, 'decision')} updated`);
       r.reload();
     } catch (e) {
       toast.error('Decision not saved', errorText(e));
+      throw e;
     } finally {
       setBusy(false);
     }
   };
 
-  const openNote = (item: ReviewItem) =>
+  const openDecide = (
+    idxs: number[],
+    preset: 'revoke' | 'exception' | null,
+    item?: ReviewItem,
+  ) => {
+    const sample = item ?? items.find((i) => idxs.includes(i.idx));
+    if (!sample) return;
+    const multi = idxs.length > 1;
     setDrawer([
       {
-        key: `note-${item.idx}`,
-        title: item.subject.name,
-        description: item.project
-          ? `${item.project.key} · ${item.project.name}`
-          : (item.groupName ?? 'Site'),
+        key: `note-${idxs.join('-')}`,
+        title:
+          preset === 'exception'
+            ? multi
+              ? `Grant exception (${idxs.length})`
+              : 'Grant exception'
+            : preset === 'revoke'
+              ? multi
+                ? `Revoke access (${idxs.length})`
+                : 'Revoke access'
+              : sample.subject.name,
+        description: multi
+          ? 'One justification applies to every selected item.'
+          : sample.project
+            ? `${sample.project.key} · ${sample.project.name}`
+            : (sample.groupName ?? 'Site'),
         content: (
           <ItemDrawer
-            item={item}
+            item={{ ...sample, decision: preset ?? sample.decision }}
             readOnly={signed}
-            onSave={async (value, note) => {
-              await decide([item.idx], value, note);
+            onSave={async (value, note, expiresAt) => {
+              await decide(idxs, value, note, expiresAt);
               setDrawer([]);
             }}
             onCancel={() => setDrawer([])}
@@ -456,6 +484,10 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         ),
       },
     ]);
+  };
+
+  const openNote = (item: ReviewItem, preset?: 'revoke' | 'exception') =>
+    openDecide([item.idx], preset ?? null, item);
 
   const openSign = () =>
     setDrawer([
@@ -664,9 +696,16 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               </Button>
               <Button
                 isDisabled={busy || !filteredOpen.length}
-                onClick={() => void decide(filteredOpen, 'revoke')}
+                onClick={() => openDecide(filteredOpen, 'revoke')}
               >
                 Revoke{' '}
+                {filteredOpen.length === decidable.length ? 'all' : `${filteredOpen.length} shown`}
+              </Button>
+              <Button
+                isDisabled={busy || !filteredOpen.length}
+                onClick={() => openDecide(filteredOpen, 'exception')}
+              >
+                Exception{' '}
                 {filteredOpen.length === decidable.length ? 'all' : `${filteredOpen.length} shown`}
               </Button>
             </>
@@ -728,6 +767,12 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                         <Lozenge appearance="success">Keep</Lozenge>
                       ) : i.decision === 'revoke' ? (
                         <Lozenge appearance="removed">Revoke</Lozenge>
+                      ) : i.decision === 'exception' ? (
+                        <Lozenge appearance="moved">
+                          {i.expiresAt ? `Exception until ${formatLocal(i.expiresAt)}` : 'Exception'}
+                        </Lozenge>
+                      ) : i.reasons.includes('Exception expired') ? (
+                        <Lozenge appearance="removed">Exception expired</Lozenge>
                       ) : (
                         <Lozenge>Undecided</Lozenge>
                       )}
@@ -755,9 +800,16 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                       <Button
                         spacing="compact"
                         isDisabled={busy}
-                        onClick={() => openNote({ ...i, decision: 'revoke' })}
+                        onClick={() => openNote(i, 'revoke')}
                       >
                         Revoke…
+                      </Button>
+                      <Button
+                        spacing="compact"
+                        isDisabled={busy}
+                        onClick={() => openNote(i, 'exception')}
+                      >
+                        Exception…
                       </Button>
                       <Button spacing="compact" appearance="subtle" onClick={() => openNote(i)}>
                         Note
@@ -803,12 +855,21 @@ function ItemDrawer({
 }: {
   item: ReviewItem;
   readOnly: boolean;
-  onSave: (decision: 'keep' | 'revoke' | null, note: string) => Promise<void>;
+  onSave: (
+    decision: 'keep' | 'revoke' | 'exception' | null,
+    note: string,
+    expiresAt?: string | null,
+  ) => Promise<void>;
   onCancel: () => void;
 }) {
-  const [value, setValue] = useState<'keep' | 'revoke' | null>(item.decision);
+  const [value, setValue] = useState<'keep' | 'revoke' | 'exception' | null>(item.decision);
   const [note, setNote] = useState(item.note ?? '');
+  const [expiresOn, setExpiresOn] = useState('');
+  const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const needsJustification = value === 'revoke' || value === 'exception';
+  const primaryLabel =
+    value === 'exception' ? 'Grant exception' : value === 'revoke' ? 'Revoke' : 'Save';
   return (
     <>
       <DrawerBody>
@@ -839,6 +900,11 @@ function ItemDrawer({
           ) : null
         ) : (
           <div className="form-stack">
+            {error ? (
+              <SectionMessage appearance="error">
+                <p>{error}</p>
+              </SectionMessage>
+            ) : null}
             <RadioField label="Decision">
               <RadioGroup
                 value={value ?? ''}
@@ -850,24 +916,50 @@ function ItemDrawer({
                     value: 'revoke',
                     label: 'Revoke: remove this access in Jira',
                   },
+                  {
+                    name: 'decision',
+                    value: 'exception',
+                    label: 'Exception: keep with justification and expiry',
+                  },
                   { name: 'decision', value: '', label: 'Undecided' },
                 ]}
               />
             </RadioField>
             <FormField
-              label={`Note${value === 'revoke' ? ' (recommended: what to remove)' : ''}`}
-              helper="Notes become part of the evidence. Do not include personal data beyond what the decision needs."
+              label="Justification"
+              helper={
+                needsJustification
+                  ? 'Required · at least 10 characters. Becomes part of the evidence.'
+                  : 'Optional. Notes become part of the evidence.'
+              }
             >
-              {(id) => (
+              {(fid) => (
                 <Textarea
-                  id={id}
+                  id={fid}
                   value={note}
                   maxLength={2000}
                   onChange={(e) => setNote(e.target.value)}
                   resize="vertical"
+                  isInvalid={needsJustification && note.trim().length > 0 && note.trim().length < 10}
                 />
               )}
             </FormField>
+            {value === 'exception' ? (
+              <FormField
+                label="Expires on"
+                helper="Date-only · stored as end of that day in your timezone."
+              >
+                {(fid) => (
+                  <DatePicker
+                    id={fid}
+                    value={expiresOn}
+                    onChange={(d) => setExpiresOn(d)}
+                    dateFormat="YYYY-MM-DD"
+                    placeholder="YYYY-MM-DD"
+                  />
+                )}
+              </FormField>
+            ) : null}
           </div>
         )}
       </DrawerBody>
@@ -877,12 +969,26 @@ function ItemDrawer({
             appearance="primary"
             isLoading={busy}
             onClick={async () => {
+              setError('');
+              if (needsJustification && note.trim().length < 10) {
+                setError('Add a justification (at least 10 characters)');
+                return;
+              }
+              if (value === 'exception' && !expiresOn) {
+                setError('Exception expiry date is required');
+                return;
+              }
               setBusy(true);
-              await onSave(value, note.trim());
-              setBusy(false);
+              try {
+                await onSave(value, note.trim(), value === 'exception' ? expiresOn : null);
+              } catch (e) {
+                setError(errorText(e));
+              } finally {
+                setBusy(false);
+              }
             }}
           >
-            Save
+            {primaryLabel}
           </Button>
         </DrawerFooter>
       )}
