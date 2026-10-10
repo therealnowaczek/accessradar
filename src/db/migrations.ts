@@ -263,6 +263,25 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       KEY ix_exc_exp (status, expires_at)
     )`,
   ],
+  ['v027_review_sig', `ALTER TABLE review ADD COLUMN signature_version INT NOT NULL DEFAULT 1`],
+  ['v028_review_cov', `ALTER TABLE review ADD COLUMN coverage_hash CHAR(64) NULL`],
+  [
+    'v029_verify_job',
+    `CREATE TABLE IF NOT EXISTS verify_job (
+      id VARCHAR(36) NOT NULL PRIMARY KEY,
+      review_id VARCHAR(36) NOT NULL,
+      seq INT NOT NULL,
+      status VARCHAR(16) NOT NULL,
+      expected_hash CHAR(64) NULL,
+      actual_hash CHAR(64) NULL,
+      started_at BIGINT NOT NULL,
+      finished_at BIGINT NULL,
+      error VARCHAR(500) NULL,
+      cursor_kind VARCHAR(32) NULL,
+      cursor_fkey VARCHAR(512) NULL,
+      KEY ix_verify_review (review_id)
+    )`,
+  ],
 ];
 
 let runner: typeof migrationRunner | null = null;

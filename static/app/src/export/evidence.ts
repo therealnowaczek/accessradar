@@ -436,6 +436,7 @@ function reviewMeta(d: ReviewDetail, ctx: ExportContext): Array<[string, string]
       r.signedAt ? `${formatUtc(r.signedAt)} / ${formatLocalExport(r.signedAt, signerTz)}` : '',
     ],
     ['Evidence hash (SHA-256)', r.evidenceHash ?? 'not signed'],
+    ['Signature version', r.status === 'signed' ? String(r.signatureVersion ?? 1) : ''],
   ]);
 }
 

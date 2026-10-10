@@ -102,7 +102,9 @@ def('createReview', (p, c) => svc.createReview(p, c.accountId));
 def('getReview', (p) => svc.reviewDetail(p));
 def('decideItems', (p, c) => svc.decideItems(p, c.accountId));
 def('signReview', (p, c) => svc.signReview(p, c.accountId));
-def('verifyReview', (p) => svc.verifyReview(p));
+def('verifyReview', (p, c) => svc.verifyReview(p, c.accountId));
+def('startSnapshotVerify', (p, c) => svc.startSnapshotVerify(p, c.accountId));
+def('getVerifyJob', (p) => svc.verifyJobStatus(p));
 def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
 def('listExceptions', (p) => svc.exceptionsList(p));
 def('getSettings', (_p, c) => svc.settingsView(c.accountId, c.edition));
@@ -221,6 +223,11 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
       const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
       const auditEvents = await purgeAudit(Date.now() - settings.retentionDays * 86400_000);
       if (auditEvents) console.log('[retention] audit events deleted', { auditEvents });
+      return;
+    }
+    case 'VERIFY_SNAPSHOT': {
+      await ensureMigrated();
+      if (typeof body.jobId === 'string') await svc.runVerifySnapshotJob(body.jobId);
       return;
     }
     case 'SELFTEST':

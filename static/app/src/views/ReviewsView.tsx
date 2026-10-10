@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import Checkbox from '@atlaskit/checkbox';
+import { DatePicker } from '@atlaskit/datetime-picker';
 import DynamicTable from '@atlaskit/dynamic-table';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import Lozenge from '@atlaskit/lozenge';
+import ProgressBar from '@atlaskit/progress-bar';
 import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
-import { DatePicker } from '@atlaskit/datetime-picker';
 import Textarea from '@atlaskit/textarea';
 import Textfield from '@atlaskit/textfield';
 import {
@@ -504,21 +505,22 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
       },
     ]);
 
-  const verify = async () => {
-    try {
-      const v = await call<{ stored: string; computed: string; valid: boolean }>('verifyReview', {
-        id,
-      });
-      if (v.valid) toast.success('Evidence verified', 'The stored records match the signed hash.');
-      else
-        toast.error(
-          'Evidence mismatch',
-          `Stored ${v.stored.slice(0, 12)}…, computed ${v.computed.slice(0, 12)}…`,
-        );
-    } catch (e) {
-      toast.error('Verification failed', errorText(e));
-    }
-  };
+  const openVerify = () =>
+    setDrawer([
+      {
+        key: 'verify',
+        title: 'Verify evidence',
+        description: d?.review.name,
+        content: (
+          <VerifyDrawer
+            reviewId={id}
+            snapshotSeq={d!.review.baseSeq}
+            snapshotHash={d!.base?.contentHash ?? null}
+            onClose={() => setDrawer([])}
+          />
+        ),
+      },
+    ]);
 
   const openDelete = () =>
     setDrawer([
@@ -590,7 +592,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             }
           />
           {signed ? (
-            <Button onClick={() => void verify()}>Verify</Button>
+            <Button onClick={openVerify}>Verify</Button>
           ) : (
             <>
               <Button appearance="subtle" onClick={openDelete} isDisabled={!d}>
@@ -634,7 +636,14 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                 {d.review.signerTz}). This review is read-only.
               </p>
               <Details
-                rows={[['Evidence hash (SHA-256)', <Hash key="h" value={d.review.evidenceHash} />]]}
+                rows={[
+                  ['Evidence hash (SHA-256)', <Hash key="h" value={d.review.evidenceHash} />],
+                  [
+                    `Snapshot #${d.review.baseSeq} hash`,
+                    <Hash key="s" value={d.base?.contentHash} />,
+                  ],
+                  ['Signature', `v${d.review.signatureVersion ?? 1}`],
+                ]}
               />
             </div>
           </SectionMessage>
@@ -999,6 +1008,184 @@ function ItemDrawer({
 const ATTESTATION =
   'I confirm that I reviewed every access item in this scope and that the decisions recorded here reflect my assessment.';
 
+type VerifyJob = {
+  id: string;
+  status: 'pending' | 'running' | 'ok' | 'mismatch' | 'purged' | 'error';
+  expectedHash: string | null;
+  actualHash: string | null;
+  error: string | null;
+};
+
+function VerifyDrawer({
+  reviewId,
+  snapshotSeq,
+  snapshotHash,
+  onClose,
+}: {
+  reviewId: string;
+  snapshotSeq: number;
+  snapshotHash: string | null;
+  onClose: () => void;
+}) {
+  const [sig, setSig] = useState<{
+    ok: boolean;
+    signatureVersion: number;
+    evidenceHash: string | null;
+    recomputed: string;
+  } | null>(null);
+  const [sigError, setSigError] = useState('');
+  const [job, setJob] = useState<VerifyJob | null>(null);
+  const [deepError, setDeepError] = useState('');
+  const [polling, setPolling] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const v = await call<{
+          ok: boolean;
+          signatureVersion: number;
+          evidenceHash: string | null;
+          recomputed: string;
+        }>('verifyReview', { id: reviewId });
+        setSig(v);
+      } catch (e) {
+        setSigError(errorText(e));
+      }
+    })();
+  }, [reviewId]);
+
+  useEffect(() => {
+    if (!polling || !job?.id) return;
+    if (
+      job.status === 'ok' ||
+      job.status === 'mismatch' ||
+      job.status === 'purged' ||
+      job.status === 'error'
+    ) {
+      setPolling(false);
+      return;
+    }
+    const t = window.setTimeout(() => {
+      void call<VerifyJob>('getVerifyJob', { jobId: job.id })
+        .then(setJob)
+        .catch((e) => {
+          setDeepError(errorText(e));
+          setPolling(false);
+        });
+    }, 1500);
+    return () => window.clearTimeout(t);
+  }, [polling, job]);
+
+  const startDeep = async () => {
+    setDeepError('');
+    setPolling(true);
+    try {
+      const r = await call<{ jobId: string }>('startSnapshotVerify', { reviewId });
+      setJob({
+        id: r.jobId,
+        status: 'pending',
+        expectedHash: snapshotHash,
+        actualHash: null,
+        error: null,
+      });
+    } catch (e) {
+      setDeepError(errorText(e));
+      setPolling(false);
+    }
+  };
+
+  const deepDone =
+    job &&
+    (job.status === 'ok' ||
+      job.status === 'mismatch' ||
+      job.status === 'purged' ||
+      job.status === 'error');
+
+  return (
+    <>
+      <DrawerBody>
+        <Section title="Signature">
+          {sigError ? (
+            <SectionMessage appearance="error">
+              <p>{sigError}</p>
+            </SectionMessage>
+          ) : !sig ? (
+            <Loading />
+          ) : (
+            <div className="section-stack">
+              <Lozenge appearance={sig.ok ? 'success' : 'removed'}>
+                {sig.ok ? 'Verified' : 'Mismatch'}
+              </Lozenge>
+              <Details
+                rows={[
+                  ['Signature version', String(sig.signatureVersion)],
+                  ['Stored hash', <Hash key="sh" value={sig.evidenceHash} />],
+                  ['Recomputed', <Hash key="rh" value={sig.recomputed} />],
+                ]}
+              />
+              {!sig.ok ? (
+                <SectionMessage appearance="error">
+                  <p>Stored records no longer match the signed evidence hash.</p>
+                </SectionMessage>
+              ) : null}
+            </div>
+          )}
+        </Section>
+        <Section title="Snapshot integrity">
+          <p className="subtle">
+            Recomputes the content hash of snapshot #{snapshotSeq} from stored facts and compares it
+            to the hash recorded when the review was signed.
+          </p>
+          {!job ? (
+            <Button appearance="primary" onClick={() => void startDeep()}>
+              Check snapshot integrity
+            </Button>
+          ) : null}
+          {polling && !deepDone ? (
+            <div className="section-stack">
+              <ProgressBar isIndeterminate />
+              <span className="subtle">Checking snapshot facts…</span>
+            </div>
+          ) : null}
+          {deepError ? (
+            <SectionMessage appearance="error">
+              <p>{deepError}</p>
+            </SectionMessage>
+          ) : null}
+          {job?.status === 'purged' ? (
+            <SectionMessage appearance="warning">
+              <p>Snapshot data was deleted by retention; only the signature can be checked.</p>
+            </SectionMessage>
+          ) : null}
+          {deepDone && job.status !== 'purged' ? (
+            <div className="section-stack">
+              <Lozenge appearance={job.status === 'ok' ? 'success' : 'removed'}>
+                {job.status === 'ok' ? 'Verified' : 'Mismatch'}
+              </Lozenge>
+              <Details
+                rows={[
+                  ['Expected', <Hash key="eh" value={job.expectedHash} />],
+                  ['Actual', <Hash key="ah" value={job.actualHash} />],
+                ]}
+              />
+              {job.status === 'mismatch' ? (
+                <SectionMessage appearance="error">
+                  <p>Recomputed snapshot hash does not match the signed value.</p>
+                </SectionMessage>
+              ) : null}
+            </div>
+          ) : null}
+        </Section>
+      </DrawerBody>
+      <DrawerFooter onCancel={onClose}>
+        <Button appearance="primary" onClick={onClose}>
+          Done
+        </Button>
+      </DrawerFooter>
+    </>
+  );
+}
+
 function SignDrawer({
   detail,
   onSigned,
@@ -1038,13 +1225,14 @@ function SignDrawer({
             ['Items', String(items.length)],
             ['Keep', String(items.filter((i) => i.decision === 'keep').length)],
             ['Revoke', String(items.filter((i) => i.decision === 'revoke').length)],
+            ['Exception', String(items.filter((i) => i.decision === 'exception').length)],
             ['Signed at', `Now, recorded in UTC and ${timeZone()}`],
           ]}
         />
         <p className="subtle">
-          Signing locks the review. AccessRadar records your account ID and the time, and computes a
-          SHA-256 hash over the review, all decisions and the base snapshot hash. Revocations must
-          still be done in Jira.
+          Signing locks the review (signature v2). AccessRadar records your account ID and the time,
+          and computes a SHA-256 hash over the review, decisions, coverage hash, and base snapshot
+          hash. Revocations must still be done in Jira.
         </p>
         <Checkbox
           isChecked={attest}

@@ -158,6 +158,25 @@ function sortItems(items: ReviewItemDraft[]) {
   return items.sort((a, b) => b.risk - a.risk || a.itemKey.localeCompare(b.itemKey));
 }
 
+export type SignatureVersion = 1 | 2;
+
+export interface EvidenceItem {
+  itemKey: string;
+  subjectType: string;
+  subjectId: string;
+  projectId: string | null;
+  groupId: string | null;
+  permissions: string[];
+  pathCodes: string[];
+  change: ItemChange;
+  decision: Decision;
+  note: string | null;
+  decidedBy: string | null;
+  decidedAt: string | null;
+  /** Signature v2 only; ISO or null. */
+  expiresAt?: string | null;
+}
+
 export interface EvidenceInput {
   reviewId: string;
   name: string;
@@ -167,30 +186,69 @@ export interface EvidenceInput {
   engineVersion: string;
   signedBy: string;
   signedAt: string; // ISO UTC
-  items: Array<{
-    itemKey: string;
-    subjectType: string;
-    subjectId: string;
-    projectId: string | null;
-    groupId: string | null;
-    permissions: string[];
-    pathCodes: string[];
-    change: ItemChange;
-    decision: Decision;
-    note: string | null;
-    decidedBy: string | null;
-    decidedAt: string | null;
-  }>;
+  items: EvidenceItem[];
+  /** Missing / 1 = legacy v1 canonicalisation (byte-identical to pre-R1-05). */
+  signatureVersion?: SignatureVersion;
+  coverageHash?: string | null;
+  limitationsVersion?: number;
+  prevReviewHash?: string | null;
+  signerTz?: string | null;
 }
 
 /** Canonical evidence document; its SHA-256 is the review's evidence hash.
  *  Uses accountIds only, so privacy pseudonymisation of names does not break verification. */
 export function evidenceDocument(input: EvidenceInput): string {
-  const items = [...input.items].sort((a, b) => a.itemKey.localeCompare(b.itemKey));
+  const version = input.signatureVersion ?? 1;
+  const items = [...input.items]
+    .map((it) => {
+      if (version < 2) {
+        return {
+          itemKey: it.itemKey,
+          subjectType: it.subjectType,
+          subjectId: it.subjectId,
+          projectId: it.projectId,
+          groupId: it.groupId,
+          permissions: it.permissions,
+          pathCodes: it.pathCodes,
+          change: it.change,
+          decision: it.decision,
+          note: it.note,
+          decidedBy: it.decidedBy,
+          decidedAt: it.decidedAt,
+        };
+      }
+      return { ...it, expiresAt: it.expiresAt ?? null };
+    })
+    .sort((a, b) => a.itemKey.localeCompare(b.itemKey));
+  const scope = { ...input.scope, ids: [...input.scope.ids].sort() };
+  if (version < 2) {
+    return canonicalJson({
+      reviewId: input.reviewId,
+      name: input.name,
+      scope,
+      base: input.base,
+      compare: input.compare,
+      engineVersion: input.engineVersion,
+      signedBy: input.signedBy,
+      signedAt: input.signedAt,
+      items,
+    });
+  }
   return canonicalJson({
-    ...input,
+    reviewId: input.reviewId,
+    name: input.name,
+    scope,
+    base: input.base,
+    compare: input.compare,
+    engineVersion: input.engineVersion,
+    signedBy: input.signedBy,
+    signedAt: input.signedAt,
+    signatureVersion: 2,
+    coverageHash: input.coverageHash ?? null,
+    limitationsVersion: input.limitationsVersion ?? 1,
+    prevReviewHash: input.prevReviewHash ?? null,
+    signerTz: input.signerTz ?? null,
     items,
-    scope: { ...input.scope, ids: [...input.scope.ids].sort() },
   });
 }
 

@@ -24,7 +24,10 @@ import {
   type ReviewRow,
 } from '../db/reviews';
 import { refreshGate } from '../collector/gate';
-import { limitationsPayload } from '../domain/limitations';
+import { LIMITATIONS_VERSION, limitationsPayload } from '../domain/limitations';
+import { contentHash, coverageHash } from '../engine/facts';
+import { getVerifyJob, insertVerifyJob, patchVerifyJob, streamContentHashPage } from '../db/verify';
+import { push } from '../lib/queue';
 import { getSettings, kvGet, saveSettings } from '../db/settings';
 import {
   effectiveSchedule,
@@ -590,6 +593,8 @@ export async function signReview(p: any, accountId: string) {
   if (pending) throw new BadRequest(`${pending} items still need a decision`);
   const base = await getSnapshot(review.baseSeq, false);
   const compare = review.compareSeq ? await getSnapshot(review.compareSeq, false) : null;
+  const baseFull = await getSnapshot(review.baseSeq);
+  const covHash = coverageHash(baseFull?.coverage ?? []);
   const signedAt = Date.now();
   const hash = evidenceHash(
     evidenceInput(
@@ -599,19 +604,34 @@ export async function signReview(p: any, accountId: string) {
       compare ? { seq: compare.seq, contentHash: compare.contentHash } : null,
       accountId,
       signedAt,
+      {
+        signatureVersion: 2,
+        coverageHash: covHash,
+        limitationsVersion: LIMITATIONS_VERSION,
+        prevReviewHash: null,
+        signerTz: tz,
+      },
     ),
   );
   const attestation =
     'I confirm that I reviewed every access item in this scope and that the decisions recorded here reflect my assessment.';
-  if (!(await markSigned(review.id, accountId, signedAt, tz, attestation, hash)))
+  if (
+    !(await markSigned(review.id, accountId, signedAt, tz, attestation, hash, {
+      signatureVersion: 2,
+      coverageHash: covHash,
+    }))
+  )
     throw new BadRequest('This review is already signed');
   const exc = await upsertExceptionsOnSign(review.id, items, accountId, signedAt);
   if (exc.granted) await audit(accountId, 'exception.granted', review.id, { count: exc.granted });
   if (exc.superseded)
     await audit(accountId, 'exception.superseded', review.id, { count: exc.superseded });
-  await audit(accountId, 'review.signed', review.id, { hash });
+  await audit(accountId, 'review.signed', review.id, {
+    signatureVersion: 2,
+    evidenceHash: hash,
+  });
   console.log('[review] signed', { items: items.length, hash: hash.slice(0, 12) });
-  return { evidenceHash: hash, signedAt };
+  return { evidenceHash: hash, signedAt, signatureVersion: 2 as const };
 }
 
 export async function exceptionsList(p: any) {
@@ -635,13 +655,14 @@ export async function runExpireExceptions(now = Date.now()): Promise<number> {
 }
 
 /** Recomputes the evidence hash from stored records; any edit after sign-off shows up as a mismatch. */
-export async function verifyReview(p: any) {
+export async function verifyReview(p: any, accountId: string) {
   const review = await loadReview(p.id);
   if (review.status !== 'signed' || !review.signedBy || !review.signedAt)
     throw new BadRequest('Only signed reviews can be verified');
   const items = await getItems(review.id);
   const base = await getSnapshot(review.baseSeq, false);
   const compare = review.compareSeq ? await getSnapshot(review.compareSeq, false) : null;
+  const version = review.signatureVersion >= 2 ? (2 as const) : (1 as const);
   const hash = evidenceHash(
     evidenceInput(
       review,
@@ -650,9 +671,106 @@ export async function verifyReview(p: any) {
       compare ? { seq: compare.seq, contentHash: compare.contentHash } : null,
       review.signedBy,
       review.signedAt,
+      version === 2
+        ? {
+            signatureVersion: 2,
+            coverageHash: review.coverageHash,
+            limitationsVersion: LIMITATIONS_VERSION,
+            prevReviewHash: null,
+            signerTz: review.signerTz,
+          }
+        : { signatureVersion: 1 },
     ),
   );
-  return { stored: review.evidenceHash, computed: hash, valid: hash === review.evidenceHash };
+  const ok = hash === review.evidenceHash;
+  await audit(accountId, 'review.verified', review.id, {
+    mode: 'quick',
+    result: ok ? 'ok' : 'mismatch',
+  });
+  return {
+    ok,
+    valid: ok,
+    stored: review.evidenceHash,
+    computed: hash,
+    evidenceHash: review.evidenceHash,
+    recomputed: hash,
+    signatureVersion: version,
+  };
+}
+
+export async function startSnapshotVerify(p: any, accountId: string) {
+  const review = await loadReview(p.reviewId ?? p.id);
+  if (review.status !== 'signed') throw new BadRequest('Only signed reviews can be verified');
+  const base = await getSnapshot(review.baseSeq, false);
+  // Expected = content hash stored on the snapshot at sign time (also embedded in evidence).
+  const expected = base?.contentHash ?? null;
+  const jobId = await insertVerifyJob(review.id, review.baseSeq, expected);
+  await push({ step: 'VERIFY_SNAPSHOT', jobId });
+  await audit(accountId, 'review.verify_started', review.id, { jobId, seq: review.baseSeq });
+  return { jobId, expectedHash: expected, seq: review.baseSeq };
+}
+
+export async function verifyJobStatus(p: any) {
+  const id = v.id(p.jobId, 'job', /^[0-9a-f-]{36}$/);
+  const job = await getVerifyJob(id);
+  if (!job) throw new BadRequest('Verify job not found');
+  return job;
+}
+
+/** Queue consumer: recompute snapshot content hash and compare to the signed value. */
+export async function runVerifySnapshotJob(jobId: string): Promise<void> {
+  const job = await getVerifyJob(jobId);
+  if (!job) return;
+  if (job.status === 'ok' || job.status === 'mismatch' || job.status === 'purged') return;
+  await patchVerifyJob(jobId, { status: 'running', error: null });
+
+  const snap = await getSnapshot(job.seq, false);
+  const facts = await loadFacts(job.seq);
+  if (!facts.length && !snap?.contentHash) {
+    await patchVerifyJob(jobId, {
+      status: 'purged',
+      finishedAt: Date.now(),
+      error: 'Snapshot data was deleted by retention; only the signature can be checked.',
+    });
+    await audit('system', 'review.verified', job.reviewId, { mode: 'deep', result: 'purged' });
+    return;
+  }
+
+  // Stream in pages (same ORDER BY kind,fkey as contentHash sort) with an 800s budget.
+  const deadline = Date.now() + 800_000;
+  let page = await streamContentHashPage(job.seq, null, null);
+  while (!page.done) {
+    if (Date.now() > deadline) {
+      await patchVerifyJob(jobId, {
+        status: 'pending',
+        cursorKind: page.cursorKind,
+        cursorFkey: page.cursorFkey,
+        error: 'Budget exceeded; queued for continuation',
+      });
+      await push({ step: 'VERIFY_SNAPSHOT', jobId }, 0);
+      return;
+    }
+    page = await streamContentHashPage(
+      job.seq,
+      page.cursorKind,
+      page.cursorFkey,
+      page.hash,
+      page.started,
+    );
+  }
+  const actualHash = page.started ? page.hash.digest('hex') : contentHash([]);
+  const expected = job.expectedHash ?? snap?.contentHash ?? null;
+  const result: 'ok' | 'mismatch' = expected != null && actualHash === expected ? 'ok' : 'mismatch';
+  await patchVerifyJob(jobId, {
+    status: result,
+    actualHash,
+    finishedAt: Date.now(),
+    cursorKind: null,
+    cursorFkey: null,
+    error: null,
+  });
+  await audit('system', 'review.verified', job.reviewId, { mode: 'deep', result });
+  console.log('[verify] snapshot', { seq: job.seq, result, hash: actualHash.slice(0, 12) });
 }
 
 export async function removeReview(p: any, accountId: string) {
