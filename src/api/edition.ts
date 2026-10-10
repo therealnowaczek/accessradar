@@ -1,3 +1,4 @@
+import { bumpGate } from '../collector/gate';
 import { audit } from '../db/audit';
 import { BadRequest } from './service';
 import { kvGet, kvSet } from '../db/settings';
@@ -40,7 +41,10 @@ export async function decideEdition(
 export async function decideForInvocation(license: EditionLicense | null | undefined) {
   const next = pickLicense(license);
   const prev = await kvGet<EditionLicense | null>(LICENSE_KEY);
-  if (JSON.stringify(prev) !== JSON.stringify(next)) await kvSet(LICENSE_KEY, next);
+  if (JSON.stringify(prev) !== JSON.stringify(next)) {
+    await kvSet(LICENSE_KEY, next);
+    await bumpGate().catch(() => undefined);
+  }
   return decideEdition(license);
 }
 
@@ -61,6 +65,7 @@ export async function setEditionOverride(
   }
   const before = normalizeEdition(await kvGet<string>(OVERRIDE_KEY));
   await kvSet(OVERRIDE_KEY, next);
+  await bumpGate().catch(() => undefined);
   await audit(actorId, 'edition.override', 'edition', { before, after: next });
   return decideEdition(license);
 }

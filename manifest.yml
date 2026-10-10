@@ -56,15 +56,16 @@ modules:
       handler: index.resolver
     - key: ar-tick
       handler: index.tick
-      timeoutSeconds: 120
+      timeoutSeconds: 30
     - key: ar-collector
       handler: index.collector
       timeoutSeconds: 900
     - key: ar-privacy
       handler: index.privacy
-      timeoutSeconds: 300
+      timeoutSeconds: 60
     - key: ar-lifecycle
       handler: index.lifecycle
+
 resources:
   - key: icons
     path: resources/icons
