@@ -162,9 +162,7 @@ export function contentHashUpdate(
 }
 
 export function coverageHash(coverage: unknown[]): string {
-  const sorted = [...coverage].sort((a, b) =>
-    canonicalJson(a).localeCompare(canonicalJson(b)),
-  );
+  const sorted = [...coverage].sort((a, b) => canonicalJson(a).localeCompare(canonicalJson(b)));
   return sha256(canonicalJson(sorted));
 }
 

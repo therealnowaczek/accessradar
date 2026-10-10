@@ -1,11 +1,6 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import {
-  contentHash,
-  contentHashUpdate,
-  coverageHash,
-  type StoredFact,
-} from '../src/engine/facts';
+import { contentHash, contentHashUpdate, coverageHash, type StoredFact } from '../src/engine/facts';
 
 describe('contentHash stream', () => {
   const facts: Array<Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>> = [

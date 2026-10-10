@@ -263,10 +263,7 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       KEY ix_exc_exp (status, expires_at)
     )`,
   ],
-  [
-    'v027_review_sig',
-    `ALTER TABLE review ADD COLUMN signature_version INT NOT NULL DEFAULT 1`,
-  ],
+  ['v027_review_sig', `ALTER TABLE review ADD COLUMN signature_version INT NOT NULL DEFAULT 1`],
   ['v028_review_cov', `ALTER TABLE review ADD COLUMN coverage_hash CHAR(64) NULL`],
   [
     'v029_verify_job',
