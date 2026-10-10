@@ -5,3 +5,4 @@ export {
   privacyHandler as privacy,
   lifecycleHandler as lifecycle,
 } from './handlers';
+export { rovoHandler as rovo } from './rovo/handler';
