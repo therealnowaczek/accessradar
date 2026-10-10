@@ -301,6 +301,7 @@ export type Edition = 'standard' | 'advanced';
 export type EditionFeatures = {
   customSchedules: boolean;
   unlimitedHistory: boolean;
+  remediationVerification: boolean;
   delegatedReviews: boolean;
   reviewCampaigns: boolean;
   changeAlerts: boolean;
@@ -315,6 +316,7 @@ export type EditionView = {
   override: Edition | null;
   features: EditionFeatures;
   envOverride: boolean;
+  comingSoon?: Array<keyof EditionFeatures>;
 };
 
 export type SettingsView = {

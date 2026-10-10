@@ -30,7 +30,9 @@ import { getVerifyJob, insertVerifyJob, patchVerifyJob, streamContentHashPage } 
 import { push } from '../lib/queue';
 import { getSettings, kvGet, saveSettings } from '../db/settings';
 import {
+  comingSoonFeatures,
   effectiveSchedule,
+  featureFlags,
   REQUIRES_ADVANCED,
   STANDARD_RETENTION_DAYS,
   type FeatureFlags,
@@ -813,6 +815,7 @@ export function editionView(e: EditionDecision) {
     override: e.override,
     features: e.features,
     envOverride: e.source === 'env',
+    comingSoon: comingSoonFeatures(featureFlags('advanced')),
   };
 }
 

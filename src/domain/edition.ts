@@ -21,6 +21,8 @@ export interface FeatureFlags {
   customSchedules: boolean;
   /** History beyond STANDARD_RETENTION_DAYS. */
   unlimitedHistory: boolean;
+  /** Advanced: verify that Revoke decisions disappear in a later snapshot. */
+  remediationVerification: boolean;
   /** Coming soon: reviews delegated to project owners, with reminders. */
   delegatedReviews: boolean;
   /** Coming soon: recurring review campaigns. */
@@ -31,6 +33,23 @@ export interface FeatureFlags {
   evidencePack: boolean;
   /** Coming soon: Rovo agent. */
   rovo: boolean;
+}
+
+/** Feature keys released (no longer “coming soon” in Settings promo). */
+export const RELEASED_FEATURES = [
+  'customSchedules',
+  'unlimitedHistory',
+  'remediationVerification',
+] as const satisfies ReadonlyArray<keyof FeatureFlags>;
+
+export type ReleasedFeature = (typeof RELEASED_FEATURES)[number];
+
+/** Advanced flags not yet shipped; Settings promo lists these as coming soon. */
+export function comingSoonFeatures(flags: FeatureFlags): Array<keyof FeatureFlags> {
+  const released = new Set<string>(RELEASED_FEATURES);
+  return (Object.keys(flags) as Array<keyof FeatureFlags>).filter(
+    (k) => !released.has(k) && flags[k],
+  );
 }
 
 export const REQUIRES_ADVANCED = 'This requires the Advanced edition of AccessRadar.';
@@ -74,6 +93,7 @@ export function featureFlags(edition: Edition): FeatureFlags {
   return {
     customSchedules: advanced,
     unlimitedHistory: advanced,
+    remediationVerification: advanced,
     delegatedReviews: advanced,
     reviewCampaigns: advanced,
     changeAlerts: advanced,

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { effectiveSchedule, featureFlags, resolveEdition } from './edition';
+import {
+  comingSoonFeatures,
+  effectiveSchedule,
+  featureFlags,
+  RELEASED_FEATURES,
+  resolveEdition,
+} from './edition';
 import { isLicensed } from './license';
 
 describe('resolveEdition', () => {
@@ -41,10 +47,11 @@ describe('resolveEdition', () => {
 });
 
 describe('featureFlags', () => {
-  it('keeps schedules, history, delegation, campaigns, alerts, evidence pack and Rovo on Advanced only', () => {
+  it('keeps schedules, history, remediation, delegation, campaigns, alerts, evidence pack and Rovo on Advanced only', () => {
     expect(featureFlags('standard')).toMatchObject({
       customSchedules: false,
       unlimitedHistory: false,
+      remediationVerification: false,
       delegatedReviews: false,
       reviewCampaigns: false,
       changeAlerts: false,
@@ -52,6 +59,17 @@ describe('featureFlags', () => {
       rovo: false,
     });
     expect(Object.values(featureFlags('advanced')).every(Boolean)).toBe(true);
+  });
+  it('lists only unreleased Advanced features as coming soon', () => {
+    expect(comingSoonFeatures(featureFlags('advanced'))).toEqual([
+      'delegatedReviews',
+      'reviewCampaigns',
+      'changeAlerts',
+      'evidencePack',
+      'rovo',
+    ]);
+    expect(RELEASED_FEATURES).toContain('remediationVerification');
+    expect(comingSoonFeatures(featureFlags('standard'))).toEqual([]);
   });
 });
 

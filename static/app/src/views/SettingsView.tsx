@@ -651,27 +651,27 @@ export function SettingsView() {
 const ADVANCED_FEATURES: Array<{
   key: keyof EditionView['features'];
   label: string;
-  soon: boolean;
 }> = [
-  { key: 'customSchedules', label: 'Daily and custom snapshot schedules', soon: false },
-  { key: 'unlimitedHistory', label: 'Unlimited history (Standard keeps 90 days)', soon: false },
+  { key: 'customSchedules', label: 'Daily and custom snapshot schedules' },
+  { key: 'unlimitedHistory', label: 'Unlimited history (Standard keeps 90 days)' },
+  {
+    key: 'remediationVerification',
+    label: 'Remediation verification (confirm Revokes in the next snapshot)',
+  },
   {
     key: 'delegatedReviews',
     label: 'Reviews delegated to project owners, with reminders',
-    soon: true,
   },
-  { key: 'reviewCampaigns', label: 'Recurring review campaigns', soon: true },
+  { key: 'reviewCampaigns', label: 'Recurring review campaigns' },
   {
     key: 'changeAlerts',
     label: 'Change alerts: new admin, public grant, inactive user with access',
-    soon: true,
   },
   {
     key: 'evidencePack',
     label: 'Audit evidence pack PDF (methodology and decision trail)',
-    soon: true,
   },
-  { key: 'rovo', label: 'Rovo agent', soon: true },
+  { key: 'rovo', label: 'Rovo agent' },
 ];
 
 const SOURCE_TEXT: Record<EditionView['source'], string> = {
@@ -728,18 +728,21 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
           [
             'Advanced',
             <ul key="a" className="plain-list">
-              {ADVANCED_FEATURES.map((f) => (
-                <li key={f.key}>
-                  {f.label}{' '}
-                  {f.soon ? (
-                    <Pill tone="info">Coming soon</Pill>
-                  ) : edition.features[f.key] ? (
-                    <Pill tone="success">Included</Pill>
-                  ) : (
-                    <Pill tone="discovery">Advanced</Pill>
-                  )}
-                </li>
-              ))}
+              {ADVANCED_FEATURES.map((f) => {
+                const soon = (edition.comingSoon ?? []).includes(f.key);
+                return (
+                  <li key={f.key}>
+                    {f.label}{' '}
+                    {soon ? (
+                      <Pill tone="info">Coming soon</Pill>
+                    ) : edition.features[f.key] ? (
+                      <Pill tone="success">Included</Pill>
+                    ) : (
+                      <Pill tone="discovery">Advanced</Pill>
+                    )}
+                  </li>
+                );
+              })}
             </ul>,
           ],
         ]}
