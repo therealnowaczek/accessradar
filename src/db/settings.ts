@@ -1,3 +1,4 @@
+import { DEFAULT_ALERT_RULES, sanitizeAlertRules, type AlertRulesConfig } from '../engine/alerts';
 import { DEFAULT_KEY_PERMISSIONS } from '../engine/resolve';
 import { exec, q } from './sql';
 
@@ -23,6 +24,8 @@ export interface Settings {
   showAppAccounts: boolean;
   /** When true, Keep decisions also require a ≥10 character note. */
   requireKeepNote: boolean;
+  /** Advanced change-alert rules (ignored on Standard). */
+  alerts: AlertRulesConfig;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -38,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
   hourlyPointBudget: 20000,
   showAppAccounts: false,
   requireKeepNote: false,
+  alerts: { ...DEFAULT_ALERT_RULES },
 };
 
 const PERMISSION_KEY = /^[A-Z][A-Z0-9_]{1,63}$/;
@@ -84,6 +88,7 @@ export function sanitizeSettings(input: unknown, base: Settings = DEFAULT_SETTIN
       typeof i.showAppAccounts === 'boolean' ? i.showAppAccounts : base.showAppAccounts,
     requireKeepNote:
       typeof i.requireKeepNote === 'boolean' ? i.requireKeepNote : base.requireKeepNote,
+    alerts: sanitizeAlertRules(i.alerts !== undefined ? i.alerts : base.alerts),
   };
 }
 

@@ -53,6 +53,9 @@ export type Status = {
   lastAttempt: Snapshot | null;
   /** Undismissed admin notices (reminders + alerts). */
   noticeCount?: number;
+  /** Undismissed change alerts (Advanced). */
+  alertCount?: number;
+  edition?: EditionView;
 };
 
 export type ProjectRef = {
@@ -296,6 +299,13 @@ export type Settings = {
   hourlyPointBudget: number;
   showAppAccounts: boolean;
   requireKeepNote: boolean;
+  alerts?: {
+    'new-admin': boolean;
+    'new-anonymous-grant': boolean;
+    'inactive-with-access': boolean;
+    'new-project-admin': boolean;
+    'new-app-account-admin': boolean;
+  };
   saved?: boolean;
 };
 

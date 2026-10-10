@@ -108,6 +108,8 @@ def('startSnapshotVerify', (p, c) => svc.startSnapshotVerify(p, c.accountId));
 def('getVerifyJob', (p) => svc.verifyJobStatus(p));
 def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
 def('listExceptions', (p) => svc.exceptionsList(p));
+def('listAlerts', (p, c) => svc.alertsList(p, c.edition));
+def('dismissAlerts', (p, c) => svc.dismissAlerts(p, c.accountId, c.edition));
 def('listRemediation', (p, c) => svc.remediationList(p, c.edition));
 def('acceptRemediationRisk', (p, c) => svc.acceptRemediationRisk(p, c.accountId, c.edition));
 def('getEvidencePack', (p, c) => svc.getEvidencePack(p, c.edition));
@@ -239,6 +241,11 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
     case 'REMEDIATION': {
       await ensureMigrated();
       if (Number.isInteger(body.seq)) await svc.runRemediationCheck(Number(body.seq));
+      return;
+    }
+    case 'ALERTS': {
+      await ensureMigrated();
+      if (Number.isInteger(body.seq)) await svc.runAlertsCheck(Number(body.seq));
       return;
     }
     case 'SELFTEST':

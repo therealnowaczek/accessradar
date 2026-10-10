@@ -13,7 +13,8 @@ export type CollectStep =
   | 'SPIKE'
   | 'SELFTEST'
   | 'VERIFY_SNAPSHOT'
-  | 'REMEDIATION';
+  | 'REMEDIATION'
+  | 'ALERTS';
 
 export interface CollectEvent extends Record<string, unknown> {
   step: CollectStep;

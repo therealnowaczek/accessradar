@@ -124,6 +124,17 @@ export function OverviewView() {
     <PageFrame header={header}>
       <div className="page-stack">
         {active ? <SnapshotProgress active={active} /> : null}
+        {(status.data?.alertCount ?? 0) > 0 ? (
+          <SectionMessage
+            appearance="warning"
+            title={`${status.data!.alertCount} unread change alert${status.data!.alertCount === 1 ? '' : 's'}`}
+          >
+            <p>
+              New admins, anonymous grants, or inactive accounts with access were detected since a
+              recent snapshot. <LinkButton onClick={() => go('alerts')}>Open alerts</LinkButton>
+            </p>
+          </SectionMessage>
+        ) : null}
         {status.data?.lastAttempt?.status === 'failed' && !active ? (
           <SectionMessage
             appearance="error"

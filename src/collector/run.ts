@@ -160,6 +160,7 @@ export async function runCollectStep(
       await audit('system', 'snapshot.completed', `#${seq}`, { status: r.status, ...r.merge });
       await refreshGate().catch(() => undefined);
       await push({ step: 'REMEDIATION', seq }).catch(() => undefined);
+      await push({ step: 'ALERTS', seq }).catch(() => undefined);
       const after = await getSnapshot(seq, false);
       console.log('[collector] snapshot finished', {
         seq,
