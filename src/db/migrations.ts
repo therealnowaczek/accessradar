@@ -299,7 +299,62 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       KEY ix_rem_status (status)
     )`,
   ],
-  // v031–v035 are reserved for R2 campaign tables (R2-03); notice lands first (R2-01).
+  [
+    'v031_campaign',
+    `CREATE TABLE IF NOT EXISTS campaign (
+      id VARCHAR(36) NOT NULL PRIMARY KEY,
+      name VARCHAR(200) NOT NULL,
+      scope_json TEXT NOT NULL,
+      frequency VARCHAR(16) NOT NULL,
+      start_at BIGINT NOT NULL,
+      window_days INT NOT NULL,
+      delegate_rule VARCHAR(16) NOT NULL,
+      delegate_map TEXT NULL,
+      reminder_days VARCHAR(64) NOT NULL,
+      key_perms TEXT NOT NULL,
+      status VARCHAR(16) NOT NULL,
+      next_run_at BIGINT NULL,
+      created_by VARCHAR(128) NOT NULL,
+      created_at BIGINT NOT NULL,
+      updated_at BIGINT NOT NULL,
+      KEY ix_campaign_next (status, next_run_at)
+    )`,
+  ],
+  [
+    'v032_campaign_run',
+    `CREATE TABLE IF NOT EXISTS campaign_run (
+      id VARCHAR(36) NOT NULL PRIMARY KEY,
+      campaign_id VARCHAR(36) NOT NULL,
+      seq INT NULL,
+      status VARCHAR(16) NOT NULL,
+      started_at BIGINT NOT NULL,
+      due_at BIGINT NOT NULL,
+      finished_at BIGINT NULL,
+      review_count INT NOT NULL DEFAULT 0,
+      error VARCHAR(500) NULL,
+      KEY ix_run_campaign (campaign_id, started_at)
+    )`,
+  ],
+  ['v033_review_campaign', `ALTER TABLE review ADD COLUMN campaign_run_id VARCHAR(36) NULL`],
+  ['v034_review_campaign_ix', `CREATE INDEX ix_review_run ON review (campaign_run_id)`],
+  [
+    'v035_review_assignment',
+    `CREATE TABLE IF NOT EXISTS review_assignment (
+      review_id VARCHAR(36) NOT NULL,
+      project_id VARCHAR(32) NOT NULL,
+      assignee VARCHAR(128) NULL,
+      status VARCHAR(16) NOT NULL,
+      due_at BIGINT NOT NULL,
+      submitted_at BIGINT NULL,
+      submitted_by VARCHAR(128) NULL,
+      last_reminder_at BIGINT NULL,
+      reminder_count INT NOT NULL DEFAULT 0,
+      PRIMARY KEY (review_id),
+      KEY ix_assign_project (project_id, status),
+      KEY ix_assign_assignee (assignee, status)
+    )`,
+  ],
+  // Notice table shipped in R2-01; kept after campaigns so new installs apply v031–v036 in order.
   [
     'v036_notice',
     `CREATE TABLE IF NOT EXISTS notice (
