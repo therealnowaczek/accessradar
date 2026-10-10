@@ -20,7 +20,7 @@ import {
   type WithSnapshot,
 } from '../api';
 import {
-  CoverageList,
+  CoverageLimitations,
   ExportMenu,
   Hash,
   SearchField,
@@ -551,13 +551,13 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             onCsv={() =>
               void exporter('Review CSV', () => {
                 downloadCsv(reviewFileName(d!, 'csv'), reviewCsv(d!, exportContext(siteUrl)));
-                logExport('review-csv', id);
+                logExport('review-csv', id, d!.limitations?.version);
               })
             }
             onPdf={() =>
               void exporter('Evidence pack PDF', () => {
                 downloadPdf(reviewFileName(d!, 'pdf'), reviewPdf(d!, exportContext(siteUrl)));
-                logExport('review-pdf', id);
+                logExport('review-pdf', id, d!.limitations?.version);
               })
             }
           />
@@ -610,11 +610,8 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               />
             </div>
           </SectionMessage>
-        ) : d.base?.status === 'partial' ? (
-          <SectionMessage appearance="warning" title="The base snapshot is partial">
-            <CoverageList coverage={d.coverage} />
-          </SectionMessage>
         ) : null}
+        <CoverageLimitations coverage={d.coverage} limitations={d.limitations} />
         <div className="metric-grid">
           <Metric
             label="Items"

@@ -256,6 +256,14 @@ export type ReviewItem = {
   decidedByName: string | null;
 };
 
+export type Limitations = {
+  version: number;
+  statements: string[];
+  completeness: 'complete' | 'partial' | 'failed';
+  gapCount: number;
+  label: string;
+};
+
 export type ReviewDetail = {
   review: ReviewSummary & {
     createdByName: string | null;
@@ -265,6 +273,8 @@ export type ReviewDetail = {
   base: Snapshot | null;
   compare: Snapshot | null;
   coverage: Coverage[];
+  limitations?: Limitations;
+  completeness?: Limitations['completeness'];
   items: ReviewItem[];
 };
 

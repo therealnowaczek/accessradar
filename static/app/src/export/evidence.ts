@@ -1,6 +1,6 @@
-import type { Changes, Coverage, ReviewDetail, Snapshot } from '../api';
+import type { Changes, Coverage, Limitations, ReviewDetail, Snapshot } from '../api';
 import { formatLocalExport, formatUtc, permissionLabel, slug, timeZone } from '../format';
-import { toCsv } from './csv';
+import { csvCell, toCsv } from './csv';
 import { PdfDoc } from './pdf';
 
 export const APP_VERSION = '1.0.0';
@@ -36,6 +36,72 @@ function coverageRows(coverage: Coverage[]) {
   return coverage.map((c) => [c.status, c.area.replace(/-/g, ' '), c.target, c.reason]);
 }
 
+/** Shared preamble for CSV exports (UI/PDF/CSV use the same limitations text). */
+export function coverageLimitationsPreamble(
+  coverage: Coverage[],
+  limitations?: Limitations | null,
+): string[] {
+  const lines: string[] = [];
+  if (limitations) {
+    lines.push(`# limitations_version: ${limitations.version}`);
+    lines.push(`# completeness: ${limitations.label}`);
+    for (const s of limitations.statements) lines.push(`# limitation: ${s}`);
+  }
+  for (const c of coverage) {
+    lines.push(
+      `# coverage,${csvCell(c.status)},${csvCell(c.area)},${csvCell(c.target)},${csvCell(c.reason)}`,
+    );
+  }
+  return lines;
+}
+
+export function coverageOnlyCsv(
+  coverage: Coverage[],
+  limitations?: Limitations | null,
+  ctx: ExportContext = {},
+): string {
+  const meta = baseMeta(ctx, [
+    ['Section', 'Coverage'],
+    ...(limitations
+      ? ([
+          ['Limitations version', String(limitations.version)],
+          ['Completeness', limitations.label],
+        ] as Array<[string, string]>)
+      : []),
+  ]);
+  const rows = coverage.map((c) => ({
+    status: c.status,
+    area: c.area,
+    target: c.target,
+    reason: c.reason,
+  }));
+  return toCsv(['status', 'area', 'target', 'reason'], rows, {
+    meta,
+    preamble: limitations?.statements.map((s) => `# limitation: ${s}`) ?? [],
+  });
+}
+
+function writeLimitationsPdf(doc: PdfDoc, coverage: Coverage[], limitations?: Limitations | null) {
+  doc.heading('Coverage & limitations');
+  if (limitations) {
+    doc.paragraph(
+      `Completeness: ${limitations.label}. Limitations version ${limitations.version}.`,
+      9,
+      0.2,
+    );
+    for (const s of limitations.statements) doc.paragraph(`• ${s}`, 9, 0.15);
+  }
+  doc.table(
+    [
+      { header: 'Status', width: 1 },
+      { header: 'Area', width: 1.4 },
+      { header: 'Target', width: 1.4 },
+      { header: 'Detail', width: 4 },
+    ],
+    coverageRows(coverage),
+  );
+}
+
 // ---------- snapshot: access matrix ----------
 export const MATRIX_COLUMNS = [
   'snapshot_id',
@@ -65,6 +131,8 @@ export function matrixCsv(
     count: number;
     partial?: boolean;
   }> = [],
+  coverage: Coverage[] = [],
+  limitations?: Limitations | null,
 ) {
   const meta = baseMeta(ctx, [
     ['Snapshot', `#${snapshot.seq} (${snapshot.status})`],
@@ -77,7 +145,10 @@ export function matrixCsv(
     snapshot_id: snapshot.seq,
     captured_at_utc: formatUtc(snapshot.startedAt),
   }));
-  let out = toCsv(MATRIX_COLUMNS, enriched, { meta });
+  let out = toCsv(MATRIX_COLUMNS, enriched, {
+    meta,
+    preamble: coverageLimitationsPreamble(coverage, limitations),
+  });
   if (risks.length) {
     const riskRows = risks.map((r) => ({
       risk_id: r.id,
@@ -101,6 +172,7 @@ export function matrixPdf(
   coverage: Coverage[],
   rows: Array<Record<string, string>>,
   ctx: ExportContext = {},
+  limitations?: Limitations | null,
 ) {
   const tz = ctx.tz ?? timeZone();
   const doc = new PdfDoc(`AccessRadar access matrix - snapshot #${snapshot.seq}`);
@@ -116,16 +188,7 @@ export function matrixPdf(
   );
   doc.heading('Methodology');
   METHODOLOGY.forEach((p) => doc.paragraph(p));
-  doc.heading('Completeness');
-  doc.table(
-    [
-      { header: 'Status', width: 1 },
-      { header: 'Area', width: 1.4 },
-      { header: 'Target', width: 1.4 },
-      { header: 'Detail', width: 4 },
-    ],
-    coverageRows(coverage),
-  );
+  writeLimitationsPdf(doc, coverage, limitations);
   doc.heading('Access');
   doc.table(
     [
@@ -371,6 +434,7 @@ function reviewMeta(d: ReviewDetail, ctx: ExportContext): Array<[string, string]
 export function reviewCsv(d: ReviewDetail, ctx: ExportContext = {}) {
   return toCsv(REVIEW_COLUMNS, reviewRows(d, d.review.signerTz ?? ctx.tz ?? timeZone()), {
     meta: reviewMeta(d, ctx),
+    preamble: coverageLimitationsPreamble(d.coverage, d.limitations),
   });
 }
 
@@ -393,16 +457,7 @@ export function reviewPdf(d: ReviewDetail, ctx: ExportContext = {}) {
     9,
     0.3,
   );
-  doc.heading('Snapshot completeness');
-  doc.table(
-    [
-      { header: 'Status', width: 1 },
-      { header: 'Area', width: 1.4 },
-      { header: 'Target', width: 1.4 },
-      { header: 'Detail', width: 4 },
-    ],
-    coverageRows(d.coverage),
-  );
+  writeLimitationsPdf(doc, d.coverage, d.limitations);
   doc.heading('Summary');
   doc.keyValues([
     ['Items reviewed', String(items.length)],

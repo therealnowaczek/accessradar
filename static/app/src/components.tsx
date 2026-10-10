@@ -9,9 +9,10 @@ import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
 import QuestionCircleIcon from '@atlaskit/icon/core/question-circle';
 import SearchIcon from '@atlaskit/icon/core/search';
 import Lozenge from '@atlaskit/lozenge';
+import SectionMessage from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
 import Textfield from '@atlaskit/textfield';
-import type { Coverage, Reason, Snapshot, SubjectView } from './api';
+import type { Coverage, Limitations, Reason, Snapshot, SubjectView } from './api';
 import { formatLocal, permissionLabel } from './format';
 import { LinkButton, Pill, SectionHeader } from './ui';
 
@@ -274,6 +275,37 @@ export function CoverageList({ coverage }: { coverage: Coverage[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Coverage gaps plus fixed method limitations (single source from the resolver). */
+export function CoverageLimitations({
+  coverage,
+  limitations,
+}: {
+  coverage: Coverage[];
+  limitations?: Limitations | null;
+}) {
+  if (!limitations && !coverage.length) return null;
+  const partial = limitations?.completeness === 'partial' || limitations?.completeness === 'failed';
+  return (
+    <SectionMessage appearance={partial ? 'warning' : 'information'} title="Coverage & limitations">
+      <div className="section-stack">
+        {limitations ? (
+          <p>
+            Completeness: <strong>{limitations.label}</strong> (limitations v{limitations.version})
+          </p>
+        ) : null}
+        <CoverageList coverage={coverage} />
+        {limitations?.statements?.length ? (
+          <ul className="plain-list">
+            {limitations.statements.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </SectionMessage>
   );
 }
 
