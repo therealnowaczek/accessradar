@@ -36,11 +36,22 @@ Hard ops rules for this repo: deploy / test only on **development** → `marginr
 | Scope | In current manifest? | `forge lint` 2026-10-10 | Decision |
 |---|---|---|---|
 | Existing granular `read:*:jira` + `report:personal-data` | yes | clean | unchanged for R1/R2 |
-| `jira:projectSettingsPage` / `rovo:agent` / `action` | modules only | clean; **no new scopes**; deploy development **eligible for Runs on Atlassian** | minor expected; ask before merging R2-06 / R2-08 |
+| `jira:projectSettingsPage` / `rovo:agent` / `action` | modules only | clean; **no new scopes**; deploy development **eligible for Runs on Atlassian** | minor expected (no re-consent) |
 | `write:jira-work`, `read:jira-work`, `write:issue:jira`, `write:comment:jira`, `read:issue:jira` | no | names accepted; **MAJOR_VERSION_RULE** (scope modification) | deferred §8a |
 | `read:filter:jira`, `read:dashboard:jira` | no | names accepted; major | deferred §8a / R3 |
 | `storage:app` | no | names accepted; major | deferred §8a |
 | `read:audit-log:jira` | no | names accepted; major | deferred §8a |
+
+## Rovo + Runs on Atlassian (resolved 2026-10-10)
+
+`rovo:agent` and `action` modules **keep Runs on Atlassian eligibility** when the app has **zero egress**: no `permissions.external`, no remotes, no Connect. Verified on development (spike modules deploy reported eligible; see `docs/spike-results/platform-verification-2026-10-10.md` §2 / Q9).
+
+Rules for R2-08:
+
+- Add only `rovo:agent` + `action` + `function` (+ prompt resource). Do **not** add `permissions.external`, `remotes`, or Connect.
+- Do **not** set `timeoutSeconds` on `ar-rovo` (fixed 55 s; lint rejects it).
+- Actions are **GET / read-only**; reuse existing resolvers and `assertJiraAdmin`.
+- Version bump for modules-only change is expected **minor** (confirm with `forge lint` after the manifest edit).
 
 ## Logging
 

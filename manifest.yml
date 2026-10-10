@@ -51,6 +51,109 @@ modules:
   sql:
     - key: main
       engine: mysql
+  # Read-only Rovo agent (Advanced). No egress / remotes / Connect — keeps Runs on Atlassian.
+  rovo:agent:
+    - key: accessradar-agent
+      name: AccessRadar
+      description: Answers who has access to what in Jira, why, and what changed — from AccessRadar snapshots. Read-only.
+      icon: resource:icons;accessradar.svg
+      prompt: resource:rovo-prompt;agent.md
+      conversationStarters:
+        - Who can administer project PAY?
+        - What changed since the last snapshot?
+        - Which access reviews are overdue?
+      actions:
+        - ar-who-can-access
+        - ar-why
+        - ar-changes-since
+        - ar-review-status
+        - ar-person-access
+  action:
+    - key: ar-who-can-access
+      name: Who can access a project
+      function: ar-rovo
+      actionVerb: GET
+      description: List people and groups with permissions on a project, from the latest AccessRadar snapshot.
+      inputs:
+        projectKey:
+          title: Project key
+          type: string
+          required: true
+          description: Jira project key (e.g. PAY)
+        permission:
+          title: Permission
+          type: string
+          required: false
+          description: Optional Jira permission key (e.g. ADMINISTER_PROJECTS)
+    - key: ar-why
+      name: Why someone has access
+      function: ar-rovo
+      actionVerb: GET
+      description: Explain the grant path for a person or group on a project permission.
+      inputs:
+        projectKey:
+          title: Project key
+          type: string
+          required: true
+          description: Jira project key
+        accountId:
+          title: Account ID
+          type: string
+          required: false
+          description: Atlassian accountId when known
+        name:
+          title: Display name
+          type: string
+          required: false
+          description: Display name if accountId is unknown
+        permission:
+          title: Permission
+          type: string
+          required: false
+          description: Optional permission to focus on
+    - key: ar-changes-since
+      name: Changes since a snapshot
+      function: ar-rovo
+      actionVerb: GET
+      description: List access granted and revoked between two AccessRadar snapshots.
+      inputs:
+        sinceSeq:
+          title: Since snapshot
+          type: string
+          required: false
+          description: Earlier snapshot sequence number
+        sinceDate:
+          title: Since date
+          type: string
+          required: false
+          description: ISO date; uses the latest snapshot at or before that time
+    - key: ar-review-status
+      name: Access review status
+      function: ar-rovo
+      actionVerb: GET
+      description: List open, overdue and signed access reviews from AccessRadar.
+      inputs:
+        campaign:
+          title: Campaign filter
+          type: string
+          required: false
+          description: Optional campaign name filter
+    - key: ar-person-access
+      name: Person access across projects
+      function: ar-rovo
+      actionVerb: GET
+      description: List projects and key permissions for one person from the latest snapshot.
+      inputs:
+        accountId:
+          title: Account ID
+          type: string
+          required: false
+          description: Atlassian accountId when known
+        name:
+          title: Display name
+          type: string
+          required: false
+          description: Display name if accountId is unknown
   function:
     - key: ar-resolver
       handler: index.resolver
@@ -65,12 +168,16 @@ modules:
       timeoutSeconds: 60
     - key: ar-lifecycle
       handler: index.lifecycle
+    - key: ar-rovo
+      handler: index.rovo
 
 resources:
   - key: icons
     path: resources/icons
   - key: custom-ui
     path: static/app/dist
+  - key: rovo-prompt
+    path: resources/rovo
 permissions:
   content:
     styles:
