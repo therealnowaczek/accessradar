@@ -1,9 +1,12 @@
 import { migrationRunner } from '@forge/sql';
+import { forgeMigrationRunner, runMigrationsWithRetry } from './migrate';
 
 /**
  * Forge SQL schema. Rules: one DDL per statement, no trailing semicolon,
  * no foreign keys, idempotent (IF NOT EXISTS). Facts use SCD2 validity intervals
  * (first_seen/last_seen = snapshot seq). Upserts via INSERT ... ON DUPLICATE KEY UPDATE.
+ * ALTER ADD COLUMN is not IF NOT EXISTS on TiDB — concurrent first calls are handled by
+ * `runMigrationsWithRetry` (treat duplicate-column as already applied + checkpoint).
  */
 export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
   [
@@ -391,14 +394,16 @@ export function buildRunner() {
   return r;
 }
 
-/** Runs pending migrations; call only from the queue consumer (900 s budget, DDL rate limits). */
+/** Runs pending migrations; safe under concurrent first calls (duplicate DDL → checkpoint + continue). */
 export async function runMigrations(): Promise<string[]> {
-  return buildRunner().run();
+  buildRunner();
+  return runMigrationsWithRetry(forgeMigrationRunner());
 }
 
 let migrated: Promise<void> | null = null;
 
-/** Applies pending migrations once per warm container (deploys do not fire lifecycle events). */
+/** Applies pending migrations once per warm container (deploys do not fire lifecycle events).
+ * Concurrent callers in the same isolate share one promise so resolvers wait instead of racing. */
 export function ensureMigrated(): Promise<void> {
   if (!migrated)
     migrated = runMigrations().then(
@@ -411,4 +416,9 @@ export function ensureMigrated(): Promise<void> {
       },
     );
   return migrated;
+}
+
+/** Test helper: clear the in-process migration gate. */
+export function resetMigratedGate() {
+  migrated = null;
 }

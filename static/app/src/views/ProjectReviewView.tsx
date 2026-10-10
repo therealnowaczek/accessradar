@@ -138,7 +138,7 @@ export function ProjectReviewView() {
 
         {d.limitation || !d.assignment || !d.review ? (
           <Empty
-            title="No access review is assigned to this project"
+            title="No assigned review"
             description={
               d.limitation ??
               'When a Jira admin runs a campaign, the assigned project admin reviews access here. Reminders stay in the app — AccessRadar does not send email.'

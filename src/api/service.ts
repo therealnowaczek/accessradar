@@ -1476,7 +1476,7 @@ export async function projectMyAssignment(
       items: [],
       notices: notices.items,
       limitation:
-        'No access review is assigned to you for this project. Admins assign owners when they run a campaign.',
+        'When a Jira admin runs a campaign, your project is assigned here. Reminders stay in the app — AccessRadar does not send email.',
     };
   }
   const assignment = await findOpenAssignmentForProject(projectId);
@@ -1487,7 +1487,8 @@ export async function projectMyAssignment(
       review: null,
       items: [],
       notices: notices.items,
-      limitation: 'No access review is assigned to this project.',
+      limitation:
+        'When a Jira admin runs a campaign, the assigned project admin reviews access here. Reminders stay in the app — AccessRadar does not send email.',
     };
   }
   if (access === 'assignee' && assignment.assignee !== accountId) {

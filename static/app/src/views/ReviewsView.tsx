@@ -545,7 +545,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
     setDrawer([
       {
         key: 'verify',
-        title: 'Verify evidence',
+        title: 'Verify signature & chain',
         description: d?.review.name,
         content: (
           <VerifyDrawer
@@ -658,7 +658,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               >
                 Download evidence pack
               </Button>
-              <Button onClick={openVerify}>Verify</Button>
+              <Button onClick={openVerify}>Verify signature & chain</Button>
             </>
           ) : (
             <>
