@@ -473,10 +473,7 @@ export function reviewPdf(d: ReviewDetail, ctx: ExportContext = {}) {
     ['Keep', String(kept.length)],
     ['Revoke (to do in Jira)', String(flagged.length)],
     ['Exception', String(exceptions.length)],
-    [
-      'Undecided',
-      String(items.length - kept.length - flagged.length - exceptions.length),
-    ],
+    ['Undecided', String(items.length - kept.length - flagged.length - exceptions.length)],
     ['New since comparison', String(items.filter((i) => i.change === 'new').length)],
     ['Removed since comparison', String(d.items.filter((i) => i.change === 'removed').length)],
   ]);

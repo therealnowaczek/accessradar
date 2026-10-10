@@ -112,7 +112,8 @@ export function validateDecisionInput(input: {
   const end = expiryEndOfDay(input.expiresAt, input.tz || 'UTC');
   const min = now + MIN_DAYS * 86400_000;
   const max = now + MAX_DAYS * 86400_000;
-  if (end <= now || end < min) throw new Error('Exception expiry must be at least 1 day in the future');
+  if (end <= now || end < min)
+    throw new Error('Exception expiry must be at least 1 day in the future');
   if (end > max) throw new Error('Exception expiry cannot be more than 366 days away');
   return { note, expiresAt: end };
 }

@@ -445,11 +445,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
     }
   };
 
-  const openDecide = (
-    idxs: number[],
-    preset: 'revoke' | 'exception' | null,
-    item?: ReviewItem,
-  ) => {
+  const openDecide = (idxs: number[], preset: 'revoke' | 'exception' | null, item?: ReviewItem) => {
     const sample = item ?? items.find((i) => idxs.includes(i.idx));
     if (!sample) return;
     const multi = idxs.length > 1;
@@ -769,7 +765,9 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                         <Lozenge appearance="removed">Revoke</Lozenge>
                       ) : i.decision === 'exception' ? (
                         <Lozenge appearance="moved">
-                          {i.expiresAt ? `Exception until ${formatLocal(i.expiresAt)}` : 'Exception'}
+                          {i.expiresAt
+                            ? `Exception until ${formatLocal(i.expiresAt)}`
+                            : 'Exception'}
                         </Lozenge>
                       ) : i.reasons.includes('Exception expired') ? (
                         <Lozenge appearance="removed">Exception expired</Lozenge>
@@ -940,7 +938,9 @@ function ItemDrawer({
                   maxLength={2000}
                   onChange={(e) => setNote(e.target.value)}
                   resize="vertical"
-                  isInvalid={needsJustification && note.trim().length > 0 && note.trim().length < 10}
+                  isInvalid={
+                    needsJustification && note.trim().length > 0 && note.trim().length < 10
+                  }
                 />
               )}
             </FormField>

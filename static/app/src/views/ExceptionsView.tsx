@@ -35,9 +35,7 @@ const STATUS_OPTS = [
 
 function expiryLozenge(status: ExceptionRow['status'], expiresAt: number) {
   if (status === 'expired' || status === 'revoked' || status === 'superseded') {
-    return (
-      <Lozenge appearance={status === 'expired' ? 'removed' : 'default'}>{status}</Lozenge>
-    );
+    return <Lozenge appearance={status === 'expired' ? 'removed' : 'default'}>{status}</Lozenge>;
   }
   const days = Math.ceil((expiresAt - Date.now()) / 86400_000);
   if (days <= 14) return <Lozenge appearance="moved">expires in {days}d</Lozenge>;
@@ -128,7 +126,11 @@ export function ExceptionsView() {
             rowsPerPage={50}
             defaultPage={1}
             emptyView={
-              <Empty title="No exceptions" description="Nothing matches this filter." action={null} />
+              <Empty
+                title="No exceptions"
+                description="Nothing matches this filter."
+                action={null}
+              />
             }
           />
         )}

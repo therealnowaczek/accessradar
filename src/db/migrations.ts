@@ -240,10 +240,7 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
       closed_at BIGINT NULL
     )`,
   ],
-  [
-    'v025_review_item_exception',
-    `ALTER TABLE review_item ADD COLUMN expires_at BIGINT NULL`,
-  ],
+  ['v025_review_item_exception', `ALTER TABLE review_item ADD COLUMN expires_at BIGINT NULL`],
   [
     'v026_access_exception',
     `CREATE TABLE IF NOT EXISTS access_exception (

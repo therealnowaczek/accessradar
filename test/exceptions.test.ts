@@ -42,9 +42,9 @@ describe('validateDecisionInput', () => {
   const now = Date.UTC(2026, 9, 10, 12);
 
   it('requires ≥10 char note for revoke and exception', () => {
-    expect(() =>
-      validateDecisionInput({ decision: 'revoke', note: 'short', now }),
-    ).toThrow(/at least 10/);
+    expect(() => validateDecisionInput({ decision: 'revoke', note: 'short', now })).toThrow(
+      /at least 10/,
+    );
     expect(() =>
       validateDecisionInput({ decision: 'exception', note: 'long enough!!', expiresAt: null, now }),
     ).toThrow(/expir/);
@@ -114,7 +114,10 @@ describe('validateDecisionInput', () => {
 describe('applyExceptions', () => {
   it('prefills active exceptions and flags expired with risk ≥ 65', () => {
     const now = Date.UTC(2026, 9, 10);
-    const items = [baseItem(), baseItem({ itemKey: 'p|2|user:u2', subjectId: 'u2', projectId: '2' })];
+    const items = [
+      baseItem(),
+      baseItem({ itemKey: 'p|2|user:u2', subjectId: 'u2', projectId: '2' }),
+    ];
     const out = applyExceptions(
       items,
       [

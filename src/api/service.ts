@@ -606,8 +606,7 @@ export async function signReview(p: any, accountId: string) {
   if (!(await markSigned(review.id, accountId, signedAt, tz, attestation, hash)))
     throw new BadRequest('This review is already signed');
   const exc = await upsertExceptionsOnSign(review.id, items, accountId, signedAt);
-  if (exc.granted)
-    await audit(accountId, 'exception.granted', review.id, { count: exc.granted });
+  if (exc.granted) await audit(accountId, 'exception.granted', review.id, { count: exc.granted });
   if (exc.superseded)
     await audit(accountId, 'exception.superseded', review.id, { count: exc.superseded });
   await audit(accountId, 'review.signed', review.id, { hash });
@@ -617,7 +616,8 @@ export async function signReview(p: any, accountId: string) {
 
 export async function exceptionsList(p: any) {
   const status =
-    typeof p.status === 'string' && ['active', 'expired', 'superseded', 'revoked', 'all'].includes(p.status)
+    typeof p.status === 'string' &&
+    ['active', 'expired', 'superseded', 'revoked', 'all'].includes(p.status)
       ? p.status
       : undefined;
   const page = Number.isInteger(Number(p.page)) ? Number(p.page) : 1;
