@@ -17,7 +17,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build:ui && npm run forge:lint",
-    "icons": "node scripts/export-icons.mjs"
+    "icons": "node scripts/export-icons.mjs",
+    "dev:ui": "vite --config dev/vite.config.ts"
   },
   "dependencies": {
     "@atlaskit/avatar": "^30.0.4",

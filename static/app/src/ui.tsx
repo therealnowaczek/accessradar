@@ -5,7 +5,7 @@ import EmptyState from '@atlaskit/empty-state';
 import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
 import Lozenge from '@atlaskit/lozenge';
-import { Inline } from '@atlaskit/primitives';
+import { Inline, Text } from '@atlaskit/primitives';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
 import Toggle from '@atlaskit/toggle';
@@ -224,7 +224,11 @@ export function Pill({
   tone?: keyof typeof PILL_APPEARANCE;
   children: ReactNode;
 }) {
-  return <Lozenge appearance={PILL_APPEARANCE[tone]}>{children}</Lozenge>;
+  return (
+    <span className="lozenge-slot">
+      <Lozenge appearance={PILL_APPEARANCE[tone]}>{children}</Lozenge>
+    </span>
+  );
 }
 
 /**
@@ -271,21 +275,23 @@ export function ToggleField({
 }) {
   const id = useId();
   return (
-    <Inline space="space.100" alignBlock="center">
-      <Toggle id={id} isChecked={isChecked} onChange={onChange} />
-      <Label htmlFor={id}>{label}</Label>
-    </Inline>
+    <div className="toggle-field">
+      <Inline space="space.100" alignBlock="center">
+        <Toggle id={id} isChecked={isChecked} onChange={onChange} />
+        <Label htmlFor={id}>{label}</Label>
+      </Inline>
+    </div>
   );
 }
 
-/** Group heading for a RadioGroup: an ADS Label the group is labelled by. */
+/** Group heading for a RadioGroup: ADS Text styled like a field label, which names the group. */
 export function RadioField({ label, children }: { label: string; children: ReactNode }) {
   const id = useId();
   return (
     <div className="field" role="group" aria-labelledby={id}>
-      <Label id={id} htmlFor="">
+      <Text id={id} as="span" size="small" weight="bold" color="color.text.subtle">
         {label}
-      </Label>
+      </Text>
       {children}
     </div>
   );

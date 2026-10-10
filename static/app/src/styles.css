@@ -848,3 +848,13 @@ code {
 .brand-hero > svg {
   flex: none;
 }
+
+/* Keep Lozenges and toggle labels at their natural width inside flex rows. */
+.lozenge-slot {
+  display: inline-flex;
+  flex: none;
+}
+.toggle-field {
+  flex: none;
+  white-space: nowrap;
+}

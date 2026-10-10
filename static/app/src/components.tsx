@@ -164,7 +164,7 @@ export function SnapshotPicker({
   onChange: (seq: number | null) => void;
   label?: string;
   allowLatest?: boolean;
-  width?: number;
+  width?: number | string;
   inputId?: string;
 }) {
   const committed = snapshots.filter((s) => s.status === 'complete' || s.status === 'partial');
@@ -181,6 +181,7 @@ export function SnapshotPicker({
         options={options}
         value={selected}
         onChange={(o) => onChange(o && o.value ? o.value : null)}
+        placeholder={allowLatest ? undefined : 'Previous snapshot'}
         spacing="compact"
         isSearchable={false}
       />

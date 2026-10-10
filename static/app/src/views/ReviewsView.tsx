@@ -311,7 +311,7 @@ function CreateReview({
                   setBase(v);
                   setCompare(null);
                 }}
-                width={360}
+                width="100%"
               />
             )}
           </FormField>
