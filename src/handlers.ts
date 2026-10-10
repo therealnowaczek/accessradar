@@ -15,6 +15,15 @@ import {
   spikeSelfTest,
 } from './spike';
 import { listProjectsAsUser } from './ui/projects';
+import {
+  clearGateMemo,
+  isMissingKvTable,
+  loadGate,
+  readGateMemo,
+  refreshGate,
+  shouldFastPath,
+  writeGateMemo,
+} from './collector/gate';
 import { runCollectStep, scheduledTick } from './collector/run';
 import { runPrivacyReport } from './privacy';
 import * as svc from './api/service';
@@ -132,13 +141,47 @@ export async function lifecycleHandler(event: LifecycleEvent) {
 
 // ---------- scheduled triggers ----------
 export async function tickHandler() {
+  const now = Date.now();
   try {
+    const memo = readGateMemo(now);
+    if (memo && shouldFastPath(memo, now)) {
+      console.log('[tick] fast', { sql: 0 });
+      return { statusCode: 204 };
+    }
+
+    let gate;
+    try {
+      gate = await loadGate();
+    } catch (e) {
+      if (isMissingKvTable(e)) {
+        clearGateMemo();
+        await push({ step: 'MIGRATE' });
+        console.log('[tick] migrate enqueued');
+        return { statusCode: 204 };
+      }
+      throw e;
+    }
+
+    if (gate && shouldFastPath(gate, now)) {
+      writeGateMemo(gate, now);
+      console.log('[tick] fast', { sql: 1 });
+      return { statusCode: 204 };
+    }
+
+    // Slow path: migrations, optional stale fail, schedule, rewrite gate.
     await ensureMigrated();
-    const stale = await failStale();
-    if (stale) console.warn('[tick] marked stale snapshots failed', { stale });
+    let sql = 1;
+    if (!gate || gate.staleCheckAfter !== null) {
+      const stale = await failStale();
+      sql += 1;
+      if (stale) console.warn('[tick] marked stale snapshots failed', { stale });
+    }
     await scheduledTick();
+    await refreshGate(now);
     await spikeOnTick();
+    console.log('[tick] slow', { sql });
   } catch (e) {
+    clearGateMemo();
     console.error('[tick] failed', errInfo(e));
   }
   return { statusCode: 204 };

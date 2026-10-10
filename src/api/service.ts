@@ -16,6 +16,7 @@ import {
   markSigned,
   type ReviewRow,
 } from '../db/reviews';
+import { refreshGate } from '../collector/gate';
 import { getSettings, kvGet, saveSettings } from '../db/settings';
 import {
   effectiveSchedule,
@@ -638,6 +639,7 @@ export async function updateSettings(p: any, accountId: string, edition: Edition
   if (p.fallback === 'me') input.fallbackAccountId = accountId;
   if (p.fallback === 'off') input.fallbackAccountId = null;
   const saved = await saveSettings(input);
+  await refreshGate().catch(() => undefined);
   await audit(accountId, 'settings.saved', null, {
     frequency: saved.frequency,
     retentionDays: saved.retentionDays,

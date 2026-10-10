@@ -25,6 +25,10 @@ import {
   type StepContext,
   type StepName,
 } from './steps';
+import { refreshGate } from './gate';
+import { isDue } from './schedule';
+
+export { isDue };
 
 const MAX_ATTEMPTS = 3;
 
@@ -88,6 +92,7 @@ export async function startSnapshot(
   if (active) return { seq: active.seq, created: false };
   const seq = await createSnapshot(trigger);
   await push({ step: 'PLAN', snapshotSeq: seq, batch: 0 });
+  await refreshGate().catch(() => undefined);
   console.log('[snapshot] queued', { seq, trigger });
   return { seq, created: true };
 }
@@ -153,6 +158,7 @@ export async function runCollectStep(
       });
       await markStep(seq, step, batch, 'done');
       await audit('system', 'snapshot.completed', `#${seq}`, { status: r.status, ...r.merge });
+      await refreshGate().catch(() => undefined);
       const after = await getSnapshot(seq, false);
       console.log('[collector] snapshot finished', {
         seq,
@@ -224,6 +230,7 @@ export async function runCollectStep(
         finishedAt: Date.now(),
       });
       await audit('system', 'snapshot.failed', `#${seq}`, { step, message });
+      await refreshGate().catch(() => undefined);
       return;
     }
     return new InvocationError({
@@ -231,22 +238,6 @@ export async function runCollectStep(
       retryReason: InvocationErrorCode.FUNCTION_RETRY_REQUEST,
     });
   }
-}
-
-/** Is a scheduled snapshot due now? Pure, tested. */
-export function isDue(
-  s: { frequency: 'off' | 'daily' | 'weekly'; hourUtc: number; weekday: number },
-  lastScheduledStart: number | null,
-  now = Date.now(),
-): boolean {
-  if (s.frequency === 'off') return false;
-  const d = new Date(now);
-  if (d.getUTCHours() !== s.hourUtc) return false;
-  const isoWeekday = ((d.getUTCDay() + 6) % 7) + 1;
-  if (s.frequency === 'weekly' && isoWeekday !== s.weekday) return false;
-  // Already ran in this window (the hourly tick may fire more than once).
-  const minGap = (s.frequency === 'daily' ? 1 : 7) * 86400_000 - 2 * 3600_000;
-  return lastScheduledStart === null || now - lastScheduledStart >= minGap;
 }
 
 export async function scheduledTick(): Promise<void> {
