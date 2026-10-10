@@ -85,6 +85,8 @@ export function projectView(state: AccessState, id: string) {
     style: p?.style ?? 'company',
     schemeId: p?.schemeId ?? null,
     schemeName: p?.schemeId ? (state.schemes.get(p.schemeId)?.name ?? p.schemeId) : null,
+    categoryId: p?.categoryId ?? null,
+    categoryName: p?.categoryName ?? null,
   };
 }
 

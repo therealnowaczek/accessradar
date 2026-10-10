@@ -8,6 +8,7 @@ export type ViewId =
   | 'reviews'
   | 'exceptions'
   | 'alerts'
+  | 'campaigns'
   | 'snapshots'
   | 'settings'
   | 'activity';
@@ -77,6 +78,12 @@ export const NAV: Array<{ group: string; items: NavItem[] }> = [
         title: 'Change alerts',
         description:
           'In-app alerts when admins, anonymous access, or inactive accounts change between snapshots.',
+      },
+      {
+        id: 'campaigns',
+        label: 'Campaigns',
+        title: 'Review campaigns',
+        description: 'Recurring access reviews delegated to project owners, with in-app reminders.',
       },
       {
         id: 'snapshots',
