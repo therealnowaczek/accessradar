@@ -28,10 +28,13 @@ import {
   getItems,
   getReview,
   insertReview,
+  listChainLinks,
   listReviews,
   markSigned,
+  nextChainTip,
   type ReviewRow,
 } from '../db/reviews';
+import { isDuplicateKey, walkChain } from '../engine/chain';
 import { refreshGate } from '../collector/gate';
 import { LIMITATIONS_VERSION, limitationsPayload } from '../domain/limitations';
 import {
@@ -635,32 +638,46 @@ export async function signReview(p: any, accountId: string, edition: EditionDeci
   const baseFull = await getSnapshot(review.baseSeq);
   const covHash = coverageHash(baseFull?.coverage ?? []);
   const signedAt = Date.now();
-  const hash = evidenceHash(
-    evidenceInput(
-      review,
-      items,
-      { seq: review.baseSeq, contentHash: base?.contentHash ?? null },
-      compare ? { seq: compare.seq, contentHash: compare.contentHash } : null,
-      accountId,
-      signedAt,
-      {
-        signatureVersion: 2,
-        coverageHash: covHash,
-        limitationsVersion: LIMITATIONS_VERSION,
-        prevReviewHash: null,
-        signerTz: tz,
-      },
-    ),
-  );
   const attestation =
     'I confirm that I reviewed every access item in this scope and that the decisions recorded here reflect my assessment.';
-  if (
-    !(await markSigned(review.id, accountId, signedAt, tz, attestation, hash, {
-      signatureVersion: 2,
-      coverageHash: covHash,
-    }))
-  )
-    throw new BadRequest('This review is already signed');
+  const trySign = async () => {
+    const tip = await nextChainTip();
+    const hash = evidenceHash(
+      evidenceInput(
+        review,
+        items,
+        { seq: review.baseSeq, contentHash: base?.contentHash ?? null },
+        compare ? { seq: compare.seq, contentHash: compare.contentHash } : null,
+        accountId,
+        signedAt,
+        {
+          signatureVersion: 2,
+          coverageHash: covHash,
+          limitationsVersion: LIMITATIONS_VERSION,
+          prevReviewHash: tip.prevHash,
+          signerTz: tz,
+        },
+      ),
+    );
+    if (
+      !(await markSigned(review.id, accountId, signedAt, tz, attestation, hash, {
+        signatureVersion: 2,
+        coverageHash: covHash,
+        chainSeq: tip.nextSeq,
+        prevReviewHash: tip.prevHash,
+      }))
+    )
+      throw new BadRequest('This review is already signed');
+    return { hash, chainSeq: tip.nextSeq };
+  };
+  let signed: { hash: string; chainSeq: number };
+  try {
+    signed = await trySign();
+  } catch (e) {
+    if (!isDuplicateKey(e)) throw e;
+    signed = await trySign();
+  }
+  const { hash, chainSeq } = signed;
   const exc = await upsertExceptionsOnSign(review.id, items, accountId, signedAt);
   if (exc.granted) await audit(accountId, 'exception.granted', review.id, { count: exc.granted });
   if (exc.superseded)
@@ -678,9 +695,10 @@ export async function signReview(p: any, accountId: string, edition: EditionDeci
   await audit(accountId, 'review.signed', review.id, {
     signatureVersion: 2,
     evidenceHash: hash,
+    chainSeq,
   });
-  console.log('[review] signed', { items: items.length, hash: hash.slice(0, 12) });
-  return { evidenceHash: hash, signedAt, signatureVersion: 2 as const };
+  console.log('[review] signed', { items: items.length, hash: hash.slice(0, 12), chainSeq });
+  return { evidenceHash: hash, signedAt, signatureVersion: 2 as const, chainSeq };
 }
 
 export async function exceptionsList(p: any) {
@@ -919,7 +937,7 @@ export async function verifyReview(p: any, accountId: string) {
             signatureVersion: 2,
             coverageHash: review.coverageHash,
             limitationsVersion: LIMITATIONS_VERSION,
-            prevReviewHash: null,
+            prevReviewHash: review.prevReviewHash,
             signerTz: review.signerTz,
           }
         : { signatureVersion: 1 },
@@ -939,6 +957,91 @@ export async function verifyReview(p: any, accountId: string) {
     recomputed: hash,
     signatureVersion: version,
   };
+}
+
+/** Walk the site-wide signature chain; reports the first structural or hash break. */
+export async function verifyChain(accountId: string) {
+  const links = await listChainLinks();
+  const structural = walkChain(links);
+  if (!structural.ok) {
+    await audit(accountId, 'review.chain_verified', null, {
+      ok: false,
+      length: structural.length,
+      brokenAt: structural.brokenAt,
+      reason: structural.reason,
+    });
+    return structural;
+  }
+  const results = [...structural.links];
+  for (let i = 0; i < links.length; i++) {
+    const link = links[i];
+    const review = await getReview(link.id);
+    if (!review || !review.signedBy || !review.signedAt || !review.evidenceHash) {
+      const reason = 'signed review missing';
+      results[i] = { chainSeq: link.chainSeq, id: link.id, ok: false, reason };
+      const out = {
+        ok: false,
+        length: links.length,
+        brokenAt: link.chainSeq,
+        reason,
+        links: results,
+      };
+      await audit(accountId, 'review.chain_verified', null, {
+        ok: false,
+        length: out.length,
+        brokenAt: out.brokenAt,
+        reason,
+      });
+      return out;
+    }
+    const items = await getItems(review.id);
+    const base = await getSnapshot(review.baseSeq, false);
+    const compare = review.compareSeq ? await getSnapshot(review.compareSeq, false) : null;
+    const version = review.signatureVersion >= 2 ? (2 as const) : (1 as const);
+    const computed = evidenceHash(
+      evidenceInput(
+        review,
+        items,
+        { seq: review.baseSeq, contentHash: base?.contentHash ?? null },
+        compare ? { seq: compare.seq, contentHash: compare.contentHash } : null,
+        review.signedBy,
+        review.signedAt,
+        version === 2
+          ? {
+              signatureVersion: 2,
+              coverageHash: review.coverageHash,
+              limitationsVersion: LIMITATIONS_VERSION,
+              prevReviewHash: review.prevReviewHash,
+              signerTz: review.signerTz,
+            }
+          : { signatureVersion: 1 },
+      ),
+    );
+    if (computed !== review.evidenceHash) {
+      const reason = 'evidence hash mismatch';
+      results[i] = { chainSeq: link.chainSeq, id: link.id, ok: false, reason };
+      const out = {
+        ok: false,
+        length: links.length,
+        brokenAt: link.chainSeq,
+        reason,
+        links: results,
+      };
+      await audit(accountId, 'review.chain_verified', null, {
+        ok: false,
+        length: out.length,
+        brokenAt: out.brokenAt,
+        reason,
+      });
+      return out;
+    }
+  }
+  const out = { ok: true, length: links.length, links: results };
+  await audit(accountId, 'review.chain_verified', null, {
+    ok: true,
+    length: out.length,
+  });
+  return out;
 }
 
 export async function startSnapshotVerify(p: any, accountId: string) {
@@ -1138,6 +1241,8 @@ export async function getEvidencePack(p: any, edition: EditionDecision) {
     evidenceHash: review.evidenceHash,
     signatureVersion: review.signatureVersion,
     coverageHash: review.coverageHash,
+    chainSeq: review.chainSeq,
+    prevReviewHash: review.prevReviewHash,
     engineVersion: review.engineVersion,
     attestation: review.attestation,
     itemCount: decidable.length,

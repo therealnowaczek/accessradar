@@ -238,6 +238,8 @@ export type ReviewSummary = {
   engineVersion: string;
   signatureVersion?: number;
   coverageHash?: string | null;
+  chainSeq?: number | null;
+  prevReviewHash?: string | null;
   decided?: number;
   flagged?: number;
 };

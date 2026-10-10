@@ -16,6 +16,8 @@ export type EvidencePackPayload = {
     evidenceHash: string | null;
     signatureVersion: number;
     coverageHash: string | null;
+    chainSeq?: number | null;
+    prevReviewHash?: string | null;
     engineVersion: string;
     attestation: string | null;
     itemCount: number;
@@ -96,6 +98,8 @@ export async function evidencePackPdf(
       h.signedAt ? `${formatUtc(h.signedAt)} / ${formatLocalExport(h.signedAt, tz)}` : '',
     ],
     ['Evidence hash', h.evidenceHash ?? ''],
+    ['Chain #', h.chainSeq != null ? String(h.chainSeq) : 'pre-chain'],
+    ['Previous hash', h.prevReviewHash ?? ''],
     ['Signature version', String(h.signatureVersion)],
     ['Coverage hash', h.coverageHash ?? ''],
     ['Engine', h.engineVersion],
