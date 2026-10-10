@@ -1,13 +1,19 @@
 name: CI
 on:
   pull_request:
-  push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,9 +28,7 @@ jobs:
       - run: npm test
       - run: npm run build:ui
       - run: npm audit --omit=dev --audit-level=high
-      # forge lint needs Forge credentials and the Forge API, which timed out intermittently here
-      # ("Request timed out after 300000ms") and is unavailable to Dependabot PRs. It runs with
-      # retries in deploy-dev.yml, right before every deploy, which is where it gates anything.
+      # forge lint needs Forge credentials and the Forge API; it runs in deploy when manifest.yml changes.
       # The production build must not contain the development-only spike/self-test code.
       - name: Production strip builds
         run: |
