@@ -31,7 +31,7 @@ export interface FeatureFlags {
   changeAlerts: boolean;
   /** Advanced: audit evidence pack PDF (methodology + decision trail). */
   evidencePack: boolean;
-  /** Coming soon: Rovo agent (in manifest; listing/Settings promo until claimed). */
+  /** Advanced: read-only Rovo agent (rovo:agent + GET actions, Runs on Atlassian). */
   rovo: boolean;
 }
 
@@ -44,11 +44,12 @@ export const RELEASED_FEATURES = [
   'changeAlerts',
   'reviewCampaigns',
   'delegatedReviews',
+  'rovo',
 ] as const satisfies ReadonlyArray<keyof FeatureFlags>;
 
 export type ReleasedFeature = (typeof RELEASED_FEATURES)[number];
 
-/** Advanced flags not yet shipped; Settings promo lists these as coming soon. */
+/** Advanced flags not yet shipped; Settings promo lists these as coming soon (none today). */
 export function comingSoonFeatures(flags: FeatureFlags): Array<keyof FeatureFlags> {
   const released = new Set<string>(RELEASED_FEATURES);
   return (Object.keys(flags) as Array<keyof FeatureFlags>).filter(

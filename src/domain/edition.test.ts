@@ -61,7 +61,10 @@ describe('featureFlags', () => {
     expect(Object.values(featureFlags('advanced')).every(Boolean)).toBe(true);
   });
   it('lists only unreleased Advanced features as coming soon', () => {
-    expect(comingSoonFeatures(featureFlags('advanced'))).toEqual(['rovo']);
+    expect(comingSoonFeatures(featureFlags('advanced'))).toEqual([]);
+    expect(RELEASED_FEATURES).toContain('rovo');
+    // Every Advanced flag has shipped, so each one is released.
+    expect([...RELEASED_FEATURES].sort()).toEqual(Object.keys(featureFlags('advanced')).sort());
     expect(RELEASED_FEATURES).toContain('remediationVerification');
     expect(RELEASED_FEATURES).toContain('evidencePack');
     expect(RELEASED_FEATURES).toContain('changeAlerts');

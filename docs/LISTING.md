@@ -15,7 +15,7 @@
 - **Pozycjonowanie bez nazywania konkurentów:** „the why” (ścieżka grantu), uczciwa kompletność, dowód z hashem SHA-256, read-only (kontrast z Access Reviewer360, które robi revoke). Konkurentów (AccessLens, Project Access Review, Project Roles) ani JRACLOUD-71967 **nie wymieniamy** w listingu. Ticket to dobry materiał na stronę /docs albo post w Community, ale dopiero po Twojej decyzji.
 - **Ceny (§8, zaktualizowane 2026-10-10, 1:1 z MarginRadar):** Standard $0 do 10 użytkowników (płasko), potem $0.75 / $0.60 / $0.40 / $0.25 (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced $10 płasko do 10 użytkowników, potem $1.99 / $1.49 / $0.99 / $0.49. Rocznie 10× miesięcznie, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $75/mies. = $750/rok. Advanced trafi do Marketplace dopiero po akceptacji płatnej aplikacji; strona www pokazuje Advanced jako „Coming soon”. Progi Standard w Marketplace (dziś 0.75/0.55/0.35/0.20/0.15/0.12) do wyrównania, gdy listing będzie edytowalny.
 - **Privacy & Security:** gotowe odpowiedzi w §9. Dwie rzeczy wymagają uczciwego ujawnienia: (1) manifest deklaruje `allowImpersonation: true` na scope'ach odczytu, (2) Atlassian po instalacji dodaje app usera AccessRadar do grup adminów (week1-findings §3), choć aplikacja ma wyłącznie scope'y `read:*`. Pytania prawne oznaczyłem **[TO CONFIRM]**.
-- **Feature truth check (stan kodu 2026-10-10, po R1+R2):** jak po R1, plus **łańcuch podpisów**, Advanced: **kampanie**, **alerty zmian**, **delegacja** (project settings page dla project adminów), przypomnienia **tylko in-app**. Agent Rovo jest w manifeście (read-only), ale w Settings/listingu nadal *(coming soon)* do osobnej aktualizacji listingu. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Lista w §11.
+- **Feature truth check (stan kodu 2026-10-10, po R1+R2):** jak po R1, plus **łańcuch podpisów**, Advanced: **kampanie**, **alerty zmian**, **delegacja** (project settings page dla project adminów), przypomnienia **tylko in-app**. Agent Rovo (read-only, 5 akcji GET) jest włączony w manifeście i w Settings (bez *coming soon*); w publicznym listingu pojawi się wraz z aktualizacją listingu. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Lista w §11.
 - **Produkcja:** wdrożona 9.10.2026 (gałąź `release/production`, workflow Deploy (production) zielony, spike usunięty w CI). **Instalacja prod przez CLI jest zablokowana przez Atlassian** („Installing a licensed app is not permitted”): aplikacji z `licensing.enabled: true` nie da się zainstalować z produkcji, dopóki listing nie zostanie zatwierdzony (instalacja tylko przez Marketplace). Zrzuty do listingu trzeba więc zrobić z dev/staging (z dopiskiem „Dev”/„Staging”) albo jako kompozycje, a finalne zrzuty z prod podmienić po akceptacji.
 - **Strona dokumentacji działa:** https://accessradar.radrly.com z podstronami /docs /support /privacy /terms /dpa /security, wszystkie zwracają HTTP 200 (sprawdzone curl 9.10.2026 ok. 19:30 czasu warszawskiego). §7.
 - **Bez wymyślonych liczb:** brak liczby klientów, instalacji, opinii, cytatów i obietnic certyfikacji. AccessRadar *wspiera* zbieranie dowodów do SOC 2 / ISO 27001; nie jest certyfikowany i nie gwarantuje zgodności.
@@ -121,7 +121,7 @@ In Jira Cloud, effective access comes from several layers at once: the permissio
 **Campaigns and change alerts (Advanced)**
 - Recurring review campaigns by site, projects or project category; preview assignees, then run, pause or delete from the Campaigns admin page.
 - After each snapshot, in-app change alerts for new admins, public grants and inactive users who still have access.
-- Reminders and alerts stay **in the app** (no email, Slack or webhooks). Admins tell project owners through their usual channels. A project-settings inbox for delegates and a Rovo agent are not listed yet.
+- Reminders and alerts stay **in the app** (no email, Slack or webhooks). Admins tell project owners through their usual channels. Delegates review their assigned projects on the project settings page. Advanced also includes a read-only Rovo agent that answers from the latest snapshot (Jira admins only; Rovo must be enabled on the site).
 
 **Evidence export**
 - CSV: access matrix, changes between snapshots, review decisions.
@@ -294,7 +294,7 @@ Advanced (same method):
 | Site-wide signature chain; verify signature, snapshot & chain | Reviews delegated to project owners (project settings page) |
 | CSV/PDF export; risk indicators (11 rules); exception register | Remediation verification (confirm Revokes in later snapshots) |
 | | Audit evidence pack PDF with SOC 2 / ISO control mapping |
-| | Rovo agent *(coming soon)* |
+| | Rovo agent (read-only) |
 
 *(PL) Punkty odniesienia (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2): Access Lens 100, Project Roles 200, AuditAdmin 450, Group Permission Audit 650, Access Auditor 750, Clearance 800, AccessLens 900, Recert 1 250, Keyring 1 360, Access Reviewer360 1 620, Certia 4 000, Access Evidence 4 530; Project Access Review darmowa. Mediana płatnych bezpośrednich konkurentów: $900. Standard $750 jest poniżej mediany; ceny obu edycji 1:1 z MarginRadar.*
 
@@ -349,7 +349,7 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 ---
 
 ## 10. Accuracy notes (keep the listing truthful)
-- Listing claims map to shipped R1 + R2 features in code (2026-10-10), including project-settings delegation. Do **not** claim Rovo in the public listing until Settings drops its Coming soon flag for `rovo`. No Slack/email notifications, no Confluence, no write scopes.
+- Listing claims map to shipped R1 + R2 features in code (2026-10-10), including project-settings delegation. Rovo is no longer Coming soon in Settings (`rovo` is released); claim it in the public listing once the listing update is submitted (Rovo must be enabled on the site; answers come from the latest snapshot, Jira admins only). No Slack/email notifications, no Confluence, no write scopes.
 - Campaigns, alerts, signature chain and project Access review page are in development builds. Listing copy uses the UI's labels (Keep / Revoke / Exception, Campaigns, Alerts, Verify chain, Access review).
 - Known limitation (also in product copy): campaign delegates are not notified outside Jira; reminders and alerts are in-app only.
 - Risk indicators match `src/engine/risk.ts`: anonymous, broad-app-role, admins, wide-admin, inactive, large-groups.
@@ -364,7 +364,7 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 ## 11. Decisions and inputs needed from Marcin
 1. ~~App name~~: **chosen** (*AccessRadar – Access Review & Permission Audit for Jira*). Still open: manual trademark check (EUIPO/WIPO, `name-pricing-legal.md` §1.4).
 2. ~~Pricing~~: **adopted** (§8).
-3. **Feature truth check before submit:** R1 + shipped R2 (campaigns admin, alerts, signature chain) are in the code (2026-10-10); project page + Rovo still coming soon. Verify in production after the Marketplace install (CLI install of a licensed app into production is refused until approval).
+3. **Feature truth check before submit:** R1 + shipped R2 (campaigns admin, alerts, signature chain) are in the code (2026-10-10); project settings page and the read-only Rovo agent are in the code too. Verify in production after the Marketplace install (CLI install of a licensed app into production is refused until approval).
 4. **`allowImpersonation`:** shipped as declared in the first production deploy (2026-10-09). Removing it later is a scope change (new major version, admin consent) and must not happen during Marketplace review.
 5. ~~Live URLs~~: **live, all 200** (§7). Still open: support hours and response time.
 6. **Legal answers** in §9 (processor/controller, retention after uninstall, logging, EEA transfer).

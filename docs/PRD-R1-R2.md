@@ -1,6 +1,8 @@
 # AccessRadar — PRD R1 + R2 (build-ready)
 
 Status: draft for Marcin's approval · 2026-10-10 · baseline `main` @ `9ee84d2` · docs only, no code changed.
+
+Implementation status (2026-10-11): every R1 and R2 item (R1-01..R1-08, R2-01..R2-08) is on `main` and released in Settings (no feature is Coming soon any more, including Rovo). Not built: the §8a future major (needs new scopes), R1-09 free-tier schedule, and P-01 pricing (after Marketplace release).
 Inputs: `src/`, `manifest.yml`, `test/`, `static/app/src`, `docs/FEATURE-PARITY.md` (§4 gaps, §5 differentiators, §6 R1/R2, §7 pricing, §7.1 Forge cost, §7.3 APPROVED pricing).
 
 ---
