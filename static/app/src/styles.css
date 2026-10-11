@@ -666,41 +666,56 @@ code {
   margin-inline-start: calc(-1 * var(--ds-space-075, 6px));
 }
 
-/* Advanced edition gate (MarginRadar) */
+/* Advanced plan pattern: AdvancedBadge, PlanNote, PlanGate (identical across MarginRadar apps) */
 .plan-gate {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-150, 12px);
+  gap: var(--ds-space-100, 8px);
+}
+
+.plan-gate-sample {
+  position: relative;
 }
 
 .plan-gate-preview {
-  max-height: 150px;
+  max-height: 96px;
   overflow: hidden;
-  opacity: 0.55;
+  opacity: 0.45;
   pointer-events: none;
   user-select: none;
-  mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 20%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 20%, transparent 100%);
 }
 
-.plan-gate-note {
+.plan-gate-caption {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ds-text-subtlest, #626f86);
+}
+
+.plan-note {
   display: flex;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--ds-space-100, 8px);
-  padding: var(--ds-space-150, 12px);
-  background: var(--ds-background-discovery, #f8eefe);
-  border-radius: var(--ds-border-radius-200, 8px);
+  padding: var(--ds-space-100, 8px) var(--ds-space-150, 12px);
+  border: 1px dashed var(--ds-border, #dcdfe4);
+  border-radius: var(--ds-radius-large, 8px);
+  font-size: 14px;
+  line-height: 20px;
 }
 
-.plan-gate-icon {
+.plan-note-icon {
   display: inline-flex;
   flex: none;
-  color: var(--ds-icon-discovery, #803fa5);
+  color: var(--ds-icon-subtle, #626f86);
 }
 
-.plan-gate-text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-050, 4px);
+.plan-note-text {
+  flex: 1 1 240px;
   min-width: 0;
+  color: var(--ds-text-subtle, #44546f);
 }

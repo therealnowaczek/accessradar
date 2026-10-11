@@ -42,6 +42,7 @@ import {
   type EvidencePackPayload,
 } from '../export/evidencePack';
 import { formatLocal, formatUtc, permissionLabel, plural, timeZone } from '../format';
+import { t } from '../i18n';
 import { navItem } from '../routes';
 import { exportContext, logExport, NoSnapshot, useApp, useExporter, useSnapshots } from '../shared';
 import { useToast } from '../Toast';
@@ -58,6 +59,7 @@ import {
   PageFrame,
   PageHeader,
   Pill,
+  PlanGate,
   RadioField,
 } from '../ui';
 
@@ -1089,6 +1091,38 @@ const REMEDIATION_LOZENGE: Record<
   accepted: ['Accepted risk', 'warning'],
 };
 
+/** Made-up rows for the locked Remediation panel (never real review data). */
+function RemediationSample() {
+  const rows: Array<[string, string, 'success' | 'info' | 'danger', number]> = [
+    [t('planGate.sample.subject1'), t('planGate.sample.verified'), 'success', 12],
+    [t('planGate.sample.subject2'), t('planGate.sample.pending'), 'info', 12],
+    [t('planGate.sample.subject3'), t('planGate.sample.stillPresent'), 'danger', 12],
+  ];
+  return (
+    <div className="section-stack">
+      <ProgressBar value={1 / 3} />
+      <span className="subtle">{t('planGate.sample.closedOf', { closed: 1, total: 3 })}</span>
+      <DynamicTable
+        head={{
+          cells: [
+            { key: 'who', content: t('planGate.sample.colSubject') },
+            { key: 'status', content: t('planGate.sample.colStatus') },
+            { key: 'snap', content: t('planGate.sample.colSnapshot') },
+          ],
+        }}
+        rows={rows.map(([who, label, tone, seq]) => ({
+          key: who,
+          cells: [
+            { key: 'w', content: who },
+            { key: 's', content: <Pill tone={tone}>{label}</Pill> },
+            { key: 'c', content: `#${seq}` },
+          ],
+        }))}
+      />
+    </div>
+  );
+}
+
 function RemediationPanel({ reviewId, items }: { reviewId: string; items: ReviewItem[] }) {
   const rem = useCall<{
     gated: boolean;
@@ -1099,11 +1133,14 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
   if (!rem.data) return <Loading />;
   if (rem.data.gated) {
     return (
-      <SectionMessage appearance="information" title="Remediation verification">
-        <p>
-          Verify revocations automatically with Advanced — AccessRadar checks the next snapshot.
-        </p>
-      </SectionMessage>
+      <Section
+        title="Remediation"
+        description="Whether Revoke decisions disappeared in a later snapshot."
+      >
+        <PlanGate locked benefit={t('planGate.remediation')}>
+          <RemediationSample />
+        </PlanGate>
+      </Section>
     );
   }
   if (!rem.data.rows.length) {

@@ -2,12 +2,14 @@ import { useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
+import { REQUIRES_ADVANCED } from '../../../../src/domain/edition';
 import { call, errorText, type ReviewItem, type ReviewSummary } from '../api';
 import { SubjectCell } from '../components';
 import { useCall } from '../data';
 import { formatLocal, permissionLabel, plural } from '../format';
+import { t } from '../i18n';
 import { useToast } from '../Toast';
-import { Empty, ErrorState, Loading, Metric, PageFrame, PageHeader, Pill } from '../ui';
+import { Empty, ErrorState, Loading, Metric, PageFrame, PageHeader, Pill, PlanNote } from '../ui';
 
 type Notice = {
   id: number;
@@ -105,6 +107,12 @@ export function ProjectReviewView() {
     />
   );
 
+  if (mine.error === REQUIRES_ADVANCED && !d)
+    return (
+      <PageFrame header={header}>
+        <PlanNote benefit={t('planGate.projectReview')} />
+      </PageFrame>
+    );
   if (mine.error && !d)
     return (
       <PageFrame header={header}>

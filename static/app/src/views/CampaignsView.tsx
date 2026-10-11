@@ -14,6 +14,7 @@ import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
 import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Drawer';
 import { formatLocal } from '../format';
+import { t } from '../i18n';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
@@ -25,7 +26,7 @@ import {
   PageFrame,
   PageHeader,
   Pill,
-  PlanGate,
+  PlanNote,
   RadioField,
 } from '../ui';
 
@@ -242,13 +243,7 @@ export function CampaignsView() {
   if (status.data && advanced === false) {
     return (
       <PageFrame header={header}>
-        <PlanGate
-          locked
-          title="Campaigns need Advanced"
-          description="Advanced schedules recurring reviews and delegates them to project owners."
-        >
-          {null}
-        </PlanGate>
+        <PlanNote benefit={t('planGate.campaigns')} />
       </PageFrame>
     );
   }

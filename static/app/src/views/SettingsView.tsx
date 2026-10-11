@@ -21,10 +21,12 @@ import {
   timeZone,
   WEEKDAYS,
 } from '../format';
+import { t } from '../i18n';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
 import {
+  AdvancedBadge,
   Details,
   ErrorState,
   FormField,
@@ -32,7 +34,7 @@ import {
   PageFrame,
   PageHeader,
   Pill,
-  PlanGate,
+  PlanNote,
   RadioField,
   ToggleField,
 } from '../ui';
@@ -173,13 +175,7 @@ function ScheduleForm({
           ]}
         />
       </RadioField>
-      <PlanGate
-        locked={!advanced}
-        title="Daily and custom schedules need Advanced"
-        description="Standard takes weekly and manual snapshots."
-      >
-        {null}
-      </PlanGate>
+      {!advanced ? <PlanNote benefit={t('planGate.schedules')} /> : null}
       {frequency !== 'off' ? (
         <>
           {frequency === 'weekly' ? (
@@ -276,13 +272,7 @@ function RetentionForm({
         max={max}
         hint={`30 to ${max} days. Snapshots used by a review are always kept with the review.`}
       />
-      <PlanGate
-        locked={!advanced}
-        title="Unlimited history needs Advanced"
-        description="Standard keeps 90 days of snapshot history."
-      >
-        {null}
-      </PlanGate>
+      {!advanced ? <PlanNote benefit={t('planGate.history')} /> : null}
     </EditForm>
   );
 }
@@ -796,7 +786,7 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
                     ) : edition.features[f.key] ? (
                       <Pill tone="success">Included</Pill>
                     ) : (
-                      <Pill tone="discovery">Advanced</Pill>
+                      <AdvancedBadge />
                     )}
                   </li>
                 );

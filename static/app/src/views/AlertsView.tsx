@@ -4,6 +4,7 @@ import DynamicTable from '@atlaskit/dynamic-table';
 import { call, errorText } from '../api';
 import { useCall } from '../data';
 import { formatLocal } from '../format';
+import { t } from '../i18n';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
@@ -16,8 +17,8 @@ import {
   Loading,
   PageFrame,
   PageHeader,
-  PlanGate,
   Pill,
+  PlanNote,
 } from '../ui';
 
 type AlertRow = {
@@ -62,13 +63,7 @@ export function AlertsView() {
   if (status.data && advanced === false) {
     return (
       <PageFrame header={header}>
-        <PlanGate
-          locked
-          title="Change alerts need Advanced"
-          description="Advanced raises in-app alerts when admins, anonymous grants, or inactive accounts change."
-        >
-          {null}
-        </PlanGate>
+        <PlanNote benefit={t('planGate.alerts')} />
       </PageFrame>
     );
   }

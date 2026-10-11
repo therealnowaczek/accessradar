@@ -10,6 +10,7 @@ import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message'
 import Select from '@atlaskit/select';
 import Spinner from '@atlaskit/spinner';
 import Toggle from '@atlaskit/toggle';
+import { t } from './i18n';
 
 // Layout primitives mirror MarginRadar (static/app/src/ui.tsx): blank adminPage layout,
 // sidebar + pinned page header + scrolling content, spacing on design tokens.
@@ -418,36 +419,57 @@ export function FilterSelect<T extends { label: string; value: string | number }
   );
 }
 
-/** Locked Advanced feature (MarginRadar PlanGate): dimmed preview plus a note. */
+/** Discovery-colored lozenge marking a feature that needs the Advanced plan. */
+export function AdvancedBadge() {
+  return <Pill tone="discovery">{t('planGate.badge')}</Pill>;
+}
+
+/**
+ * One quiet line for a locked feature: lock icon, Advanced badge, the benefit and the admin hint.
+ * Use alone when there is nothing meaningful to preview.
+ */
+export function PlanNote({ benefit }: { benefit: string }) {
+  return (
+    <div className="plan-note" role="note">
+      <span className="plan-note-icon">
+        <LockIcon label="" size="small" />
+      </span>
+      <AdvancedBadge />
+      <span className="plan-note-text">
+        {benefit} {t('planGate.advancedHint')}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Locked panel with a section header: a faded, non-interactive sample of the real panel (made-up
+ * data) above a PlanNote. Unlocked it renders its children untouched; without children it renders
+ * only the PlanNote.
+ */
 export function PlanGate({
   locked,
-  title,
-  description,
+  benefit,
   children,
 }: {
   locked: boolean;
-  title: string;
-  description: string;
-  children: ReactNode;
+  benefit: string;
+  children?: ReactNode;
 }) {
   if (!locked) return <>{children}</>;
   return (
     <div className="plan-gate">
       {children ? (
-        <div className="plan-gate-preview" aria-hidden="true">
-          {children}
+        <div className="plan-gate-sample">
+          <div className="plan-gate-preview" aria-hidden="true">
+            {children}
+          </div>
+          <span className="plan-gate-caption" aria-hidden="true">
+            {t('planGate.sample')}
+          </span>
         </div>
       ) : null}
-      <div className="plan-gate-note" role="note">
-        <span className="plan-gate-icon">
-          <LockIcon label="" size="small" />
-        </span>
-        <div className="plan-gate-text">
-          <strong>{title}</strong>
-          <span className="subtle">{description}</span>
-          <span className="subtle">Ask your Jira admin to enable AccessRadar Advanced.</span>
-        </div>
-      </div>
+      <PlanNote benefit={benefit} />
     </div>
   );
 }
