@@ -728,7 +728,7 @@ const ADVANCED_FEATURES: Array<{
     key: 'evidencePack',
     label: 'Audit evidence pack PDF (methodology and decision trail)',
   },
-  { key: 'rovo', label: 'Rovo agent' },
+  { key: 'rovo', label: 'Rovo agent (read-only answers from your snapshots)' },
 ];
 
 const SOURCE_TEXT: Record<EditionView['source'], string> = {
