@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Rasterize resources/icons/accessradar.svg (mirrors MarginRadar's scripts/export-icons.mjs).
+ * Rasterize resources/icons/accessradar.svg (a copy of the STANDARD logo brand/accessradar-logo.svg; no small/bold variant at any size).
  *
  * Module `icon` properties use the SVG (Forge resource path). These PNGs are
  * the same mark at the sizes a raster slot may ask for: 512, 144, 64, 32, 24, 16.
