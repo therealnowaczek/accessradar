@@ -195,7 +195,7 @@ export function ChangesView() {
       />
       <span className="subtle">→</span>
       <SnapshotPicker snapshots={list} value={b} onChange={setB} label="To" size="medium" />
-      <ToggleField label="All permissions" isChecked={all} onChange={() => setAll((v) => !v)} />
+      <ToggleField label="Show all permissions" isChecked={all} onChange={setAll} />
     </FilterBar>
   );
 

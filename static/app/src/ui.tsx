@@ -5,7 +5,7 @@ import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
 import LockIcon from '@atlaskit/icon/core/lock-locked';
 import Lozenge from '@atlaskit/lozenge';
-import { Inline, Text } from '@atlaskit/primitives';
+import { Text } from '@atlaskit/primitives';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
 import Spinner from '@atlaskit/spinner';
@@ -302,23 +302,38 @@ export function FormField({
   );
 }
 
-/** Toggle with its visible ADS Label (clicking the label flips the toggle). */
+/**
+ * The one on/off setting control: ADS Toggle with the setting name as regular body text beside it
+ * and optional helper text below. The accessible name comes from the Toggle's `label`. (ADS Text
+ * cannot render a <label>, so clicking the text does not flip the switch.)
+ */
 export function ToggleField({
   label,
   isChecked,
   onChange,
+  helper,
+  isDisabled,
 }: {
   label: string;
   isChecked: boolean;
-  onChange: () => void;
+  onChange: (value: boolean) => void;
+  helper?: ReactNode;
+  isDisabled?: boolean;
 }) {
   const id = useId();
   return (
     <div className="toggle-field">
-      <Inline space="space.100" alignBlock="center">
-        <Toggle id={id} isChecked={isChecked} onChange={onChange} />
-        <Label htmlFor={id}>{label}</Label>
-      </Inline>
+      <div className="toggle-row">
+        <Toggle
+          id={id}
+          label={label}
+          isChecked={isChecked}
+          isDisabled={isDisabled}
+          onChange={(event) => onChange(event.target.checked)}
+        />
+        <Text>{label}</Text>
+      </div>
+      {helper ? <HelperMessage>{helper}</HelperMessage> : null}
     </div>
   );
 }

@@ -327,15 +327,13 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
       <ToggleField
         label="Use my account when the app is denied access"
         isChecked={fallback}
-        onChange={() => setFallback((x) => !x)}
+        onChange={setFallback}
+        helper={`Some Jira endpoints only answer for administrators. With fallback on, AccessRadar retries those reads on your behalf (read-only).${
+          v.fallbackEnabled && !v.fallbackIsMe
+            ? ' Another administrator is currently set as fallback; saving with this on makes it you.'
+            : ''
+        }`}
       />
-      <p className="subtle">
-        Some Jira endpoints only answer for administrators. With fallback on, AccessRadar retries
-        those reads on your behalf (read-only).{' '}
-        {v.fallbackEnabled && !v.fallbackIsMe
-          ? 'Another administrator is currently set as fallback; saving with this on makes it you.'
-          : ''}
-      </p>
     </EditForm>
   );
 }
@@ -370,7 +368,7 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
       <ToggleField
         label="Include app accounts in risk indicators"
         isChecked={apps}
-        onChange={() => setApps((x) => !x)}
+        onChange={setApps}
       />
     </EditForm>
   );
@@ -383,12 +381,9 @@ function ReviewsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: ()
       <ToggleField
         label="Require justification when keeping access"
         isChecked={requireKeepNote}
-        onChange={() => setRequireKeepNote((x) => !x)}
+        onChange={setRequireKeepNote}
+        helper="Revoke and exception already require a justification of at least 10 characters. Turn this on to require the same for Keep."
       />
-      <p className="subtle">
-        Revoke and exception already require a justification of at least 10 characters. Turn this on
-        to require the same for Keep.
-      </p>
     </EditForm>
   );
 }
@@ -418,9 +413,9 @@ function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () 
       {ALERT_RULE_LABELS.map((r) => (
         <ToggleField
           key={r.key}
-          label={r.label}
+          label={`Alert on ${r.label.charAt(0).toLowerCase()}${r.label.slice(1)}`}
           isChecked={alerts[r.key]}
-          onChange={() => setAlerts((a) => ({ ...a, [r.key]: !a[r.key] }))}
+          onChange={(value) => setAlerts((a) => ({ ...a, [r.key]: value }))}
         />
       ))}
     </EditForm>

@@ -305,11 +305,7 @@ function ProjectDetail({
                 onChange={setQuery}
                 placeholder="Search people and groups"
               />
-              <ToggleField
-                label="Show app accounts"
-                isChecked={showApps}
-                onChange={() => setShowApps((v) => !v)}
-              />
+              <ToggleField label="Show app accounts" isChecked={showApps} onChange={setShowApps} />
             </FilterBar>
             <div className="table-wrap">
               <DynamicTable

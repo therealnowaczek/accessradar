@@ -108,11 +108,7 @@ export function PeopleView() {
                 value={FILTERS.find((f) => f.value === filter)}
                 onChange={(o) => setFilter(o?.value ?? 'all')}
               />
-              <ToggleField
-                label="Show app accounts"
-                isChecked={showApps}
-                onChange={() => setShowApps((v) => !v)}
-              />
+              <ToggleField label="Show app accounts" isChecked={showApps} onChange={setShowApps} />
               <SnapshotPicker
                 snapshots={snaps.data?.snapshots ?? []}
                 value={seq}

@@ -655,7 +655,15 @@ code {
 
 .toggle-field {
   flex: none;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-100, 8px);
   white-space: nowrap;
+  /* ADS Toggle insets its track; pull it back so it lines up with the fields. */
+  margin-inline-start: calc(-1 * var(--ds-space-075, 6px));
 }
 
 /* Advanced edition gate (MarginRadar) */
