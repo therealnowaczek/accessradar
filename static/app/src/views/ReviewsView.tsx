@@ -177,7 +177,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                           ? 'Whole site'
                           : plural(
                               r.scope.ids.length,
-                              r.scope.type === 'projects' ? 'project' : 'group',
+                              r.scope.type === 'projects' ? 'space' : 'group',
                             )}{' '}
                         · snapshot #{r.baseSeq}
                       </div>
@@ -277,7 +277,7 @@ function CreateReview({
     setError('');
     if (!name.trim()) return setError('Give the review a name.');
     if (scope !== 'site' && !ids.length)
-      return setError(`Pick at least one ${scope === 'projects' ? 'project' : 'group'}.`);
+      return setError(`Pick at least one ${scope === 'projects' ? 'space' : 'group'}.`);
     setBusy(true);
     try {
       const r = await call<{ id: string; items: number }>('createReview', {
@@ -320,15 +320,15 @@ function CreateReview({
                 {
                   name: 'scope',
                   value: 'site',
-                  label: 'Whole site (all projects, Jira admins and application access)',
+                  label: 'Whole site (all spaces, Jira admins and application access)',
                 },
-                { name: 'scope', value: 'projects', label: 'Selected projects' },
+                { name: 'scope', value: 'projects', label: 'Selected spaces' },
                 { name: 'scope', value: 'groups', label: 'Selected groups (membership review)' },
               ]}
             />
           </RadioField>
           {scope !== 'site' ? (
-            <FormField label={scope === 'projects' ? 'Projects' : 'Groups'}>
+            <FormField label={scope === 'projects' ? 'Spaces' : 'Groups'}>
               {(id) => (
                 <Select<Opt, true>
                   menuPosition="fixed"
@@ -738,7 +738,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           <SearchField
             value={query}
             onChange={setQuery}
-            placeholder="Search people, projects, paths, notes"
+            placeholder="Search people, spaces, paths, notes"
           />
           {(
             [

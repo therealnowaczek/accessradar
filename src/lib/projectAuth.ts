@@ -24,7 +24,7 @@ export async function assertProjectAdminister(
   accountId: string | undefined,
   projectId: string,
 ): Promise<void> {
-  if (!accountId) throw new ForbiddenError('Only a project admin can review access here');
+  if (!accountId) throw new ForbiddenError('Only a space admin can review access here');
   const key = `${accountId}:${projectId}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit < TTL_MS) return;
@@ -39,9 +39,9 @@ export async function assertProjectAdminister(
       projectPermissions: [{ permissions: ['ADMINISTER_PROJECTS'], projects }],
     }),
   });
-  if (!res.ok) throw new Error(`Project authorization check failed (${res.status})`);
+  if (!res.ok) throw new Error(`Space authorization check failed (${res.status})`);
   const allowed = hasProjectAdminister(await res.json(), projectId);
-  if (!allowed) throw new ForbiddenError('Only a project admin can review access here');
+  if (!allowed) throw new ForbiddenError('Only a space admin can review access here');
   cache.set(key, Date.now());
 }
 

@@ -231,7 +231,7 @@ export function describePath(state: AccessState, path: PathStep[]): string {
         parts.push('named user');
         break;
       case 'projectLead':
-        parts.push('project lead');
+        parts.push('space lead');
         break;
       case 'scheme':
         parts.push(`scheme “${state.schemes.get(step.schemeId)?.name ?? step.schemeId}”`);
@@ -280,7 +280,7 @@ export function viaLabel(state: AccessState, path: PathStep[]): { kind: string; 
     };
   if (inner?.kind === 'group')
     return { kind: 'group', label: state.groups.get(inner.groupId)?.name ?? inner.groupId };
-  if (inner?.kind === 'projectLead') return { kind: 'lead', label: 'Project lead' };
+  if (inner?.kind === 'projectLead') return { kind: 'lead', label: 'Space lead' };
   if (inner?.kind === 'direct') return { kind: 'direct', label: 'Named user' };
   return { kind: 'scheme', label: 'Scheme grant' };
 }

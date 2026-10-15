@@ -33,15 +33,15 @@ export const NAV: Array<{ group: string; items: NavItem[] }> = [
     items: [
       {
         id: 'explore-projects',
-        label: 'Projects',
-        title: 'Projects',
-        description: 'Who has access to a project, and through which scheme, role or group.',
+        label: 'Spaces',
+        title: 'Spaces',
+        description: 'Who has access to a space, and through which scheme, role or group.',
       },
       {
         id: 'explore-groups',
         label: 'Groups',
         title: 'Groups',
-        description: 'Where a group reaches across projects, schemes and application access.',
+        description: 'Where a group reaches across spaces, schemes and application access.',
       },
       {
         id: 'explore-people',
@@ -83,7 +83,7 @@ export const NAV: Array<{ group: string; items: NavItem[] }> = [
         id: 'campaigns',
         label: 'Campaigns',
         title: 'Review campaigns',
-        description: 'Recurring access reviews delegated to project owners, with in-app reminders.',
+        description: 'Recurring access reviews delegated to space owners, with in-app reminders.',
       },
       {
         id: 'snapshots',

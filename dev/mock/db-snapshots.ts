@@ -81,7 +81,7 @@ const coverage: Record<number, CoverageEntry[]> = {
       area: 'issue-security',
       target: 'all',
       status: 'info',
-      reason: 'Issue-level security is not part of this snapshot.',
+      reason: 'Work item security is not part of this snapshot.',
     },
   ],
 };
@@ -161,7 +161,7 @@ export function simulateSnapshot(trigger: string): number {
     startedAt: now,
     updatedAt: now,
     finishedAt: null,
-    progress: { step: 'PROJECTS', batch: 1, batches: 4, message: 'Reading projects' },
+    progress: { step: 'PROJECTS', batch: 1, batches: 4, message: 'Reading spaces' },
     coverage: coverage[3],
     stats: null,
     points: 0,

@@ -13,7 +13,7 @@ src/handlers.ts            resolver, lifecycle trigger, scheduled ticks, queue c
 src/db/migrations.ts       Forge SQL schema (one DDL per statement, no FK, no trailing semicolon)
 src/engine/resolve.ts      pure effective-access resolver (unit tested)
 src/lib/                   Jira client by identity, pagination, queue, authorization
-src/ui/                    resolver helpers for the admin UI (project list, asUser)
+src/ui/                    resolver helpers for the admin UI (space list, asUser)
 src/spike/probe.ts         week-1 API probes (dev only, enabled by ACCESSRADAR_SPIKE=1)
 static/app/                Custom UI (React 18 + Atlaskit/ADS + design tokens), built by Vite to static/app/dist
 vite.config.ts             UI build (root static/app, resource `custom-ui`)
@@ -36,7 +36,7 @@ forge deploy --environment development
 One Jira admin menu entry (**Apps > AccessRadar**), no manifest `pages`/`sections`. Three `jira:adminPage`
 modules share the `custom-ui` resource with `layout: blank` (the app owns its padding, like MarginRadar):
 
-- `accessradar-admin` (title AccessRadar): side navigation with Overview, Explore (Projects, Groups, People),
+- `accessradar-admin` (title AccessRadar): side navigation with Overview, Explore (Spaces, Groups, People),
   Review (Changes, Reviews, Snapshots) and Settings, switched client-side.
 - `accessradar-config` (`useAsConfig`): same app, opens on Settings.
 - `accessradar-get-started` (`useAsGetStarted`): separate checklist screen without the sidebar.

@@ -26,9 +26,9 @@ function baseMeta(ctx: ExportContext, extra: Array<[string, string]>): Array<[st
 }
 
 const METHODOLOGY = [
-  'Effective access is computed from the snapshot: permission scheme grants, project role actors, group membership and application access.',
-  'Expanded holder types: project role, group, named user, project lead, application role. Issue-dependent holders (reporter, assignee, user/group custom fields) are listed as conditional and never expanded to people. "Anyone" grants are anonymous access.',
-  'Limitations: Jira has no API listing global permission holders, so admin access is derived from groups with admin/site-admin access (partial). Team-managed projects use their own per-project scheme and roles. Groups whose members could not be read are listed as such.',
+  'Effective access is computed from the snapshot: permission scheme grants, space role actors, group membership and application access.',
+  'Expanded holder types: space role, group, named user, space lead, application role. Work item-dependent holders (reporter, assignee, user/group custom fields) are listed as conditional and never expanded to people. "Anyone" grants are anonymous access.',
+  'Limitations: Jira has no API listing global permission holders, so admin access is derived from groups with admin/site-admin access (partial). Team-managed spaces use their own per-space scheme and roles. Groups whose members could not be read are listed as such.',
   'AccessRadar supports evidence collection. It is not a certification or a guarantee of compliance. Hashes are tamper-evident, not tamper-proof.',
 ];
 
@@ -192,7 +192,7 @@ export async function matrixPdf(
   doc.heading('Access');
   doc.table(
     [
-      { header: 'Project', width: 1 },
+      { header: 'Space', width: 1 },
       { header: 'Who', width: 2 },
       { header: 'Permission', width: 1.6 },
       { header: 'Why (path)', width: 4.4 },
@@ -309,7 +309,7 @@ export async function changesPdf(c: Changes, ctx: ExportContext = {}) {
     ]),
   );
   const accessCols = [
-    { header: 'Project', width: 1 },
+    { header: 'Space', width: 1 },
     { header: 'Who', width: 2 },
     { header: 'Permission', width: 1.6 },
     { header: 'Why (path)', width: 4.4 },

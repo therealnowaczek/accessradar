@@ -42,7 +42,7 @@ const RULE_LABEL: Record<string, string> = {
   'new-admin': 'New admin',
   'new-anonymous-grant': 'Anonymous access',
   'inactive-with-access': 'Inactive with access',
-  'new-project-admin': 'Project admin',
+  'new-project-admin': 'Space admin',
   'new-app-account-admin': 'App account admin',
 };
 

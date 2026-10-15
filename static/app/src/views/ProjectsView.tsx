@@ -45,7 +45,7 @@ import {
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
-  { label: 'All projects', value: 'all' },
+  { label: 'All spaces', value: 'all' },
   { label: 'Anonymous access', value: 'anonymous' },
   { label: 'Company-managed', value: 'company' },
   { label: 'Team-managed', value: 'team' },
@@ -112,11 +112,11 @@ export function ProjectsView() {
     <PageFrame header={header}>
       <div className="page-stack">
         {list.error && !list.data ? (
-          <ErrorState title="Projects unavailable" message={list.error} retry={list.reload} />
+          <ErrorState title="Spaces unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
           <Loading />
         ) : !snapshot ? (
-          <NoSnapshot what="who has access to each project" />
+          <NoSnapshot what="who has access to each space" />
         ) : (
           <>
             <PartialBanner
@@ -124,9 +124,9 @@ export function ProjectsView() {
               onDetails={() => go('snapshots', { seq: String(snapshot.seq) })}
             />
             <FilterBar>
-              <SearchField value={query} onChange={setQuery} placeholder="Search projects" />
+              <SearchField value={query} onChange={setQuery} placeholder="Search spaces" />
               <FilterSelect<Opt>
-                label="Filter projects"
+                label="Filter spaces"
                 options={FILTERS}
                 value={FILTERS.find((f) => f.value === filter)}
                 onChange={(o) => setFilter(o?.value ?? 'all')}
@@ -140,11 +140,11 @@ export function ProjectsView() {
             <DynamicTable
               head={{
                 cells: [
-                  { key: 'key', content: 'Project', isSortable: true },
+                  { key: 'key', content: 'Space', isSortable: true },
                   { key: 'style', content: 'Type', isSortable: true },
                   { key: 'scheme', content: 'Permission scheme', isSortable: true },
                   { key: 'people', content: 'People with access', isSortable: true },
-                  { key: 'admins', content: 'Project admins', isSortable: true },
+                  { key: 'admins', content: 'Space admins', isSortable: true },
                   { key: 'flags', content: 'Flags' },
                 ],
               }}
@@ -172,7 +172,7 @@ export function ProjectsView() {
                   },
                   {
                     key: p.schemeName ?? '',
-                    content: p.schemeName ?? <span className="subtle">Per-project</span>,
+                    content: p.schemeName ?? <span className="subtle">Per-space</span>,
                   },
                   {
                     key: p.people,
@@ -187,7 +187,7 @@ export function ProjectsView() {
                         {p.unexpanded ? (
                           <Pill tone="warning">{p.unexpanded} unread groups</Pill>
                         ) : null}
-                        {p.conditional ? <Pill tone="discovery">Issue-dependent</Pill> : null}
+                        {p.conditional ? <Pill tone="discovery">Work item-dependent</Pill> : null}
                       </span>
                     ),
                   },
@@ -197,7 +197,7 @@ export function ProjectsView() {
               defaultPage={1}
               defaultSortKey="key"
               defaultSortOrder="ASC"
-              emptyView={<p className="subtle">No projects match.</p>}
+              emptyView={<p className="subtle">No spaces match.</p>}
             />
           </>
         )}
@@ -251,21 +251,21 @@ function ProjectDetail({
     ]);
   const header = (
     <PageHeader
-      title={d ? `${d.project.key} · ${d.project.name}` : 'Project'}
+      title={d ? `${d.project.key} · ${d.project.name}` : 'Space'}
       description={
         d
-          ? `${d.project.style === 'team' ? 'Team-managed' : 'Company-managed'} · ${d.project.schemeName ?? 'per-project permissions'}`
+          ? `${d.project.style === 'team' ? 'Team-managed' : 'Company-managed'} · ${d.project.schemeName ?? 'per-space permissions'}`
           : undefined
       }
       actions={
         <>
           <Button iconBefore={ArrowLeftIcon} onClick={onBack}>
-            All projects
+            All spaces
           </Button>
           <ExportMenu
             isDisabled={!d}
             onCsv={() =>
-              void exporter('Project access CSV', () =>
+              void exporter('Space access CSV', () =>
                 exportMatrix(
                   'csv',
                   detail.data?.snapshot?.seq ?? null,
@@ -275,7 +275,7 @@ function ProjectDetail({
               )
             }
             onPdf={() =>
-              void exporter('Project access PDF', () =>
+              void exporter('Space access PDF', () =>
                 exportMatrix(
                   'pdf',
                   detail.data?.snapshot?.seq ?? null,
@@ -293,7 +293,7 @@ function ProjectDetail({
     <PageFrame header={header}>
       <div className="page-stack">
         {detail.error && !detail.data ? (
-          <ErrorState title="Project unavailable" message={detail.error} retry={detail.reload} />
+          <ErrorState title="Space unavailable" message={detail.error} retry={detail.reload} />
         ) : !d ? (
           <Loading />
         ) : (
@@ -348,7 +348,7 @@ function ProjectDetail({
                 rowsPerPage={25}
                 defaultPage={1}
                 emptyView={
-                  <p className="subtle">Nobody has access to this project in this snapshot.</p>
+                  <p className="subtle">Nobody has access to this space in this snapshot.</p>
                 }
               />
             </div>

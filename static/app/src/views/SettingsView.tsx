@@ -232,7 +232,7 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
     >
       <FormField
         label="Key permissions (up to 20)"
-        helper="Used by reviews, change reports, the PDF matrix and project columns. Existing reviews keep the permissions they started with."
+        helper="Used by reviews, change reports, the PDF matrix and space columns. Existing reviews keep the permissions they started with."
       >
         {(id) => (
           <Select<Opt, true>
@@ -348,12 +348,12 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
         hint="Groups this size or bigger that grant access are flagged."
       />
       <NumberField
-        label="Admin of many projects"
+        label="Admin of many spaces"
         value={wide}
         onChange={setWide}
         min={1}
         max={10000}
-        hint="People who administer at least this many projects are flagged."
+        hint="People who administer at least this many spaces are flagged."
       />
       <ToggleField
         label="Include app accounts in risk indicators"
@@ -382,7 +382,7 @@ const ALERT_RULE_LABELS: Array<{ key: keyof NonNullable<Settings['alerts']>; lab
   { key: 'new-admin', label: 'New Jira admin' },
   { key: 'new-anonymous-grant', label: 'New anonymous (Anyone) grant' },
   { key: 'inactive-with-access', label: 'Inactive account with access' },
-  { key: 'new-project-admin', label: 'New project admin' },
+  { key: 'new-project-admin', label: 'New space admin' },
   { key: 'new-app-account-admin', label: 'New app account admin' },
 ];
 
@@ -589,7 +589,7 @@ export function SettingsView() {
               <Details
                 rows={[
                   ['Large group', `${s.largeGroupThreshold}+ members`],
-                  ['Admin of many projects', `${s.wideAdminProjects}+ projects`],
+                  ['Admin of many spaces', `${s.wideAdminProjects}+ spaces`],
                   ['App accounts', s.showAppAccounts ? 'Included' : 'Excluded'],
                 ]}
               />
@@ -657,7 +657,7 @@ export function SettingsView() {
                     'Jira access',
                     'Read-only (granular read scopes); AccessRadar never changes Jira',
                   ],
-                  ['Issue content', 'Never read'],
+                  ['Work item content', 'Never read'],
                   [
                     'Where data lives',
                     'Forge SQL in this site’s Atlassian environment; no external egress',
@@ -707,7 +707,7 @@ const ADVANCED_FEATURES: Array<{
   },
   {
     key: 'delegatedReviews',
-    label: 'Reviews delegated to project owners (project settings + in-app reminders)',
+    label: 'Reviews delegated to space owners (space settings + in-app reminders)',
   },
   { key: 'reviewCampaigns', label: 'Recurring review campaigns' },
   {

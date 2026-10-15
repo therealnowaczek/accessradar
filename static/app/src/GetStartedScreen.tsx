@@ -50,7 +50,7 @@ export default function GetStartedScreen() {
       id: 'collect',
       title: 'Review what we collect and the schedule',
       detail:
-        'Permission schemes, project roles, groups, application access and account status. Never issue content, and nothing leaves Atlassian. Confirm the snapshot schedule in Settings.',
+        'Permission schemes, space roles, groups, application access and account status. Never work item content, and nothing leaves Atlassian. Confirm the snapshot schedule in Settings.',
       done: status.data.settingsSaved,
       action: { label: 'Open settings', run: openConfig, primary: false },
     },

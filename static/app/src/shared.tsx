@@ -67,8 +67,8 @@ export function useTakeSnapshot(
 }
 
 const STEP_LABEL: Record<string, string> = {
-  PLAN: 'Planning: projects and permission schemes',
-  PROJECTS: 'Reading project schemes and roles',
+  PLAN: 'Planning: spaces and permission schemes',
+  PROJECTS: 'Reading space schemes and roles',
   DIRECTORY: 'Reading groups, application access and users',
   GROUPS: 'Reading group members',
   FINALIZE: 'Computing effective access',

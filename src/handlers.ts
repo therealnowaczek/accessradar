@@ -165,7 +165,7 @@ function defProject(name: string, fn: ProjectHandler) {
       const accountId = (context as { accountId?: string }).accountId ?? '';
       const extension = (context as { extension?: { project?: { id?: string } } }).extension;
       const projectId = extension?.project?.id ? String(extension.project.id) : '';
-      if (!projectId) return { ok: false, error: 'Project context missing', forbidden: true };
+      if (!projectId) return { ok: false, error: 'Space context missing', forbidden: true };
 
       await ensureMigrated();
       const edition = await decideForInvocation(license);

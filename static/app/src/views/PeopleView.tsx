@@ -31,10 +31,10 @@ import {
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
   { label: 'Everyone', value: 'all' },
-  { label: 'With project access', value: 'access' },
+  { label: 'With space access', value: 'access' },
   { label: 'Inactive with access', value: 'inactive' },
   { label: 'Jira administrators', value: 'admins' },
-  { label: 'Admin of several projects', value: 'project-admins' },
+  { label: 'Admin of several spaces', value: 'project-admins' },
 ];
 
 export function PeopleView() {
@@ -119,7 +119,7 @@ export function PeopleView() {
               head={{
                 cells: [
                   { key: 'name', content: 'Person', isSortable: true },
-                  { key: 'projects', content: 'Projects', isSortable: true },
+                  { key: 'projects', content: 'Spaces', isSortable: true },
                   { key: 'admin', content: 'Admin of', isSortable: true },
                   { key: 'groups', content: 'Groups', isSortable: true },
                   { key: 'flags', content: '' },
@@ -149,7 +149,7 @@ export function PeopleView() {
                   {
                     key: p.adminProjects,
                     content: p.adminProjects ? (
-                      plural(p.adminProjects, 'project')
+                      plural(p.adminProjects, 'space')
                     ) : (
                       <span className="subtle">—</span>
                     ),
@@ -288,8 +288,8 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
         )}
       </Section>
       <Section
-        title={`Projects (${d.projects.length})`}
-        description="Permissions in each project, with the path that grants them."
+        title={`Spaces (${d.projects.length})`}
+        description="Permissions in each space, with the path that grants them."
       >
         {d.projects.length ? (
           <ul className="reason-list">
@@ -303,7 +303,7 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
             ))}
           </ul>
         ) : (
-          <p className="subtle">No project access.</p>
+          <p className="subtle">No space access.</p>
         )}
       </Section>
     </DrawerBody>

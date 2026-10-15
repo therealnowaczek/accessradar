@@ -58,10 +58,10 @@ export async function whoCanAccess(p: {
   const key = String(p.projectKey ?? '').trim();
   if (!key) throw new BadRequest('projectKey is required');
   const projectId = findProjectId(state, key);
-  if (!projectId) throw new BadRequest(`Project ${key} not in the latest snapshot`);
+  if (!projectId) throw new BadRequest(`Space ${key} not in the latest snapshot`);
   const detail = await projectDetail({ projectId, seq: snap.seq });
   const data = detail.data;
-  if (!data) throw new BadRequest('Project not in this snapshot');
+  if (!data) throw new BadRequest('Space not in this snapshot');
   const want = p.permission?.trim() || null;
   const rows: RovoResult['rows'] = [];
   for (const r of data.rows) {
@@ -82,7 +82,7 @@ export async function whoCanAccess(p: {
     snapshotAt: snap.finishedAt ?? snap.startedAt,
     note: t.note,
     rows: t.rows,
-    openIn: 'AccessRadar → Explore → Projects',
+    openIn: 'AccessRadar → Explore → Spaces',
   };
 }
 
@@ -96,13 +96,13 @@ export async function whyAccess(p: {
   const key = String(p.projectKey ?? '').trim();
   if (!key) throw new BadRequest('projectKey is required');
   const projectId = findProjectId(state, key);
-  if (!projectId) throw new BadRequest(`Project ${key} not in the latest snapshot`);
+  if (!projectId) throw new BadRequest(`Space ${key} not in the latest snapshot`);
   const who = String(p.accountId ?? p.name ?? '').trim();
   if (!who) throw new BadRequest('accountId or name is required');
   const accountId = findAccountId(state, who);
   const detail = await projectDetail({ projectId, seq: snap.seq });
   const data = detail.data;
-  if (!data) throw new BadRequest('Project not in this snapshot');
+  if (!data) throw new BadRequest('Space not in this snapshot');
   const want = p.permission?.trim() || null;
   const rows: RovoResult['rows'] = [];
   for (const r of data.rows) {
@@ -130,7 +130,7 @@ export async function whyAccess(p: {
     snapshotAt: snap.finishedAt ?? snap.startedAt,
     note: t.note,
     rows: t.rows,
-    openIn: 'AccessRadar → Explore → Projects (Why panel)',
+    openIn: 'AccessRadar → Explore → Spaces (Why panel)',
   };
 }
 

@@ -177,7 +177,7 @@ export function OverviewView() {
             {d.metrics ? (
               <div className="metric-grid">
                 <Metric
-                  label="Projects"
+                  label="Spaces"
                   value={d.metrics.projects}
                   hint={`${d.metrics.teamManaged} team-managed`}
                 />
@@ -199,7 +199,7 @@ export function OverviewView() {
                 <Metric
                   label="Access entries"
                   value={d.metrics.accessEntries}
-                  hint="Who × project × permission"
+                  hint="Who × space × permission"
                 />
               </div>
             ) : null}

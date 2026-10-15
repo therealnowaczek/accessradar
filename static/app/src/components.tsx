@@ -59,7 +59,9 @@ export function SubjectCell({
           {app ? <Pill>App</Pill> : null}
           {subject.type === 'anonymous' ? <Pill tone="danger">Anonymous</Pill> : null}
           {subject.type === 'group' ? <Pill tone="warning">Members unknown</Pill> : null}
-          {subject.type === 'conditional' ? <Pill tone="discovery">Issue-dependent</Pill> : null}
+          {subject.type === 'conditional' ? (
+            <Pill tone="discovery">Work item-dependent</Pill>
+          ) : null}
         </span>
         {!compact && subject.type === 'group' ? (
           <span className="subtle person-id">Group members could not be read</span>

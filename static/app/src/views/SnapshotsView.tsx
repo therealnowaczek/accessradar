@@ -22,10 +22,10 @@ import {
 import { Details, Empty, ErrorState, LinkButton, Loading, PageFrame, PageHeader } from '../ui';
 
 const STAT_LABEL: Record<string, string> = {
-  project: 'Projects',
+  project: 'Spaces',
   scheme: 'Permission schemes',
   grant: 'Permission grants',
-  role: 'Project roles',
+  role: 'Space roles',
   role_actor: 'Role actors',
   group: 'Groups',
   group_access: 'Group admin/application access',
@@ -144,7 +144,7 @@ export function SnapshotsView() {
                   key: 'size',
                   content: s.stats ? (
                     <span className="subtle">
-                      {s.stats.project ?? 0} projects · {s.stats.group ?? 0} groups ·{' '}
+                      {s.stats.project ?? 0} spaces · {s.stats.group ?? 0} groups ·{' '}
                       {s.stats.person ?? 0} people
                     </span>
                   ) : (
@@ -233,7 +233,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
       {committed ? (
         <Section
           title="Export"
-          description="Access matrix: who has which permission in which project, and why."
+          description="Access matrix: who has which permission in which space, and why."
         >
           <div className="actions">
             <ExportMenu

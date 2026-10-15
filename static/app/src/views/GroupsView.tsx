@@ -21,7 +21,7 @@ import {
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
   { label: 'All groups', value: 'all' },
-  { label: 'Used in projects', value: 'used' },
+  { label: 'Used in spaces', value: 'used' },
   { label: 'Admin access', value: 'admin' },
   { label: 'Application access', value: 'app-access' },
   { label: 'Large groups', value: 'large' },
@@ -107,7 +107,7 @@ export function GroupsView() {
                   { key: 'name', content: 'Group', isSortable: true },
                   { key: 'members', content: 'Members', isSortable: true },
                   { key: 'access', content: 'Access' },
-                  { key: 'projects', content: 'Projects reached', isSortable: true },
+                  { key: 'projects', content: 'Spaces reached', isSortable: true },
                   { key: 'grants', content: 'Direct grants', isSortable: true },
                 ],
               }}
@@ -214,7 +214,7 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
           <p className="subtle">No application or admin access.</p>
         )}
       </Section>
-      <Section title="Projects" description="Where membership of this group grants access.">
+      <Section title="Spaces" description="Where membership of this group grants access.">
         {g.usage.length ? (
           <ul className="reason-list">
             {g.usage.map((u) => (
@@ -229,11 +229,11 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
             ))}
           </ul>
         ) : (
-          <p className="subtle">This group grants no project permissions.</p>
+          <p className="subtle">This group grants no space permissions.</p>
         )}
       </Section>
       {g.schemeGrants.length || g.roles.length ? (
-        <Section title="Configuration" description="Scheme grants and project role memberships.">
+        <Section title="Configuration" description="Scheme grants and space role memberships.">
           <ul className="plain-list">
             {g.schemeGrants.map((s, i) => (
               <li key={`s${i}`}>

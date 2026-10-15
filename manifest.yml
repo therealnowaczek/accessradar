@@ -68,7 +68,7 @@ modules:
       icon: resource:icons;accessradar.svg
       prompt: resource:rovo-prompt;agent.md
       conversationStarters:
-        - Who can administer project PAY?
+        - Who can administer space PAY?
         - What changed since the last snapshot?
         - Which access reviews are overdue?
       actions:
@@ -79,10 +79,10 @@ modules:
         - ar-person-access
   action:
     - key: ar-who-can-access
-      name: Who can access a project
+      name: Who can access a space
       function: ar-rovo
       actionVerb: GET
-      description: List people and groups with permissions on a project, from the latest AccessRadar snapshot.
+      description: List people and groups with permissions on a space, from the latest AccessRadar snapshot.
       inputs:
         projectKey:
           title: Project key
@@ -98,7 +98,7 @@ modules:
       name: Why someone has access
       function: ar-rovo
       actionVerb: GET
-      description: Explain the grant path for a person or group on a project permission.
+      description: Explain the grant path for a person or group on a space permission.
       inputs:
         projectKey:
           title: Project key
@@ -148,10 +148,10 @@ modules:
           required: false
           description: Optional campaign name filter
     - key: ar-person-access
-      name: Person access across projects
+      name: Person access across spaces
       function: ar-rovo
       actionVerb: GET
-      description: List projects and key permissions for one person from the latest snapshot.
+      description: List spaces and key permissions for one person from the latest snapshot.
       inputs:
         accountId:
           title: Account ID

@@ -16,11 +16,11 @@ const en = {
   'planGate.alerts':
     'Get an in-app alert when a new admin, public grant or inactive account with access appears.',
   'planGate.campaigns':
-    'Schedule recurring access reviews and delegate them to project owners with reminders.',
+    'Schedule recurring access reviews and delegate them to space owners with reminders.',
   'planGate.remediation':
     'See whether each revoked access really disappeared in the next snapshot.',
   'planGate.projectReview':
-    'Let project owners review access to their own project, with in-app reminders.',
+    'Let space owners review access to their own space, with in-app reminders.',
   // Sample data shown (faded, aria-hidden) above the note of a locked panel.
   'planGate.sample.subject1': 'Sample user A',
   'planGate.sample.subject2': 'Sample user B',

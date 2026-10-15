@@ -345,8 +345,8 @@ export function describeFactChange(b: AccessState, a: AccessState, c: FactChange
         detail: moved
           ? `Permission scheme ${schemeName(String(c.before?.schemeId))} → ${schemeName(String(c.after?.schemeId))}`
           : c.change === 'changed'
-            ? 'Project details changed'
-            : `Project ${c.change}`,
+            ? 'Space details changed'
+            : `Space ${c.change}`,
         projectIds: [c.fkey],
       };
     }
