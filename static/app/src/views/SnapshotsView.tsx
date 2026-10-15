@@ -16,6 +16,7 @@ import {
   SnapshotProgress,
   useApp,
   useExporter,
+  useRefresh,
   useSnapshots,
   useTakeSnapshot,
 } from '../shared';
@@ -50,9 +51,13 @@ export function SnapshotsView() {
   const [drawer, setDrawer] = useState<DrawerLevel[]>([]);
   const active = status.data?.active ?? snaps.data?.active ?? null;
   const latest = status.data?.latest?.seq;
+  const { refresh, refreshing } = useRefresh(async () => {
+    const [listOk, statusOk] = await Promise.all([snaps.reload(), status.reload()]);
+    return listOk && statusOk;
+  });
 
   useEffect(() => {
-    snaps.reload();
+    void snaps.reload();
     // refresh the list when a running snapshot finishes
   }, [latest, active?.status]);
 
@@ -78,7 +83,12 @@ export function SnapshotsView() {
       description={meta.description}
       actions={
         <>
-          <Button iconBefore={RefreshIcon} onClick={snaps.reload}>
+          <Button
+            iconBefore={RefreshIcon}
+            isLoading={refreshing}
+            isDisabled={refreshing}
+            onClick={() => void refresh()}
+          >
             Refresh
           </Button>
           <Button

@@ -1,15 +1,24 @@
 /**
- * Marketplace editions (mirrors MarginRadar src/domain/edition.ts).
+ * Marketplace editions (Radar family pattern — same as MarginRadar / ConfigRadar).
  *
  * `license.capabilitySet` is `capabilityAdvanced` or `capabilityStandard`.
  * An active license with a missing capability set is Standard: Atlassian leaves
  * it null until the customer changes edition.
  * Development and staging omit `license`. Those sites are Advanced unless
- * `AR_EDITION_OVERRIDE` or the stored override says otherwise.
+ * `AR_EDITION_OVERRIDE` or the stored in-app override says otherwise.
+ *
+ * Overrides (env + stored) are honourable only when `overridesAllowed` — never on
+ * Marketplace production, so a Standard license cannot unlock Advanced in Settings.
  */
 export type Edition = 'standard' | 'advanced';
 
 export type EditionSource = 'env' | 'stored' | 'license' | 'development';
+
+/** Forge DEVELOPMENT / STAGING only. Missing or PRODUCTION → no overrides. */
+export function overridesAllowed(environmentType?: string | null): boolean {
+  const env = (environmentType ?? '').toUpperCase();
+  return env === 'DEVELOPMENT' || env === 'STAGING';
+}
 
 export interface EditionLicense {
   active?: boolean;

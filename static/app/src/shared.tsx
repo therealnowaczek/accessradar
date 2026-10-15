@@ -1,9 +1,9 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import Button from '@atlaskit/button/new';
 import ProgressBar from '@atlaskit/progress-bar';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import { call, errorText, type Snapshot, type Status } from './api';
-import { useCall, usePoll, type Loadable } from './data';
+import { useAction, useCall, usePoll, type Loadable } from './data';
 import type { ExportContext } from './export/evidence';
 import { relative, timeZone } from './format';
 import type { ViewId } from './routes';
@@ -39,6 +39,19 @@ export const logExport = (kind: string, target?: string, limitationsVersion?: nu
 export const useSnapshots = () =>
   useCall<{ snapshots: Snapshot[]; active: Snapshot | null }>('listSnapshots');
 
+/**
+ * Page refresh (Radar family): ConfigRadar `useAction` busy flag + MarginRadar toast copy.
+ * Pass a function that reloads one or more `useCall` sources and returns overall success.
+ */
+export function useRefresh(reload: () => Promise<boolean>) {
+  const toast = useToast();
+  const [refresh, refreshing] = useAction(async () => {
+    if (await reload()) toast.success('Data refreshed');
+    else toast.error('Could not refresh', 'Try again in a moment.');
+  });
+  return { refresh, refreshing };
+}
+
 /** "Take snapshot now": starts (or joins) a collection run and refreshes status. */
 export function useTakeSnapshot(
   onStarted?: () => void,
@@ -46,23 +59,19 @@ export function useTakeSnapshot(
 ) {
   const toast = useToast();
   const { status } = useApp();
-  const [busy, setBusy] = useState(false);
-  const run = useCallback(async () => {
-    setBusy(true);
+  const [run, busy] = useAction(async () => {
     try {
       const r = await call<{ created: boolean; seq: number }>('startSnapshot', { trigger });
       toast.success(
         r.created ? `Snapshot #${r.seq} started` : `Snapshot #${r.seq} is already running`,
         'You can keep working; progress updates here.',
       );
-      status.reload();
+      void status.reload();
       onStarted?.();
     } catch (e) {
       toast.error('Snapshot could not start', errorText(e));
-    } finally {
-      setBusy(false);
     }
-  }, [toast, status, onStarted, trigger]);
+  });
   return { run, busy };
 }
 

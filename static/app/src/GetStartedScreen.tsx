@@ -8,6 +8,8 @@ import SectionMessage from '@atlaskit/section-message';
 import { call, errorText } from './api';
 import { usePoll, useStatus } from './data';
 import { MODULE_KEYS } from './routes';
+import { useRefresh } from './shared';
+import { ToastProvider } from './Toast';
 import { BrandMark, ErrorState, Loading, PageFrame, PageHeader, Pill } from './ui';
 
 const openApp = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.main });
@@ -15,17 +17,26 @@ const openConfig = () => void router.navigate({ target: 'module', moduleKey: MOD
 
 /** Separate screen without the sidebar, like MarginRadar's get-started module. */
 export default function GetStartedScreen() {
+  return (
+    <ToastProvider>
+      <GetStartedBody />
+    </ToastProvider>
+  );
+}
+
+function GetStartedBody() {
   const status = useStatus();
   const [busy, setBusy] = useState(false);
   const [startError, setStartError] = useState('');
   const active = status.data?.active ?? null;
   usePoll(Boolean(active), status.reload);
+  const { refresh, refreshing } = useRefresh(() => status.reload());
   const takeFirst = async () => {
     setBusy(true);
     setStartError('');
     try {
       await call('startSnapshot', { trigger: 'onboarding' });
-      status.reload();
+      void status.reload();
     } catch (e) {
       setStartError(errorText(e));
     } finally {
@@ -73,7 +84,11 @@ export default function GetStartedScreen() {
         <PageHeader
           title="Get started with AccessRadar"
           description="Three steps to your first access review."
-          actions={<Button onClick={status.reload}>Refresh</Button>}
+          actions={
+            <Button isLoading={refreshing} isDisabled={refreshing} onClick={() => void refresh()}>
+              Refresh
+            </Button>
+          }
         />
       }
     >
