@@ -26,9 +26,11 @@
 - [ ] Pułapka: zapis highlightów („File does not exist”/„Must be a valid UUID”); jeśli wystąpi, zapisać ręcznie z innej przeglądarki
 
 ## 4. Cennik
-- [ ] Standard: darmowy do 10 userów, potem tiery per user (MarginRadar: $0.75/$0.60/$0.40/$0.25; dla AccessRadar do decyzji)
+- [ ] Standard (FINAL 2026-10-14): $0 płasko do 10 userów, potem $0.49 / $0.35 / $0.25 / $0.20 (11–100 / 101–250 / 251–1 000 / 1 001+)
+- [ ] Advanced: $4 płasko do 10, potem $0.99 / $0.89 / $0.79 / $0.45; 30-dniowy trial
 - [ ] Multi-instance = single-instance; roczna cena = 10× miesięczna (automatycznie)
-- [ ] Edycja Advanced dopiero po zatwierdzeniu
+- [ ] Wgrać `docs/accessradar-pricing-import.csv` na listing przy pierwszym wydaniu po akceptacji Marketplace (nie wcześniej; sam Marketplace ten PR nie rusza)
+- [ ] Edycja Advanced w konsoli dopiero po zatwierdzeniu płatnej aplikacji; funkcje R1/R2 są już wydane w kodzie
 
 ## 5. Privacy & Security tab
 - [ ] Runs on Atlassian, zero egress, data residency jak Jira (Forge SQL/KVS), lista danych, personal data = Yes, DPA

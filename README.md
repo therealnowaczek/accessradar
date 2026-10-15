@@ -3,7 +3,7 @@
 Read-only access review for Jira Cloud: who has access to what, why, and what changed since the last review.
 Built on Atlassian Forge and eligible for Runs on Atlassian (no egress).
 
-> Status: week 1 skeleton. Not production-ready.
+> Status: R1 and R2 are released. Final Marketplace prices (2026-10-14) are in `docs/LISTING.md` §8 and `docs/accessradar-pricing-import.csv`; they go live on the listing at the first release after Marketplace approval.
 
 ## Layout
 

@@ -49,8 +49,8 @@ for key, text, limit in FIELDS:
     ok &= not problems
     print(f"{'OK ' if not problems else 'ERR'} {key:24} {n:4}/{limit}  {'; '.join(problems)}")
 # Pricing (§8): progressive from the first user on Atlassian's fixed tiers; 1–10 flat $0.
-TIERS = [(100, 0.75), (250, 0.60), (1000, 0.40), (None, 0.25)]
-ADV_TIERS = [(100, 1.99), (250, 1.49), (1000, 0.99), (None, 0.49)]
+TIERS = [(100, 0.49), (250, 0.35), (1000, 0.25), (None, 0.20)]
+ADV_TIERS = [(100, 0.99), (250, 0.89), (1000, 0.79), (None, 0.45)]
 def monthly(users, tiers=TIERS, flat=0.0):
     if users <= 10: return flat
     total, lo = 0.0, 0
@@ -61,8 +61,8 @@ def monthly(users, tiers=TIERS, flat=0.0):
         lo = hi
     return round(total, 2)
 EXAMPLES = [
-    (TIERS, 0.0, [(10, 0), (25, 18.75), (50, 37.5), (100, 75), (250, 165), (500, 265), (1000, 465), (2500, 840), (5000, 1465)]),
-    (ADV_TIERS, 10.0, [(10, 10), (25, 49.75), (50, 99.5), (100, 199), (250, 422.5), (500, 670), (1000, 1165), (2500, 1900), (5000, 3125)]),
+    (TIERS, 0.0, [(10, 0), (25, 12.25), (50, 24.5), (100, 49), (250, 101.5), (500, 164), (1000, 289), (2500, 589), (5000, 1089)]),
+    (ADV_TIERS, 4.0, [(10, 4), (25, 24.75), (50, 49.5), (100, 99), (250, 232.5), (500, 430), (1000, 825), (2500, 1500), (5000, 2625)]),
 ]
 for tiers, flat, rows in EXAMPLES:
   for users, stated in rows:
