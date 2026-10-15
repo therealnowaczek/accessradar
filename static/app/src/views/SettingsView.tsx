@@ -748,53 +748,61 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
       setBusy(false);
     }
   };
+  const rows: Array<[string, ReactNode]> = [
+    [
+      'Edition',
+      <span key="e" className="chip-row">
+        <Pill tone={edition.edition === 'advanced' ? 'discovery' : 'neutral'}>
+          {edition.edition === 'advanced' ? 'Advanced' : 'Standard'}
+        </Pill>
+        <span className="subtle">{SOURCE_TEXT[edition.source]}</span>
+      </span>,
+    ],
+  ];
+  if (edition.canOverride === true) {
+    rows.push([
+      'Override',
+      <Select
+        menuPosition="fixed"
+        key="o"
+        inputId="edition-override"
+        isDisabled={busy || edition.envOverride}
+        options={options}
+        value={options.find((o) => o.value === (edition.override ?? '')) ?? options[0]}
+        onChange={(o) => void change((o as Opt<string> | null)?.value ?? '')}
+      />,
+    ]);
+  }
+  rows.push([
+    'Advanced',
+    <ul key="a" className="plain-list">
+      {ADVANCED_FEATURES.map((f) => {
+        const soon = (edition.comingSoon ?? []).includes(f.key);
+        return (
+          <li key={f.key}>
+            {f.label}{' '}
+            {soon ? (
+              <Pill tone="info">Coming soon</Pill>
+            ) : edition.features[f.key] ? (
+              <Pill tone="success">Included</Pill>
+            ) : (
+              <AdvancedBadge />
+            )}
+          </li>
+        );
+      })}
+    </ul>,
+  ]);
   return (
-    <Section title="Edition" description="Which AccessRadar features this site can use.">
-      <Details
-        rows={[
-          [
-            'Edition',
-            <span key="e" className="chip-row">
-              <Pill tone={edition.edition === 'advanced' ? 'discovery' : 'neutral'}>
-                {edition.edition === 'advanced' ? 'Advanced' : 'Standard'}
-              </Pill>
-              <span className="subtle">{SOURCE_TEXT[edition.source]}</span>
-            </span>,
-          ],
-          [
-            'Override',
-            <Select
-              menuPosition="fixed"
-              key="o"
-              inputId="edition-override"
-              isDisabled={busy || edition.envOverride}
-              options={options}
-              value={options.find((o) => o.value === (edition.override ?? '')) ?? options[0]}
-              onChange={(o) => void change((o as Opt<string> | null)?.value ?? '')}
-            />,
-          ],
-          [
-            'Advanced',
-            <ul key="a" className="plain-list">
-              {ADVANCED_FEATURES.map((f) => {
-                const soon = (edition.comingSoon ?? []).includes(f.key);
-                return (
-                  <li key={f.key}>
-                    {f.label}{' '}
-                    {soon ? (
-                      <Pill tone="info">Coming soon</Pill>
-                    ) : edition.features[f.key] ? (
-                      <Pill tone="success">Included</Pill>
-                    ) : (
-                      <AdvancedBadge />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>,
-          ],
-        ]}
-      />
+    <Section
+      title="Edition"
+      description={
+        edition.canOverride
+          ? 'Which AccessRadar features this site can use. On development and staging you can override the edition to test Standard vs Advanced.'
+          : 'Which AccessRadar features this site can use.'
+      }
+    >
+      <Details rows={rows} />
     </Section>
   );
 }

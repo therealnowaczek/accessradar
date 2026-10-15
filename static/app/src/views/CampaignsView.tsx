@@ -16,7 +16,7 @@ import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Draw
 import { formatLocal } from '../format';
 import { t } from '../i18n';
 import { navItem } from '../routes';
-import { useApp } from '../shared';
+import { useApp, useRefresh } from '../shared';
 import { useToast } from '../Toast';
 import {
   Empty,
@@ -625,6 +625,7 @@ function RunDetail({
       dueAt: number;
     }>;
   }>('getCampaignRun', { runId });
+  const { refresh, refreshing } = useRefresh(() => r.reload());
 
   if (r.error && !r.data)
     return (
@@ -693,7 +694,9 @@ function RunDetail({
           {run.status === 'materializing' ||
           run.status === 'waiting_snapshot' ||
           run.status === 'starting' ? (
-            <Button onClick={() => r.reload()}>Refresh</Button>
+            <Button isLoading={refreshing} isDisabled={refreshing} onClick={() => void refresh()}>
+              Refresh
+            </Button>
           ) : null}
         </div>
       </DrawerBody>

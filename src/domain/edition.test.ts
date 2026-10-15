@@ -3,10 +3,22 @@ import {
   comingSoonFeatures,
   effectiveSchedule,
   featureFlags,
+  overridesAllowed,
   RELEASED_FEATURES,
   resolveEdition,
 } from './edition';
 import { isLicensed } from './license';
+
+describe('overridesAllowed', () => {
+  it('allows only Forge development and staging', () => {
+    expect(overridesAllowed('DEVELOPMENT')).toBe(true);
+    expect(overridesAllowed('STAGING')).toBe(true);
+    expect(overridesAllowed('development')).toBe(true);
+    expect(overridesAllowed('PRODUCTION')).toBe(false);
+    expect(overridesAllowed(undefined)).toBe(false);
+    expect(overridesAllowed('')).toBe(false);
+  });
+});
 
 describe('resolveEdition', () => {
   it('treats a missing license as Advanced', () => {

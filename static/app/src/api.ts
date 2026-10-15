@@ -331,6 +331,8 @@ export type EditionView = {
   override: Edition | null;
   features: EditionFeatures;
   envOverride: boolean;
+  /** False on Marketplace production — override control is hidden. */
+  canOverride?: boolean;
   comingSoon?: Array<keyof EditionFeatures>;
 };
 

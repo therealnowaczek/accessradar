@@ -132,7 +132,9 @@ export function AlertsView() {
                 {
                   key: 'sev',
                   content: (
-                    <Pill tone={a.severity === 'high' ? 'danger' : 'warning'}>{a.severity}</Pill>
+                    <Pill tone={a.severity === 'high' ? 'danger' : 'warning'}>
+                      {a.severity === 'high' ? 'High' : a.severity === 'medium' ? 'Medium' : 'Low'}
+                    </Pill>
                   ),
                 },
                 { key: 'rule', content: RULE_LABEL[a.rule] ?? a.rule },

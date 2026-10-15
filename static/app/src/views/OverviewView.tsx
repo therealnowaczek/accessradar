@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '@atlaskit/dynamic-table';
+import Heading from '@atlaskit/heading';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
 import SectionMessage from '@atlaskit/section-message';
 import type { Overview, Risk } from '../api';
@@ -14,12 +15,14 @@ import {
   PartialBanner,
   SnapshotProgress,
   useApp,
+  useRefresh,
   useTakeSnapshot,
   type Params,
 } from '../shared';
 import { Empty, ErrorState, LinkButton, Loading, Metric, PageFrame, PageHeader, Pill } from '../ui';
 
 const SEVERITY_TONE = { high: 'danger', medium: 'warning', low: 'neutral' } as const;
+const SEVERITY_LABEL = { high: 'High', medium: 'Medium', low: 'Low' } as const;
 
 /** Where a risk tile leads: the explore view pre-filtered on the risky items. */
 const RISK_TARGET: Record<string, [ViewId, Params]> = {
@@ -44,15 +47,23 @@ export function OverviewView() {
   const take = useTakeSnapshot(ov.reload);
   const [drawer, setDrawer] = useState<DrawerLevel[]>([]);
   const active = status.data?.active ?? ov.data?.active ?? null;
+  const { refresh, refreshing } = useRefresh(async () => {
+    const [overviewOk, statusOk] = await Promise.all([ov.reload(), status.reload()]);
+    return overviewOk && statusOk;
+  });
 
   const header = (
     <PageHeader
       title={meta.title}
       description={meta.description}
-      status={ov.data?.snapshot ? <SnapshotLozenge status={ov.data.snapshot.status} /> : null}
       actions={
         <>
-          <Button iconBefore={RefreshIcon} onClick={ov.reload}>
+          <Button
+            iconBefore={RefreshIcon}
+            isLoading={refreshing}
+            isDisabled={refreshing}
+            onClick={() => void refresh()}
+          >
             Refresh
           </Button>
           <Button
@@ -169,11 +180,20 @@ export function OverviewView() {
                 ])
               }
             />
-            <p className="subtle">
-              Snapshot #{d.snapshot.seq} · {formatLocal(d.snapshot.startedAt)} (
-              {relative(d.snapshot.startedAt)}) ·{' '}
-              <LinkButton onClick={() => go('snapshots')}>Snapshot history</LinkButton>
-            </p>
+            <div className="section-header">
+              <div>
+                <div className="status-row">
+                  <Heading size="medium" as="h2">
+                    Snapshot #{d.snapshot.seq}
+                  </Heading>
+                  <SnapshotLozenge status={d.snapshot.status} />
+                </div>
+                <p className="subtle">
+                  {formatLocal(d.snapshot.startedAt)} ({relative(d.snapshot.startedAt)}) ·{' '}
+                  <LinkButton onClick={() => go('snapshots')}>Snapshot history</LinkButton>
+                </p>
+              </div>
+            </div>
             {d.metrics ? (
               <div className="metric-grid">
                 <Metric
@@ -223,7 +243,11 @@ export function OverviewView() {
                       cells: [
                         {
                           key: 'severity',
-                          content: <Pill tone={SEVERITY_TONE[r.severity]}>{r.severity}</Pill>,
+                          content: (
+                            <Pill tone={SEVERITY_TONE[r.severity]}>
+                              {SEVERITY_LABEL[r.severity]}
+                            </Pill>
+                          ),
                         },
                         {
                           key: 'indicator',
