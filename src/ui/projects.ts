@@ -51,7 +51,7 @@ export async function listProjectsAsUser(
         route`/rest/api/3/project/search?startAt=${startAt}&maxResults=50&orderBy=key`,
         { headers: { Accept: 'application/json' } },
       );
-      if (!res.ok) throw new Error(`Project list failed (${res.status})`);
+      if (!res.ok) throw new Error(`Space list failed (${res.status})`);
       const body = (await res.json()) as { values?: JiraProject[]; isLast?: boolean };
       return { values: Array.isArray(body.values) ? body.values : [], isLast: body.isLast };
     },

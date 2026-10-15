@@ -56,7 +56,7 @@ describe('resolveCampaignProjectIds', () => {
       all,
     );
     expect(ids).toEqual([]);
-    expect(warnings[0]).toMatch(/No projects in the selected categories/);
+    expect(warnings[0]).toMatch(/No spaces in the selected categories/);
   });
 });
 

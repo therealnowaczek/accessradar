@@ -98,7 +98,7 @@ export function ExceptionsView() {
             head={{
               cells: [
                 { key: 'subject', content: 'Subject' },
-                { key: 'scope', content: 'Project/Group' },
+                { key: 'scope', content: 'Space/Group' },
                 { key: 'perms', content: 'Permissions' },
                 { key: 'why', content: 'Justification' },
                 { key: 'exp', content: 'Expires' },

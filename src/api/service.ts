@@ -292,7 +292,7 @@ export async function projectDetail(p: any) {
   const r = await withState(p.seq, (s) =>
     s.projects.has(projectId) ? projectAccess(s, projectId) : null,
   );
-  if (r.snapshot && !r.data) throw new BadRequest('Project not in this snapshot');
+  if (r.snapshot && !r.data) throw new BadRequest('Space not in this snapshot');
   return r;
 }
 
@@ -446,7 +446,7 @@ export async function matrix(p: any) {
           s.type === 'group'
             ? 'members-unreadable'
             : s.type === 'conditional'
-              ? 'issue-dependent'
+              ? 'work-item-dependent'
               : 'complete',
       });
     }
@@ -472,7 +472,7 @@ export async function createReview(p: any, accountId: string) {
   const ids: string[] = Array.isArray(p.scope?.ids)
     ? p.scope.ids.slice(0, 500).map((x: unknown) => v.id(x, 'scope id', /^[\w:.\- ]{1,128}$/))
     : [];
-  if (type !== 'site' && !ids.length) throw new BadRequest('Pick at least one project or group');
+  if (type !== 'site' && !ids.length) throw new BadRequest('Pick at least one space or group');
   const base = await committed(v.optSeq(p.baseSeq));
   if (!base) throw new BadRequest('Take a snapshot before starting a review');
   const compare = v.optSeq(p.compareSeq) === null ? null : await committed(v.optSeq(p.compareSeq));
@@ -485,7 +485,7 @@ export async function createReview(p: any, accountId: string) {
   // Scope ids are re-resolved against the pinned snapshot; unknown ids are rejected.
   const known = type === 'projects' ? state.projects : state.groups;
   if (type !== 'site' && ids.some((id) => !known.has(id)))
-    throw new BadRequest('Scope contains unknown projects or groups');
+    throw new BadRequest('Scope contains unknown spaces or groups');
   const scope: ReviewScope = { type, ids };
   const drafts = buildReviewItems(
     state,
@@ -1264,7 +1264,7 @@ export async function getEvidencePack(p: any, edition: EditionDecision) {
       methodology: {
         engineVersion: ENGINE_VERSION,
         dataSources: [...EVIDENCE_DATA_SOURCES],
-        note: 'Effective access is resolved by expanding permission-scheme grants, project roles, and group membership into why-paths (read-only).',
+        note: 'Effective access is resolved by expanding permission-scheme grants, space roles, and group membership into why-paths (read-only).',
       },
       limitations,
       coverage: baseFull?.coverage ?? [],
@@ -1476,7 +1476,7 @@ export async function projectMyAssignment(
       items: [],
       notices: notices.items,
       limitation:
-        'When a Jira admin runs a campaign, your project is assigned here. Reminders stay in the app — AccessRadar does not send email.',
+        'When a Jira admin runs a campaign, your space is assigned here. Reminders stay in the app — AccessRadar does not send email.',
     };
   }
   const assignment = await findOpenAssignmentForProject(projectId);
@@ -1488,7 +1488,7 @@ export async function projectMyAssignment(
       items: [],
       notices: notices.items,
       limitation:
-        'When a Jira admin runs a campaign, the assigned project admin reviews access here. Reminders stay in the app — AccessRadar does not send email.',
+        'When a Jira admin runs a campaign, the assigned space admin reviews access here. Reminders stay in the app — AccessRadar does not send email.',
     };
   }
   if (access === 'assignee' && assignment.assignee !== accountId) {
@@ -1498,7 +1498,7 @@ export async function projectMyAssignment(
       review: null,
       items: [],
       notices: notices.items,
-      limitation: 'Only the assigned project admin can review access here.',
+      limitation: 'Only the assigned space admin can review access here.',
     };
   }
   const detail = await reviewDetail({ id: assignment.reviewId });
@@ -1521,13 +1521,13 @@ export async function projectDecideItems(
 ) {
   assertDelegated(edition);
   if (access === 'not-assigned')
-    throw new ForbiddenError('Only the assigned project admin can review access here');
+    throw new ForbiddenError('Only the assigned space admin can review access here');
   const reviewId = v.id(p.reviewId ?? p.id, 'review', /^[0-9a-f-]{36}$/);
   const assignment = await getAssignment(reviewId);
   if (!assignment || assignment.projectId !== projectId || assignment.status !== 'open')
-    throw new BadRequest('Assignment not found for this project');
+    throw new BadRequest('Assignment not found for this space');
   if (access === 'assignee' && assignment.assignee !== accountId)
-    throw new ForbiddenError('Only the assigned project admin can review access here');
+    throw new ForbiddenError('Only the assigned space admin can review access here');
   return decideItems({ ...p, id: reviewId }, accountId);
 }
 
@@ -1540,13 +1540,13 @@ export async function projectSubmitAssignment(
 ) {
   assertDelegated(edition);
   if (access === 'not-assigned')
-    throw new ForbiddenError('Only the assigned project admin can submit this review');
+    throw new ForbiddenError('Only the assigned space admin can submit this review');
   const reviewId = v.id(p.reviewId ?? p.id, 'review', /^[0-9a-f-]{36}$/);
   const assignment = await getAssignment(reviewId);
   if (!assignment || assignment.projectId !== projectId || assignment.status !== 'open')
-    throw new BadRequest('Assignment not found for this project');
+    throw new BadRequest('Assignment not found for this space');
   if (access === 'assignee' && assignment.assignee !== accountId)
-    throw new ForbiddenError('Only the assigned project admin can submit this review');
+    throw new ForbiddenError('Only the assigned space admin can submit this review');
   const review = await loadReview(reviewId);
   const items = await getItems(reviewId);
   const pending = items.filter((i) => i.change !== 'removed' && !i.decision).length;

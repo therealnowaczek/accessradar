@@ -39,7 +39,7 @@ Conventions to keep (MarginRadar): Custom UI + Atlaskit/ADS tokens, single admin
 ## 2. Forge constraints & zero egress
 
 ### 2.1 Hard rules (apply to every feature)
-1. **No egress.** No `permissions.external.fetch`, no email, Slack, Teams, webhooks, external LLMs. Reminders and alerts are **in-app only** (admin page banners, project settings page inbox, Rovo answers). Jira issues/comments only behind an explicit scope change (§2.4) — **not in the recommended plan**. **Delegation reminders never use email** (Forge has no email API without egress; Jira `/issue/{key}/notify` needs an issue + write scope).
+1. **No egress.** No `permissions.external.fetch`, no email, Slack, Teams, webhooks, external LLMs. Reminders and alerts are **in-app only** (admin page banners, space settings page inbox, Rovo answers). Jira work items/comments only behind an explicit scope change (§2.4) — **not in the recommended plan**. **Delegation reminders never use email** (Forge has no email API without egress; Jira `/issue/{key}/notify` needs a work item + write scope).
 2. **CSV/PDF in the browser** (current pattern, `static/app/src/export/*`, pdf lib bundled by Vite). Server returns JSON only, paginated. No server-side PDF (memory/time risk), no file storage.
 3. **No external CDNs, fonts, images, analytics** in Custom UI. Everything bundled into `static/app/dist`; ADS tokens + system font stack. `permissions.content` stays `styles: unsafe-inline` only (no `scripts`, no `external`).
 4. **Runs on Atlassian eligibility preserved:** data only in Forge SQL (and, if ever approved, Forge KVS), no remote, no egress. Re-check `forge eligibility` (`forge deploy` output / Developer Console "Runs on Atlassian" badge) on every PR that touches `manifest.yml`.
@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS access_exception (
 
 **Content (fixed, versioned `LIMITATIONS_VERSION = 1` in `src/domain/limitations.ts`, shared to UI via resolver):**
 1. Snapshot-level `coverage[]` rows (status, area, target, reason) — already collected.
-2. Static method limitations: team-managed projects use a simplified model; conditional holders (reporter, assignee, user/group custom fields) are listed, not expanded; issue security levels not evaluated; Confluence/JSM customers out of scope; "inactive" = deactivated account, not last-login; global admin view partial (group access levels only); data is a point-in-time snapshot (timestamp + seq + content hash).
+2. Static method limitations: team-managed spaces use a simplified model; conditional holders (reporter, assignee, user/group custom fields) are listed, not expanded; work item security levels not evaluated; Confluence/JSM customers out of scope; "inactive" = deactivated account, not last-login; global admin view partial (group access levels only); data is a point-in-time snapshot (timestamp + seq + content hash).
 3. Completeness verdict: `complete` / `partial (N gaps)` / `failed`.
 
 **UX.** Review detail + Snapshots detail: collapsible `SectionMessage appearance="information"` "Coverage & limitations" (warning appearance when partial). PDF: dedicated page after the summary. CSV: header comment block is non-standard → instead a separate leading section: rows `# coverage,<status>,<area>,<target>,<reason>` then blank line then data; plus **separate file** option "Download coverage CSV". Decision: prepend block with `#` prefix (documented; Excel tolerates) AND offer standalone file.
@@ -238,9 +238,9 @@ All pure functions in `src/engine/risk.ts`, input `AccessState` + `EffectiveAcce
 
 | id | Severity | Definition (exact) | Item id / label |
 |---|---|---|---|
-| `project-no-admin` | medium | Company-managed project where **no** active `atlassian` account resolves `ADMINISTER_PROJECTS` through any path other than global Jira admin membership. projectLead path counts. Projects whose scheme grants ADMINISTER_PROJECTS only to conditional holders also flagged. Team-managed projects excluded (coverage info). | `projectId` / `KEY: no project admin` (detail: scheme name) |
+| `project-no-admin` | medium | Company-managed space where **no** active `atlassian` account resolves `ADMINISTER_PROJECTS` through any path other than global Jira admin membership. projectLead path counts. Spaces whose scheme grants ADMINISTER_PROJECTS only to conditional holders also flagged. Team-managed spaces excluded (coverage info). | `projectId` / `KEY: no space admin` (detail: scheme name) |
 | `direct-user-grants` | low | Permission-scheme grant with `holderType === 'user'` (single user directly in scheme) for any key permission (`settings.keyPermissions`) on a scheme used by ≥1 project. Also role actors of type user on **≥ `directRoleUserThreshold` (default 10) projects** for the same person are NOT included (that is normal role use). | `${schemeId}:${grantId}` / `<scheme>: <PERMISSION> → <user>` (detail: N projects) |
-| `unused-schemes` | low | Permission scheme with no project assigned (`projectsForScheme(id).length === 0`) **or** project role (global role id) that appears in no grant of any used scheme **and** has no actors in any project. Hygiene only. | `scheme:${id}` / `role:${id}` |
+| `unused-schemes` | low | Permission scheme with no space assigned (`projectsForScheme(id).length === 0`) **or** space role (global role id) that appears in no grant of any used scheme **and** has no actors in any space. Hygiene only. | `scheme:${id}` / `role:${id}` |
 | `empty-groups-in-use` | medium | Group whose members were collected (`groupMembers.has(id)`), has 0 active members, and is referenced by a used scheme grant, role actor, or app role. Risk: someone added later silently inherits access. Groups with `members: 'unreadable' | 'not-collected'` excluded and counted in `partial`. | `groupId` / group name (detail: "grants N projects") |
 | `app-accounts-admin` | high | Account with `accountType !== 'atlassian'` (app/customer) that is in an `admin`/`site-admin` group **or** resolves `ADMINISTER_PROJECTS` on ≥1 project. Ignores `includeAppAccounts` (always evaluated). | `accountId` / display name (detail: groups or N projects) |
 
@@ -357,9 +357,9 @@ CREATE TABLE IF NOT EXISTS remediation (
 
 ## 4. R2 features
 
-### 4.1 R2-1 Recurring review campaigns + delegation to project owners + in-app reminders (Advanced)
+### 4.1 R2-1 Recurring review campaigns + delegation to space owners + in-app reminders (Advanced)
 
-**Story.** As a Jira admin I schedule a quarterly access review that automatically creates per-project reviews, assigns each to the project's owner, reminds them, and gives me one progress dashboard. As a project owner (not a Jira admin) I review my project's access inside Jira project settings.
+**Story.** As a Jira admin I schedule a quarterly access review that automatically creates per-space reviews, assigns each to the space's owner, reminds them, and gives me one progress dashboard. As a space owner (not a Jira admin) I review my space's access inside Jira space settings.
 
 **Placement.** Advanced (`reviewCampaigns`, `delegatedReviews`).
 
@@ -375,20 +375,20 @@ function:
   - key: ar-project-resolver
     handler: index.projectResolver
 ```
-Separate resolver function so the admin-only `assertJiraAdmin` path stays untouched. Authorization for every project resolver call: (1) license; (2) `context.extension.project.id` from server context (never payload); (3) caller has `ADMINISTER_PROJECTS` on that project via POST `/rest/api/3/permissions/check` asApp `{ accountId, projectPermissions:[{ permissions:['ADMINISTER_PROJECTS'], projects:[id] }] }` (scope `read:permission:jira` ✅ — already used by `auth.ts`); (4) caller is an assignee of an open assignment for that project OR Jira admin; (5) Advanced. Delegates can only read/decide items of their assignment; cannot sign campaign, cannot see other projects. **Security review required (⚠️).** `projectSettingsPage` is visible only to project admins — matches owner model. Project lead who is not project admin → assignment falls back to campaign owner (shown as "Unassigned").
+Separate resolver function so the admin-only `assertJiraAdmin` path stays untouched. Authorization for every project resolver call: (1) license; (2) `context.extension.project.id` from server context (never payload); (3) caller has `ADMINISTER_PROJECTS` on that project via POST `/rest/api/3/permissions/check` asApp `{ accountId, projectPermissions:[{ permissions:['ADMINISTER_PROJECTS'], projects:[id] }] }` (scope `read:permission:jira` ✅ — already used by `auth.ts`); (4) caller is an assignee of an open assignment for that project OR Jira admin; (5) Advanced. Delegates can only read/decide items of their assignment; cannot sign campaign, cannot see other projects. **Security review required (⚠️).** `projectSettingsPage` is visible only to space admins — matches owner model. Space lead who is not a space admin → assignment falls back to campaign owner (shown as "Unassigned").
 
-**Campaign model.** Campaign = template: name, scope (site / projects / project category), frequency (`quarterly|semiannual|annual|once`), start date, review window days (default 14), delegate rule (`projectLead` | explicit map project→accountId | `admin`), reminder offsets (default 7, 3, 1 days before due + overdue daily), key permissions. Run = one execution: takes/uses a snapshot (fresh snapshot started, run waits for commit), creates one `review` per project (existing review engine, `scope.type='projects'`, ids=[project]) with `campaign_run_id`, creates assignments. Campaign owner signs each review, or delegate "submits" and admin signs (setting `delegateCanSign`, default false — Q5).
+**Campaign model.** Campaign = template: name, scope (site / selected spaces / space category), frequency (`quarterly|semiannual|annual|once`), start date, review window days (default 14), delegate rule (`projectLead` | explicit map space→accountId | `admin`), reminder offsets (default 7, 3, 1 days before due + overdue daily), key permissions. Run = one execution: takes/uses a snapshot (fresh snapshot started, run waits for commit), creates one `review` per space (existing review engine, `scope.type='projects'`, ids=[project]) with `campaign_run_id`, creates assignments. Campaign owner signs each review, or delegate "submits" and admin signs (setting `delegateCanSign`, default false — Q5).
 
-**Reminders (in-app only, no email, no Jira issues).**
-- Project settings page banner: `SectionMessage warning` "Access review due in 3 days — 42 items left".
+**Reminders (in-app only, no email, no Jira work items).**
+- Space settings page banner: `SectionMessage warning` "Access review due in 3 days — 42 items left".
 - Admin page: Campaigns dashboard + Overview card "Overdue delegated reviews".
-- "My reviews" list in the project page for the delegate.
+- "My reviews" list on the space page for the delegate.
 - Reminder state rows give an auditable record "reminder shown/issued at".
 - Rovo (R2-3) can answer "what reviews are assigned to me".
-- Optional later: Jira issue per assignment = **SCOPE CHANGE** (`write:jira-work`/`read:jira-work`), major version — not in R2.
-- Known limitation (copy in UI + listing): delegates are not notified outside Jira; admins tell owners via their usual channels. ⚠️ Product risk: completion rates lower than competitors with Jira-issue reminders (Recert). Q4.
+- Optional later: Jira work item per assignment = **SCOPE CHANGE** (`write:jira-work`/`read:jira-work`), major version — not in R2.
+- Known limitation (copy in UI + listing): delegates are not notified outside Jira; admins tell owners via their usual channels. ⚠️ Product risk: completion rates lower than competitors with Jira work-item reminders (Recert). Q4.
 
-**UX.** Admin nav **Review → Campaigns**: `DynamicTable` (Name, Frequency, Next run, Last run progress `ProgressBar`, Status lozenge). "New campaign" drawer (primary **Create campaign**, Cancel): `Textfield` name, `RadioGroup` scope, `Select` projects/categories, `Select` frequency, `DatePicker` start, `Textfield type=number` window, delegate rule `RadioGroup`, override table (project → `UserPicker`-like `Select` fed by snapshot persons — no extra API), reminder offsets. **Preview** step (StackDrawer level 2): projects, assigned owner per project, estimated items, warnings (no admin owner, unassigned). Run detail: per-project rows (owner, items, decided %, due, status), actions "Reassign", "Open review". Project settings page: header, assignment card, item table identical to admin review (shared component `ReviewItemsTable`), **Submit review** primary. Empty states: no campaigns ("Schedule your first recurring review"), no assignment on project page ("No access review is assigned to this project"). Errors: forbidden → `EmptyState` "Only the assigned project admin can review access here".
+**UX.** Admin nav **Review → Campaigns**: `DynamicTable` (Name, Frequency, Next run, Last run progress `ProgressBar`, Status lozenge). "New campaign" drawer (primary **Create campaign**, Cancel): `Textfield` name, `RadioGroup` scope, `Select` spaces/categories, `Select` frequency, `DatePicker` start, `Textfield type=number` window, delegate rule `RadioGroup`, override table (space → `UserPicker`-like `Select` fed by snapshot persons — no extra API), reminder offsets. **Preview** step (StackDrawer level 2): spaces, assigned owner per space, estimated items, warnings (no admin owner, unassigned). Run detail: per-space rows (owner, items, decided %, due, status), actions "Reassign", "Open review". Space settings page: header, assignment card, item table identical to admin review (shared component `ReviewItemsTable`), **Submit review** primary. Empty states: no campaigns ("Schedule your first recurring review"), no assignment on the space page ("No access review is assigned to this space"). Errors: forbidden → `EmptyState` "Only the assigned space admin can review access here".
 
 **Data model.**
 ```sql
@@ -475,7 +475,7 @@ CREATE TABLE IF NOT EXISTS notice (
 
 **AC.**
 1. Quarterly campaign on 3 projects → at start time a snapshot is taken and 3 reviews + 3 assignments exist; owners = project leads who have ADMINISTER_PROJECTS, others unassigned.
-2. A project admin who is not the assignee sees "not assigned"; non-admin cannot load the page (Jira hides it) and resolver rejects direct calls (403 path tested).
+2. A space admin who is not the assignee sees "not assigned"; non-admin cannot load the page (Jira hides it) and resolver rejects direct calls (403 path tested).
 3. Delegate decisions are attributed to the delegate in evidence (`decidedBy`), admin signs.
 4. Reminder notices appear at configured offsets ±1 h, once each; overdue daily; never email, no external call (manifest unchanged except modules).
 5. Idle site with paused campaigns: tick still 1 SQL.
@@ -689,7 +689,7 @@ Size S. Blocks R1-01 (limits), R2-06 and R2-08.
 1. **Przypomnienia bez e-maila:** zgoda, że w R2 przypomnienia są tylko w aplikacji (banner w ustawieniach projektu + panel admina + Rovo)? Alternatywa (issue Jira) wymaga `write:jira-work` = wersja major + ponowna zgoda adminów. Odkładamy?
 2. **Reguła „publiczne filtry/dashboardy”** wymaga `read:filter:jira` + `read:dashboard:jira` (major). Odkładamy do R3?
 3. **Darmowy próg (≤10 u.):** snapshot co 2 tygodnie zamiast co tydzień — akceptujesz? (Tick i tak spada do 1 zapytania SQL; oszczędność dodatkowa jest mała.)
-4. **Delegacja tylko do project adminów** (moduł `jira:projectSettingsPage` widzą tylko oni). Project lead bez uprawnień admina projektu → „Unassigned”. OK?
+4. **Delegacja tylko do space adminów** (moduł `jira:projectSettingsPage` widzą tylko oni). Space lead bez uprawnień admina space → „Unassigned”. OK?
 5. Czy delegat może sam **podpisać** recenzję swojego projektu, czy tylko „Submit”, a podpisuje admin Jira (rekomendacja: admin)?
 6. **Blokada usuwania podpisanych recenzji** (potrzebna dla łańcucha podpisów) — zgoda?
 7. Plik importu cen: czy konsola partnera przyjmuje kolumny Advanced w tym samym CSV? (do sprawdzenia w konsoli)

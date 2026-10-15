@@ -88,7 +88,7 @@ function groupItems(state: AccessState, groupIds: string[]): ReviewItemDraft[] {
     const members = state.groupMembers.get(groupId);
     const projects = reach.get(groupId)?.size ?? 0;
     const admin = (state.groupAccess.get(groupId) ?? []).some((a) => a.includes('admin'));
-    const reason = `member of group “${g?.name ?? groupId}” (reaches ${projects} project${projects === 1 ? '' : 's'}${admin ? ', admin access' : ''})`;
+    const reason = `member of group “${g?.name ?? groupId}” (reaches ${projects} space${projects === 1 ? '' : 's'}${admin ? ', admin access' : ''})`;
     if (!members) {
       out.push({
         itemKey: `g|${groupId}|group:${groupId}`,

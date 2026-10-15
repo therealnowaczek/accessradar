@@ -63,12 +63,12 @@ const FREQ: Opt[] = [
 
 const SCOPE_RADIOS = [
   { name: 'scope', value: 'site', label: 'Entire site' },
-  { name: 'scope', value: 'projects', label: 'Selected projects' },
-  { name: 'scope', value: 'category', label: 'Project categories' },
+  { name: 'scope', value: 'projects', label: 'Selected spaces' },
+  { name: 'scope', value: 'category', label: 'Space categories' },
 ];
 
 const DELEGATE_RADIOS = [
-  { name: 'delegate', value: 'projectLead', label: 'Project lead' },
+  { name: 'delegate', value: 'projectLead', label: 'Space lead' },
   { name: 'delegate', value: 'admin', label: 'Campaign owner (me)' },
 ];
 
@@ -200,7 +200,7 @@ export function CampaignsView() {
                             {
                               key: 'preview',
                               title: 'Preview campaign',
-                              description: `${preview.totalProjects} project(s) will get a review.`,
+                              description: `${preview.totalProjects} space(s) will get a review.`,
                               content: (
                                 <PreviewBody
                                   preview={preview}
@@ -310,7 +310,7 @@ export function CampaignsView() {
       {
         key: 'run',
         title: 'Campaign run',
-        description: 'Per-project reviews and assignees.',
+        description: 'Per-space reviews and assignees.',
         content: (
           <RunDetail
             runId={runId}
@@ -327,14 +327,14 @@ export function CampaignsView() {
       <div className="page-stack">
         <SectionMessage appearance="information">
           <p>
-            Delegates are reminded in the app only (no email). Tell project owners through your
-            usual channels. Detection uses your snapshot schedule.
+            Delegates are reminded in the app only (no email). Tell space owners through your usual
+            channels. Detection uses your snapshot schedule.
           </p>
         </SectionMessage>
         {!items.length ? (
           <Empty
             title="Schedule your first recurring review"
-            description="Campaigns create per-project reviews on a schedule and assign them to project leads."
+            description="Campaigns create per-space reviews on a schedule and assign them to space leads."
             action={null}
           />
         ) : (
@@ -429,7 +429,7 @@ function CampaignForm({
             />
           </RadioField>
           {d.scopeType === 'projects' ? (
-            <FormField label="Projects">
+            <FormField label="Spaces">
               {(id) => (
                 <Select
                   menuPosition="fixed"
@@ -448,7 +448,7 @@ function CampaignForm({
             </FormField>
           ) : null}
           {d.scopeType === 'category' ? (
-            <FormField label="Categories" helper="From the latest snapshot’s project categories.">
+            <FormField label="Categories" helper="From the latest snapshot’s space categories.">
               {(id) => (
                 <Select
                   menuPosition="fixed"
@@ -560,7 +560,7 @@ function PreviewBody({
           <DynamicTable
             head={{
               cells: [
-                { key: 'p', content: 'Project' },
+                { key: 'p', content: 'Space' },
                 { key: 'a', content: 'Assignee' },
                 { key: 'i', content: 'Items (est.)' },
               ],
@@ -577,7 +577,7 @@ function PreviewBody({
             defaultPage={1}
             emptyView={
               <Empty
-                title="No projects"
+                title="No spaces"
                 description="Adjust the scope and try again."
                 action={null}
               />
@@ -663,7 +663,7 @@ function RunDetail({
           <DynamicTable
             head={{
               cells: [
-                { key: 'p', content: 'Project' },
+                { key: 'p', content: 'Space' },
                 { key: 'a', content: 'Assignee' },
                 { key: 's', content: 'Status' },
                 { key: 'd', content: 'Due' },

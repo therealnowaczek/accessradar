@@ -58,7 +58,7 @@ export function resolveCampaignProjectIds(
     const known = new Set(list.map((p) => p.id));
     const ids = campaign.scope.ids.filter((id) => known.has(id)).slice(0, MAX_PROJECTS_PER_RUN);
     const missing = campaign.scope.ids.length - ids.length;
-    if (missing) warnings.push(`${missing} scoped project(s) missing from snapshot`);
+    if (missing) warnings.push(`${missing} scoped space(s) missing from snapshot`);
     return { ids, warnings };
   }
   // category scope: match project.categoryId against scoped category ids
@@ -70,8 +70,8 @@ export function resolveCampaignProjectIds(
   if (!ids.length)
     warnings.push(
       list.some((p) => p.categoryId)
-        ? 'No projects in the selected categories in this snapshot'
-        : 'No project categories in snapshot; re-run a snapshot after upgrading',
+        ? 'No spaces in the selected categories in this snapshot'
+        : 'No space categories in snapshot; re-run a snapshot after upgrading',
     );
   return { ids, warnings };
 }
@@ -306,7 +306,7 @@ export async function runReminders(now = Date.now()): Promise<number> {
       refId: row.review_id,
       severity: overdue ? 'high' : 'medium',
       title,
-      body: 'Open the project Access review page in Jira to continue.',
+      body: 'Open the Access review page in space settings to continue.',
     });
     await touchAssignmentReminder(row.review_id, now);
     issued += 1;

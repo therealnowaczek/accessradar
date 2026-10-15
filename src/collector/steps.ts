@@ -53,7 +53,7 @@ export async function plan(ctx: StepContext): Promise<StepResult> {
     'projects',
   );
   if (!projects.ok)
-    throw new Error(`Project list unreadable (${projects.status}): ${projects.error}`);
+    throw new Error(`Space list unreadable (${projects.status}): ${projects.error}`);
   for (const p of projects.items) {
     const f = projectFact(p);
     if (f) out.push(f);
@@ -103,7 +103,7 @@ export async function plan(ctx: StepContext): Promise<StepResult> {
     progress: {
       step: 'PLAN',
       batch: 0,
-      message: `Found ${count} projects and ${grants} scheme grants`,
+      message: `Found ${count} spaces and ${grants} scheme grants`,
       counts: { projects: count, grants },
     },
   };
@@ -226,7 +226,7 @@ export async function projectsStep(ctx: StepContext): Promise<StepResult> {
       step: 'PROJECTS',
       batch,
       batches: total,
-      message: `Read roles and schemes for ${done} of ${projects.length} projects`,
+      message: `Read roles and schemes for ${done} of ${projects.length} spaces`,
       counts: { projectsDone: done, projects: projects.length },
     },
   };
@@ -502,7 +502,7 @@ export async function finalize(ctx: StepContext): Promise<FinalizeResult> {
       area: 'conditional-grants',
       target: 'all',
       status: 'info',
-      reason: `${conditional} grants depend on the issue (reporter, assignee, custom fields) and are not expanded to people`,
+      reason: `${conditional} grants depend on the work item (reporter, assignee, custom fields) and are not expanded to people`,
     });
   const team = staged.filter((f) => f.kind === 'project' && f.attrs.style === 'team').length;
   if (team)
@@ -510,7 +510,7 @@ export async function finalize(ctx: StepContext): Promise<FinalizeResult> {
       area: 'team-managed',
       target: 'all',
       status: 'info',
-      reason: `${team} team-managed projects use a per-project scheme and roles (simplified model)`,
+      reason: `${team} team-managed spaces use a per-space scheme and roles (simplified model)`,
     });
   coverage.push({
     area: 'global-permissions',

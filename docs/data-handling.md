@@ -8,7 +8,7 @@ All data lives in Forge SQL inside the customer's Atlassian environment (no egre
 
 | Data | Where | Personal data |
 | --- | --- | --- |
-| Projects, permission schemes and grants, project roles and actors, groups, group admin/application access, application roles | `fact` (versioned, one row per version) | Group/project names only |
+| Spaces, permission schemes and grants, space roles and actors, groups, group admin/application access, application roles | `fact` (versioned, one row per version) | Group/space names only |
 | People and app accounts: accountId, cached display name, account type, active flag | `fact` (`kind = 'person'`), `stage` during a run | Yes (no e-mail addresses) |
 | Group memberships, role actors (accountIds) | `fact` | Yes (accountId) |
 | Reviews: scope, items, decisions, notes, signer accountId, sign-off time and time zone, evidence hash | `review`, `review_item` | Yes (accountId, free-text notes) |
@@ -16,7 +16,7 @@ All data lives in Forge SQL inside the customer's Atlassian environment (no egre
 | Personal-data reporting state: accountId, last report time, closed time | `privacy_account` | Yes (accountId) |
 | Settings, rate-point usage, privacy run summary | `kv`, `rate_usage` | Fallback admin accountId (only if enabled) |
 
-Issue content, comments, attachments and e-mail addresses are never read.
+Work item content, comments, attachments and e-mail addresses are never read.
 
 ## Retention
 

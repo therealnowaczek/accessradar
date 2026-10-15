@@ -146,7 +146,7 @@ export function evaluateAlerts(
       if (a === 'project') {
         const p = next.projects.get(b);
         title = `Anyone access on ${p?.key ?? b}`;
-        body = `Permission ${c} via scheme on project ${p?.key ?? b}`;
+        body = `Permission ${c} via scheme on space ${p?.key ?? b}`;
       } else {
         const scheme = next.schemes.get(a)?.name ?? a;
         title = `Anyone grant: ${b}`;
@@ -178,7 +178,7 @@ export function evaluateAlerts(
         rule: 'inactive-with-access',
         severity: 'high',
         title: `Deactivated account still has access: ${personLabel(next, accountId)}`,
-        body: 'Account became inactive since the previous snapshot and still has project access',
+        body: 'Account became inactive since the previous snapshot and still has space access',
         key: `inactive-with-access:${accountId}`,
       });
     }
@@ -187,7 +187,7 @@ export function evaluateAlerts(
         rule: 'inactive-with-access',
         severity: 'medium',
         title: `${stillInactive.length} inactive account(s) still have access`,
-        body: 'Digest of deactivated accounts that retain project access',
+        body: 'Digest of deactivated accounts that retain space access',
         key: `inactive-with-access:digest:${stillInactive.length}`,
       });
     }
@@ -204,7 +204,7 @@ export function evaluateAlerts(
         out.push({
           rule: 'new-project-admin',
           severity: 'medium',
-          title: `New project admin: ${personLabel(next, accountId)} on ${p?.key ?? projectId}`,
+          title: `New space admin: ${personLabel(next, accountId)} on ${p?.key ?? projectId}`,
           body: 'Gained ADMINISTER_PROJECTS',
           key: `new-project-admin:${accountId}:${projectId}`,
         });

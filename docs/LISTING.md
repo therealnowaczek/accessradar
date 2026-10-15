@@ -15,7 +15,7 @@
 - **Pozycjonowanie bez nazywania konkurentów:** „the why” (ścieżka grantu), uczciwa kompletność, dowód z hashem SHA-256, read-only (kontrast z Access Reviewer360, które robi revoke). Konkurentów (AccessLens, Project Access Review, Project Roles) ani JRACLOUD-71967 **nie wymieniamy** w listingu. Ticket to dobry materiał na stronę /docs albo post w Community, ale dopiero po Twojej decyzji.
 - **Ceny (§8, zaktualizowane 2026-10-10, 1:1 z MarginRadar):** Standard $0 do 10 użytkowników (płasko), potem $0.75 / $0.60 / $0.40 / $0.25 (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced $10 płasko do 10 użytkowników, potem $1.99 / $1.49 / $0.99 / $0.49. Rocznie 10× miesięcznie, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $75/mies. = $750/rok. Advanced trafi do Marketplace dopiero po akceptacji płatnej aplikacji; strona www pokazuje Advanced jako „Coming soon”. Progi Standard w Marketplace (dziś 0.75/0.55/0.35/0.20/0.15/0.12) do wyrównania, gdy listing będzie edytowalny.
 - **Privacy & Security:** gotowe odpowiedzi w §9. Dwie rzeczy wymagają uczciwego ujawnienia: (1) manifest deklaruje `allowImpersonation: true` na scope'ach odczytu, (2) Atlassian po instalacji dodaje app usera AccessRadar do grup adminów (week1-findings §3), choć aplikacja ma wyłącznie scope'y `read:*`. Pytania prawne oznaczyłem **[TO CONFIRM]**.
-- **Feature truth check (stan kodu 2026-10-10, po R1+R2):** jak po R1, plus **łańcuch podpisów**, Advanced: **kampanie**, **alerty zmian**, **delegacja** (project settings page dla project adminów), przypomnienia **tylko in-app**. Agent Rovo (read-only, 5 akcji GET) jest włączony w manifeście i w Settings (bez *coming soon*); w publicznym listingu pojawi się wraz z aktualizacją listingu. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Lista w §11.
+- **Feature truth check (stan kodu 2026-10-10, po R1+R2):** jak po R1, plus **łańcuch podpisów**, Advanced: **kampanie**, **alerty zmian**, **delegacja** (space settings page dla space adminów), przypomnienia **tylko in-app**. Agent Rovo (read-only, 5 akcji GET) jest włączony w manifeście i w Settings (bez *coming soon*); w publicznym listingu pojawi się wraz z aktualizacją listingu. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Lista w §11.
 - **Produkcja:** wdrożona 9.10.2026 (gałąź `release/production`, workflow Deploy (production) zielony, spike usunięty w CI). **Instalacja prod przez CLI jest zablokowana przez Atlassian** („Installing a licensed app is not permitted”): aplikacji z `licensing.enabled: true` nie da się zainstalować z produkcji, dopóki listing nie zostanie zatwierdzony (instalacja tylko przez Marketplace). Zrzuty do listingu trzeba więc zrobić z dev/staging (z dopiskiem „Dev”/„Staging”) albo jako kompozycje, a finalne zrzuty z prod podmienić po akceptacji.
 - **Strona dokumentacji działa:** https://accessradar.radrly.com z podstronami /docs /support /privacy /terms /dpa /security, wszystkie zwracają HTTP 200 (sprawdzone curl 9.10.2026 ok. 19:30 czasu warszawskiego). §7.
 - **Bez wymyślonych liczb:** brak liczby klientów, instalacji, opinii, cytatów i obietnic certyfikacji. AccessRadar *wspiera* zbieranie dowodów do SOC 2 / ISO 27001; nie jest certyfikowany i nie gwarantuje zgodności.
@@ -42,17 +42,17 @@ Compliance with the brand guidelines: "Jira" comes after "for", Title Case, none
 *(123/130, no trailing period.)* Short alternative: *Who has access to what in Jira, and why. Read-only access reviews with audit-ready evidence* *(91/130)*.
 
 ### 2.2 Summary (≤250 chars; plain text, shown in search results)
-> See who has access to what in Jira and why: group, project role and permission scheme. Scheduled snapshots, diffs, signed access reviews and CSV/PDF evidence for SOC 2 and ISO 27001. Read-only. Runs on Atlassian.
+> See who has access to what in Jira and why: group, space role and permission scheme. Scheduled snapshots, diffs, signed access reviews and CSV/PDF evidence for SOC 2 and ISO 27001. Read-only. Runs on Atlassian.
 
-*(212/250.)*
+*(210/250.)*
 
 ### 2.3 More details (≤1000 chars; plain text plus bullets and line breaks)
 ```
-Access reviews in Jira Cloud usually mean clicking through permission schemes, project roles and groups, then rebuilding it all in a spreadsheet. AccessRadar shows effective access with the path behind it, keeps history, and turns a review into evidence an auditor can check.
+Access reviews in Jira Cloud usually mean clicking through permission schemes, space roles and groups, then rebuilding it all in a spreadsheet. AccessRadar shows effective access with the path behind it, keeps history, and turns a review into evidence an auditor can check.
 
 Built for Jira admins and compliance teams:
-• Project, group and person views of who holds which permission
-• The "why": group → project role → permission scheme grant
+• Space, group and person views of who holds which permission
+• The "why": group → space role → permission scheme grant
 • Daily or weekly snapshots, plus one on demand
 • Diff two snapshots: access granted and removed, group and scheme changes
 • Access reviews: Keep, Revoke or Exception (justification + expiry), then sign off
@@ -64,7 +64,7 @@ Read-only scopes only: AccessRadar never changes Jira. Runs on Atlassian: no dat
 
 Free for up to 10 users.
 ```
-*(996/1000.)* The long-form version for the docs landing page is in §4.
+*(990/1000.)* The long-form version for the docs landing page is in §4.
 
 ---
 
@@ -72,15 +72,15 @@ Free for up to 10 users.
 
 ### Highlight 1: Effective access + the "why"
 - **Title:** Every access, with the reason behind it *(39/50)*
-- **Description:** Pick a project, group or person and see who holds which permission. Open any entry for the path: group membership, project role and permission scheme grant. Issue-dependent grants are labelled as such. *(201/220)*
-- **Caption:** Explore by project: people and groups with their key permissions, and the Why panel tracing one grant from group to project role to the permission scheme. *(154/220)*
-- **Image concept (S1):** Explore → Projects, demo project **PAY "Payments Platform"**, light theme. Matrix of people/groups × key permissions (Browse, Create, Edit, Delete, Administer) with path chips (Role, Group, Direct, Application). Right-hand **Why** panel open for one cell: `Dana Kowal ∈ group contractors → actor of role Developers in PAY → Developers has EDIT_ISSUES in "Default software scheme"`. Crop 580×330: the Why panel with the path.
-- **Alt text:** "AccessRadar project view listing who can access the Payments Platform project, with a panel explaining one permission through group, project role and permission scheme"
+- **Description:** Pick a space, group or person and see who holds which permission. Open any entry for the path: group membership, space role and permission scheme grant. Work item-dependent grants are labelled as such. *(201/220)*
+- **Caption:** Explore by space: people and groups with their key permissions, and the Why panel tracing one grant from group to space role to the permission scheme. *(150/220)*
+- **Image concept (S1):** Explore → Spaces, demo space **PAY "Payments Platform"**, light theme. Matrix of people/groups × key permissions (Browse, Create, Edit, Delete, Administer) with path chips (Role, Group, Direct, Application). Right-hand **Why** panel open for one cell: `Dana Kowal ∈ group contractors → actor of role Developers in PAY → Developers has EDIT_ISSUES in "Default software scheme"`. Crop 580×330: the Why panel with the path.
+- **Alt text:** "AccessRadar space view listing who can access the Payments Platform space, with a panel explaining one permission through group, space role and permission scheme"
 
 ### Highlight 2: Snapshots + diff
 - **Title:** What changed since your last review *(35/50)*
-- **Description:** Daily or weekly snapshots, plus one on demand. Compare any two to see access granted and removed, group membership and scheme changes, filtered by project, group or permission. Export the diff to CSV. *(200/220)*
-- **Caption:** Changes view: two snapshots compared, with access granted and removed listed separately and filters by project, group and permission. *(133/220)*
+- **Description:** Daily or weekly snapshots, plus one on demand. Compare any two to see access granted and removed, group membership and scheme changes, filtered by space, group or permission. Export the diff to CSV. *(198/220)*
+- **Caption:** Changes view: two snapshots compared, with access granted and removed listed separately and filters by space, group and permission. *(131/220)*
 - **Image concept (S2):** Changes, light theme. A/B selector on a snapshot timeline (A = last signed review, B = latest). Tabs *Granted (n) / Revoked (n) / Groups (n) / Schemes & roles (n) / People (n)* (labels as in `ChangesView.tsx`). Visible rows: a contractor added to `jira-admins-demo`, a group removed from Developers in PAY, a new grant in a scheme. Granted/removed shown by text label and icon, not colour alone. Crop 580×330: the granted/removed list.
 - **Alt text:** "AccessRadar comparison of two snapshots showing access granted and removed since the last review"
 
@@ -97,31 +97,31 @@ Free for up to 10 users.
 
 **AccessRadar – Access Review & Permission Audit for Jira**
 
-In Jira Cloud, effective access comes from several layers at once: the permission scheme on each project, its grants to groups, project roles, users and application roles, the actors in each project role, and group membership. Answering "who can see project X?" or "what can this person do?" means clicking through all of them, and an access review for SOC 2 or ISO 27001 usually ends up as a spreadsheet that is hard to reproduce and hard to defend. AccessRadar collects these layers on a schedule, resolves effective access with the path behind every grant, keeps history, and turns a review into evidence with an integrity hash.
+In Jira Cloud, effective access comes from several layers at once: the permission scheme on each space, its grants to groups, space roles, users and application roles, the actors in each space role, and group membership. Answering "who can see space X?" or "what can this person do?" means clicking through all of them, and an access review for SOC 2 or ISO 27001 usually ends up as a spreadsheet that is hard to reproduce and hard to defend. AccessRadar collects these layers on a schedule, resolves effective access with the path behind every grant, keeps history, and turns a review into evidence with an integrity hash.
 
 **Who has access, and why**
-- Explore by project (who has access), by group (where it reaches) and by person (what they can do).
+- Explore by space (who has access), by group (where it reaches) and by person (what they can do).
 - Key permissions at a glance (Browse projects, Create, Edit and Delete issues, Administer projects); the full permission list in details.
-- The path for every entry, e.g. group → project role → permission scheme grant.
-- Grants that depend on the issue (reporter, assignee, user or group custom field) are labelled as conditional, not expanded into people. Grants to anyone are flagged as anonymous access.
+- The path for every entry, e.g. group → space role → permission scheme grant.
+- Grants that depend on the work item (reporter, assignee, user or group custom field) are labelled as conditional, not expanded into people. Grants to anyone are flagged as anonymous access.
 - App accounts hidden by default.
 
 **Snapshots and changes**
 - Scheduled snapshots, daily or weekly, plus "take a snapshot now".
 - Status, progress and completeness for every snapshot: AccessRadar tells you what it could not read instead of hiding gaps.
-- Compare any two snapshots: access granted and removed, new and removed projects, group membership changes, scheme and role changes, with filters by project, group and permission.
+- Compare any two snapshots: access granted and removed, new and removed spaces, group membership changes, scheme and role changes, with filters by space, group and permission.
 
 **Access reviews with sign-off**
-- A review = a scope (selected projects or the whole site) + a pinned snapshot, optionally compared with the previous review.
+- A review = a scope (selected spaces or the whole site) + a pinned snapshot, optionally compared with the previous review.
 - Mark items Keep, Revoke or Exception (justification + expiry) with a note; bulk actions for uniform items.
 - Sign-off records who signed and when (UTC and local time) and freezes the review with a SHA-256 evidence hash (v2) over the items, decisions, snapshot content hash, coverage and engine version. The hash is tamper-evident, and auditors can recompute it from the CSV (see docs).
 - Signed reviews form a site-wide **signature chain**: each signature stores the previous evidence hash. Verify the chain from Reviews.
 - Items marked Revoke form a to-do list you carry out in Jira yourself. AccessRadar never changes anything. Advanced can verify remediations in later snapshots.
 
 **Campaigns and change alerts (Advanced)**
-- Recurring review campaigns by site, projects or project category; preview assignees, then run, pause or delete from the Campaigns admin page.
+- Recurring review campaigns by site, spaces or space category; preview assignees, then run, pause or delete from the Campaigns admin page.
 - After each snapshot, in-app change alerts for new admins, public grants and inactive users who still have access.
-- Reminders and alerts stay **in the app** (no email, Slack or webhooks). Admins tell project owners through their usual channels. Delegates review their assigned projects on the project settings page. Advanced also includes a read-only Rovo agent that answers from the latest snapshot (Jira admins only; Rovo must be enabled on the site).
+- Reminders and alerts stay **in the app** (no email, Slack or webhooks). Admins tell space owners through their usual channels. Delegates review their assigned spaces on the space settings page. Advanced also includes a read-only Rovo agent that answers from the latest snapshot (Jira admins only; Rovo must be enabled on the site).
 
 **Evidence export**
 - CSV: access matrix, changes between snapshots, review decisions.
@@ -131,18 +131,18 @@ In Jira Cloud, effective access comes from several layers at once: the permissio
 **Risk indicators**
 - Admins (members of groups with admin or site-admin access).
 - Inactive users who still have access.
-- Public (anonymous) grants, broad application-role grants and people with wide project-admin rights.
+- Public (anonymous) grants, broad application-role grants and people with wide space-admin rights.
 
 **Runs on Atlassian, read-only**
-- Read scopes only: no write or manage scopes. AccessRadar cannot change permissions, schemes, roles, groups or issues, and it cannot read issue content.
+- Read scopes only: no write or manage scopes. AccessRadar cannot change permissions, schemes, roles, groups or work items, and it cannot read work item content.
 - Built on Forge with zero egress: AccessRadar makes no calls outside Atlassian. Exports are generated in your browser.
 - App data is stored in Forge hosted storage (Forge SQL) on Atlassian infrastructure. No email addresses are stored.
 
 **Requirements and limits**
 - Jira Cloud; AccessRadar is used by Jira administrators.
 - Global permissions are shown partially (admin and site-admin access levels, per-person checks): Jira's REST API has no endpoint that lists all global permission holders.
-- Team-managed projects are shown with their project-scoped roles.
-- Out of scope: issue security levels, filter and dashboard permissions, Confluence, Jira Service Management portal customers, organization-level admin.
+- Team-managed spaces are shown with their space-scoped roles.
+- Out of scope: work item security levels, filter and dashboard permissions, Confluence, Jira Service Management portal customers, organization-level admin.
 
 *(PL) Ograniczenia (globalne uprawnienia częściowo, team-managed, zakres „Won't”) pochodzą z §3, §6 i week1-findings. Warto je mieć w docs, bo „uczciwość co do kompletności” to nasz wyróżnik.*
 
@@ -188,20 +188,20 @@ Every image needs alt text. Show the app inside the Jira UI, not marketing slide
 ### 6.2 Demo data to seed (fictional, synthetic seed script)
 | Item | Seed |
 |---|---|
-| Projects | PAY "Payments Platform" (classic), WEB "Website", HR "People Ops" (restricted), OPS "Operations", KAN team-managed |
+| Spaces | PAY "Payments Platform" (classic), WEB "Website", HR "People Ops" (restricted), OPS "Operations", KAN team-managed |
 | Groups | `jira-admins-demo` (admin access), `developers`, `contractors`, `auditors`, `jira-software-users` |
-| Situations to show | a contractor gaining Edit in PAY between snapshots; a deactivated user still in `developers` (inactive with access); one scheme granting Browse to anyone in WEB (public grant); one person with Administer projects in 4 projects; app accounts hidden |
+| Situations to show | a contractor gaining Edit in PAY between snapshots; a deactivated user still in `developers` (inactive with access); one scheme granting Browse to anyone in WEB (public grant); one person with Administer projects in 4 spaces; app accounts hidden |
 | Snapshots | at least 3 (weekly), one pinned to a signed review "Q3 2026 access review" |
 | Review | "Q4 2026 access review", scope PAY + HR, ~40 items, 3 marked Revoke, signed |
 
 ### 6.3 Shots
 | # | Use | Screen | Theme | Caption (≤220) |
 |---|---|---|---|---|
-| **S1** | Highlight 1 | Explore → Projects (PAY) + Why panel | Light | see §3 |
+| **S1** | Highlight 1 | Explore → Spaces (PAY) + Why panel | Light | see §3 |
 | **S2** | Highlight 2 | Changes (A = last signed review, B = latest) | Light | see §3 |
 | **S3** | Highlight 3 | Reviews → sign-off screen | Light | see §3 |
 | S4 | Extra (H1) | Overview with risk tiles | Light | Overview: latest snapshot and its completeness, with risk indicators for admins, inactive users with access and public grants. |
-| S5 | Extra (H1) | Explore → People (one person across projects) | Light | One person across all projects: access level per project and the path for each, such as membership in the contractors group. |
+| S5 | Extra (H1) | Explore → People (one person across spaces) | Light | One person across all spaces: access level per space and the path for each, such as membership in the contractors group. |
 | S6 | Extra (H2) | Snapshots list | Light | Snapshot history with schedule, status and completeness; take a snapshot now at any time. |
 | S7 | Extra (H3) | PDF evidence pack, cover + summary page | Light | PDF evidence pack: review scope, snapshots, signer, timestamps, evidence hash, methodology and flagged items, ready for your auditor. |
 | S8 | Extra (H3) | Settings → Security & data | Light | Security and data: read-only scopes, no egress, what AccessRadar stores, where and for how long. |
@@ -288,10 +288,10 @@ Advanced (same method):
 |---|---|
 | Manual and weekly snapshots | Daily and custom snapshot schedules |
 | 90-day history | Unlimited history |
-| Explore projects, groups and people, with the why path | Recurring review campaigns (admin: create, preview, run, pause) |
+| Explore spaces, groups and people, with the why path | Recurring review campaigns (admin: create, preview, run, pause) |
 | Snapshot diff; coverage & limitations in exports | Change alerts: new admin, public grant, inactive user (in-app) |
 | Reviews: Keep / Revoke / Exception (expiry), SHA-256 sign-off v2 | In-app reminders for campaign runs (no email) |
-| Site-wide signature chain; verify signature, snapshot & chain | Reviews delegated to project owners (project settings page) |
+| Site-wide signature chain; verify signature, snapshot & chain | Reviews delegated to space owners (space settings page) |
 | CSV/PDF export; risk indicators (11 rules); exception register | Remediation verification (confirm Revokes in later snapshots) |
 | | Audit evidence pack PDF with SOC 2 / ISO control mapping |
 | | Rovo agent (read-only) |
@@ -319,7 +319,7 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 | Retention while installed | Snapshots and the audit log: configurable 30–3650 days (default 395, i.e. 13 months); snapshots pinned by a review are kept; signed reviews kept until uninstall | `src/db/settings.ts`, `applyRetention` / `purgeAudit` in `src/db/snapshots.ts` |
 | Custom retention on request? | **No**: the customer sets retention in Settings | — |
 | Closed accounts | `report:personal-data`: each stored accountId reported at most once per 7-day cycle; accounts reported as closed are never reported again. Closed accounts are **pseudonymised**: the cached display name is replaced by `Closed account <hash>`; the accountId is kept in snapshots, review items, sign-offs and the audit log (evidence integrity) [LEGAL TO CONFIRM, see name-pricing-legal.md P3a] | `src/privacy.ts`, docs/data-handling.md |
-| Privacy-enhancing technologies? | **Yes: data minimisation and pseudonymisation** (no emails, no issue content; accountId as key; pseudonymisation of closed accounts) | — |
+| Privacy-enhancing technologies? | **Yes: data minimisation and pseudonymisation** (no emails, no work item content; accountId as key; pseudonymisation of closed accounts) | — |
 | GDPR controller? | **No** [LEGAL TO CONFIRM] | — |
 | GDPR processor? | **Yes** [LEGAL TO CONFIRM] | Personal data above, processed on the customer's behalf; DPA at /dpa |
 | CCPA | **Not applicable / No** [LEGAL TO CONFIRM] | — |
@@ -334,13 +334,13 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 | Encryption at rest outside Atlassian | **Not applicable**: nothing stored outside Atlassian | — |
 
 **Scope justification** (submission form; confirm against the final `manifest.yml`):
-- `read:project:jira`, `read:project-category:jira`, `read:issue-type:jira`, `read:project.property:jira`, `read:issue-type-hierarchy:jira`, `read:project-version:jira`, `read:project.component:jira`, `read:avatar:jira`: list projects and their schemes (the granular scope set Jira requires for `project/search`, project roles and group members). AccessRadar does not read issues.
+- `read:project:jira`, `read:project-category:jira`, `read:issue-type:jira`, `read:project.property:jira`, `read:issue-type-hierarchy:jira`, `read:project-version:jira`, `read:project.component:jira`, `read:avatar:jira`: list spaces and their schemes (the granular scope set Jira requires for `project/search`, space roles and group members). AccessRadar does not read work items.
 - `read:permission-scheme:jira`, `read:permission:jira`, `read:field:jira`: read permission schemes and grants (including custom-field holders) and check permissions per person.
-- `read:project-role:jira`: project roles and their actors.
+- `read:project-role:jira`: space roles and their actors.
 - `read:group:jira`, `read:user:jira`: groups, group members, admin access levels and user status, to resolve who actually has access.
 - `read:application-role:jira`: expand application-role grants into groups.
 - `report:personal-data`: Atlassian privacy reporting for closed accounts.
-- No write or manage scopes, no `read:jira-work` (the app cannot read issues: verified, `search/jql` returns 401). Remote hosts contacted: **None**.
+- No write or manage scopes, no `read:jira-work` (the app cannot read work items: verified, `search/jql` returns 401). Remote hosts contacted: **None**.
 
 **App user disclosure** (for /security and the Security Questionnaire): after install, Atlassian adds the AccessRadar app user to admin groups (`atlassian-addons-admin`, `jira-admins-…`) and to the `atlassian-addons-project-access` role. AccessRadar still holds read scopes only, so the API rejects any write; every UI call first checks that the caller is a Jira administrator.
 
@@ -349,8 +349,8 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 ---
 
 ## 10. Accuracy notes (keep the listing truthful)
-- Listing claims map to shipped R1 + R2 features in code (2026-10-10), including project-settings delegation. Rovo is no longer Coming soon in Settings (`rovo` is released); claim it in the public listing once the listing update is submitted (Rovo must be enabled on the site; answers come from the latest snapshot, Jira admins only). No Slack/email notifications, no Confluence, no write scopes.
-- Campaigns, alerts, signature chain and project Access review page are in development builds. Listing copy uses the UI's labels (Keep / Revoke / Exception, Campaigns, Alerts, Verify chain, Access review).
+- Listing claims map to shipped R1 + R2 features in code (2026-10-10), including space-settings delegation. Rovo is no longer Coming soon in Settings (`rovo` is released); claim it in the public listing once the listing update is submitted (Rovo must be enabled on the site; answers come from the latest snapshot, Jira admins only). No Slack/email notifications, no Confluence, no write scopes.
+- Campaigns, alerts, signature chain and the space Access review page are in development builds. Listing copy uses the UI's labels (Keep / Revoke / Exception, Campaigns, Alerts, Verify chain, Access review).
 - Known limitation (also in product copy): campaign delegates are not notified outside Jira; reminders and alerts are in-app only.
 - Risk indicators match `src/engine/risk.ts`: anonymous, broad-app-role, admins, wide-admin, inactive, large-groups.
 - Schedule options match `src/db/settings.ts`: off / daily / weekly (default weekly).
@@ -364,7 +364,7 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 ## 11. Decisions and inputs needed from Marcin
 1. ~~App name~~: **chosen** (*AccessRadar – Access Review & Permission Audit for Jira*). Still open: manual trademark check (EUIPO/WIPO, `name-pricing-legal.md` §1.4).
 2. ~~Pricing~~: **adopted** (§8).
-3. **Feature truth check before submit:** R1 + shipped R2 (campaigns admin, alerts, signature chain) are in the code (2026-10-10); project settings page and the read-only Rovo agent are in the code too. Verify in production after the Marketplace install (CLI install of a licensed app into production is refused until approval).
+3. **Feature truth check before submit:** R1 + shipped R2 (campaigns admin, alerts, signature chain) are in the code (2026-10-10); the space settings page and the read-only Rovo agent are in the code too. Verify in production after the Marketplace install (CLI install of a licensed app into production is refused until approval).
 4. **`allowImpersonation`:** shipped as declared in the first production deploy (2026-10-09). Removing it later is a scope change (new major version, admin consent) and must not happen during Marketplace review.
 5. ~~Live URLs~~: **live, all 200** (§7). Still open: support hours and response time.
 6. **Legal answers** in §9 (processor/controller, retention after uninstall, logging, EEA transfer).

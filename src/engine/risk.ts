@@ -139,7 +139,7 @@ function projectNoAdmin(
     if (projectPartial) partial = true;
     // No human admin: empty, conditional-only, or only unexpanded/partial holders.
     if (adminEntries.length === 0 || hasConditional || projectPartial) {
-      items.push({ id: projectId, label: `${project.key}: no project admin`, detail });
+      items.push({ id: projectId, label: `${project.key}: no space admin`, detail });
     }
   }
   return { items, partial };
@@ -159,7 +159,7 @@ function directUserGrants(state: AccessState, keyPermissions: Set<string>): Risk
     items.push({
       id: `${g.schemeId}:${g.grantId}`,
       label: `${schemeName}: ${g.permission} → ${who}`,
-      detail: `${n} project${n === 1 ? '' : 's'}`,
+      detail: `${n} space${n === 1 ? '' : 's'}`,
     });
   }
   return items;
@@ -170,7 +170,7 @@ function unusedSchemesAndRoles(state: AccessState): RiskItem[] {
   const items: RiskItem[] = [];
   for (const [id, scheme] of state.schemes) {
     if (!usedSchemes.has(id)) {
-      items.push({ id: `scheme:${id}`, label: scheme.name, detail: 'No project assigned' });
+      items.push({ id: `scheme:${id}`, label: scheme.name, detail: 'No space assigned' });
     }
   }
   const rolesInUsedGrants = new Set<string>();
@@ -190,7 +190,7 @@ function unusedSchemesAndRoles(state: AccessState): RiskItem[] {
     items.push({
       id: `role:${roleId}`,
       label: role.name,
-      detail: 'Role unused in schemes and projects',
+      detail: 'Role unused in schemes and spaces',
     });
   }
   return items;
@@ -231,7 +231,7 @@ function emptyGroupsInUse(
     items.push({
       id: groupId,
       label: group.name,
-      detail: `grants ${projectCount} project${projectCount === 1 ? '' : 's'}`,
+      detail: `grants ${projectCount} space${projectCount === 1 ? '' : 's'}`,
     });
   }
   return { items, partial };
@@ -254,7 +254,7 @@ function appAccountsAdmin(state: AccessState, entries: EffectiveAccess[]): RiskI
     if (!inAdmin && !projects?.size) continue;
     const detail = inAdmin
       ? inAdmin.map((g) => state.groups.get(g)?.name ?? g).join(', ')
-      : `${projects!.size} project${projects!.size === 1 ? '' : 's'}`;
+      : `${projects!.size} space${projects!.size === 1 ? '' : 's'}`;
     items.push({ id: accountId, label: person.displayName, detail });
   }
   return items;
@@ -318,11 +318,11 @@ export function computeRisks(
   const wide = [...adminProjects]
     .filter(([id, set]) => keep(id) && set.size >= opts.wideAdminProjects)
     .sort((a, b) => b[1].size - a[1].size)
-    .map(([id, set]) => ({ id, label: name(id), detail: `${set.size} projects` }));
+    .map(([id, set]) => ({ id, label: name(id), detail: `${set.size} spaces` }));
 
   const inactive = [...withAccess]
     .filter(([id]) => state.persons.get(id)?.active === false && keep(id))
-    .map(([id, set]) => ({ id, label: name(id), detail: `${set.size} projects` }));
+    .map(([id, set]) => ({ id, label: name(id), detail: `${set.size} spaces` }));
 
   const usedGroups = new Set<string>();
   for (const e of entries)
@@ -372,14 +372,14 @@ export function computeRisks(
       'inactive',
       'high',
       'Inactive users with access',
-      'Deactivated accounts that still hold project permissions.',
+      'Deactivated accounts that still hold space permissions.',
       inactive,
     ),
     risk(
       'app-accounts-admin',
       'high',
       'App accounts with admin access',
-      'App or customer accounts in admin groups or with project administer rights.',
+      'App or customer accounts in admin groups or with space administer rights.',
       appAdmin,
     ),
     risk(
@@ -392,8 +392,8 @@ export function computeRisks(
     risk(
       'wide-admin',
       'medium',
-      'Wide project admin access',
-      `People who can administer ${opts.wideAdminProjects} or more projects.`,
+      'Wide space admin access',
+      `People who can administer ${opts.wideAdminProjects} or more spaces.`,
       wide,
     ),
     risk(
@@ -406,8 +406,8 @@ export function computeRisks(
     risk(
       'project-no-admin',
       'medium',
-      'Projects without a project admin',
-      'Company-managed projects where no active human resolves Administer Projects (except via global Jira admin).',
+      'Spaces without a space admin',
+      'Company-managed spaces where no active human resolves Administer Projects (except via global Jira admin).',
       noAdmin.items,
       noAdmin.partial,
     ),
@@ -437,7 +437,7 @@ export function computeRisks(
       'unused-schemes',
       'low',
       'Unused schemes and roles',
-      'Permission schemes with no project, or global roles unused by schemes and actors.',
+      'Permission schemes with no space, or global roles unused by schemes and actors.',
       unused,
     ),
   ];

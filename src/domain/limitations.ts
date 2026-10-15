@@ -11,9 +11,9 @@ export const LIMITATIONS_VERSION = 1;
 
 /** Fixed method limitations — single source for UI, PDF, CSV. */
 export const LIMITATION_STATEMENTS: readonly string[] = [
-  'Team-managed projects use a simplified permission model; findings for those projects are limited accordingly.',
+  'Team-managed spaces use a simplified permission model; findings for those spaces are limited accordingly.',
   'Conditional holders (reporter, assignee, user/group custom fields) are listed, not expanded to people.',
-  'Issue security levels are not evaluated.',
+  'Work item security levels are not evaluated.',
   'Confluence and Jira Service Management customers are out of scope.',
   '“Inactive” means a deactivated Atlassian account, not last-login age.',
   'Global admin view is partial: derived from admin/site-admin group membership only.',

@@ -32,7 +32,7 @@ function AccessTable({ rows, empty }: { rows: AccessChange[]; empty: string }) {
     <DynamicTable
       head={{
         cells: [
-          { key: 'project', content: 'Project', isSortable: true },
+          { key: 'project', content: 'Space', isSortable: true },
           { key: 'who', content: 'Who', isSortable: true },
           { key: 'perm', content: 'Permission', isSortable: true },
           { key: 'why', content: 'Why' },
@@ -225,10 +225,10 @@ export function ChangesView() {
   // Search and filters scroll with each tab's content; the snapshot pickers and tab bar stay pinned.
   const filters = (
     <FilterBar>
-      <SearchField value={query} onChange={setQuery} placeholder="Search people, projects, paths" />
+      <SearchField value={query} onChange={setQuery} placeholder="Search people, spaces, paths" />
       {(
         [
-          ['Project', options.projects, project, setProject],
+          ['Space', options.projects, project, setProject],
           ['Group', options.groups, group, setGroup],
           ['Permission', options.perms, perm, setPerm],
         ] as Array<[string, Opt[], string, (v: string) => void]>

@@ -91,7 +91,7 @@ export function ProjectReviewView() {
   const header = (
     <PageHeader
       title="Access review"
-      description="Review who has key permissions in this project. Decisions stay in AccessRadar until a Jira admin signs."
+      description="Review who has key permissions in this space. Decisions stay in AccessRadar until a Jira admin signs."
       actions={
         d?.assignment && d.access !== 'not-assigned' ? (
           <Button
@@ -149,7 +149,7 @@ export function ProjectReviewView() {
             title="No assigned review"
             description={
               d.limitation ??
-              'When a Jira admin runs a campaign, the assigned project admin reviews access here. Reminders stay in the app — AccessRadar does not send email.'
+              'When a Jira admin runs a campaign, the assigned space admin reviews access here. Reminders stay in the app — AccessRadar does not send email.'
             }
             action={null}
           />

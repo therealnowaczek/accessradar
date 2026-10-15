@@ -7,11 +7,11 @@ installed from the CLI until the Marketplace listing is approved, so crop the la
 
 | File | Screen | Must show |
 |---|---|---|
-| `h1-explore-why-2x.png` | Explore → Projects → PAY, **Why?** drawer open | Riley Novak (contractors): group “contractors” → role “Developers” → scheme “AR Demo · Standard” |
+| `h1-explore-why-2x.png` | Explore → Spaces → PAY, **Why?** drawer open | Riley Novak (contractors): group “contractors” → role “Developers” → scheme “AR Demo · Standard” |
 | `h2-changes-2x.png` | Changes, From #1 → To #2, tab **Granted** | Riley Novak / Casey Brandt gaining Browse/Create/Edit in PAY; tab counts for Revoked, Groups, Schemes & roles |
 | `h3-review-signed-2x.png` | Reviews → “Q4 2026 access review” (signed) | “Signed by …” message with UTC + local time and **Evidence hash (SHA-256)**, metrics Items / Decided / Keep / Revoke, first table rows |
 | `g1-overview-2x.png` | Overview | Latest snapshot, completeness, risk tiles (admins, inactive with access, anonymous grant) |
-| `g2-people-2x.png` | Explore → People → Casey Brandt | Access per project with the path (contractors, admin group) |
+| `g2-people-2x.png` | Explore → People → Casey Brandt | Access per space with the path (contractors, admin group) |
 | `g3-snapshots-2x.png` | Snapshots | Two or more snapshots, status and completeness |
 | `g4-security-data-2x.png` | Settings → Security & data | Read-only scopes, no egress, what is stored and for how long |
 
