@@ -1,8 +1,15 @@
 import { backgroundEdition } from '../api/edition';
 import { getSettings, kvGet, kvSet, type Settings } from '../db/settings';
+import { latestCommitted } from '../db/snapshots';
 import { q } from '../db/sql';
-import { effectiveSchedule } from '../domain/edition';
-import { isDue } from './schedule';
+import { effectiveSchedule, type Edition } from '../domain/edition';
+import { isDue, type SnapshotFrequency } from './schedule';
+
+/** Standard sites at or under this many active human accounts use the internal biweekly schedule. */
+export const FREE_TIER_USER_CAP = 10;
+
+/** Shown in Settings. Not a selectable frequency. */
+export const FREE_TIER_SCHEDULE_COPY = 'Free plan: every two weeks; manual snapshots any time';
 
 export const GATE_KEY = 'tick:gate';
 
@@ -23,7 +30,41 @@ export interface TickGate {
   v: 2;
 }
 
-type Schedule = Pick<Settings, 'frequency' | 'hourUtc' | 'weekday'>;
+type Schedule = {
+  frequency: SnapshotFrequency;
+  hourUtc: number;
+  weekday: number;
+};
+
+/** `stats_json.activeHumans` from the latest snapshot, or null when that snapshot predates the field. */
+export function activeHumansFromStats(
+  stats: Record<string, number> | null | undefined,
+): number | null {
+  const n = stats?.activeHumans;
+  return typeof n === 'number' && Number.isFinite(n) ? n : null;
+}
+
+/** Standard and ≤10 active humans. Unknown counts stay on the normal Standard schedule. */
+export function isFreeTier(edition: Edition, activeHumans: number | null): boolean {
+  return edition === 'standard' && activeHumans !== null && activeHumans <= FREE_TIER_USER_CAP;
+}
+
+/**
+ * Internal schedule. Free tier becomes biweekly and is not stored or user-selectable.
+ * `off` stays off so manual-only sites are unchanged.
+ */
+export function applyFreeTierFrequency<
+  T extends { frequency: 'off' | 'daily' | 'weekly'; hourUtc: number; weekday: number },
+>(
+  settings: T,
+  edition: Edition,
+  activeHumans: number | null,
+): T & { frequency: SnapshotFrequency } {
+  if (settings.frequency !== 'off' && isFreeTier(edition, activeHumans)) {
+    return { ...settings, frequency: 'biweekly' };
+  }
+  return settings;
+}
 
 let memo: { gate: TickGate; at: number } | null = null;
 
@@ -62,20 +103,21 @@ export function nextDueTimestamp(
   now = Date.now(),
 ): number | null {
   if (s.frequency === 'off') return null;
+  const spanDays = s.frequency === 'biweekly' ? 16 : 8;
   const hourStart = Date.UTC(
     new Date(now).getUTCFullYear(),
     new Date(now).getUTCMonth(),
     new Date(now).getUTCDate(),
     new Date(now).getUTCHours(),
   );
-  // Probe up to 8 days of hourly windows (weekly + hourUtc).
-  for (let i = 0; i < 8 * 24; i++) {
+  // Probe enough hourly windows to reach the next weekly or biweekly slot.
+  for (let i = 0; i < spanDays * 24; i++) {
     const hour = hourStart + i * 3600_000;
     // Current hour: use `now` so we do not skip a due window we are already inside.
     const probe = i === 0 ? now : hour + 60_000;
     if (isDue(s, lastScheduledStart, probe)) return hour;
   }
-  return now + 7 * 86400_000;
+  return now + (s.frequency === 'biweekly' ? 14 : 7) * 86400_000;
 }
 
 export function computeGate(
@@ -132,15 +174,19 @@ async function runningSnapshot(): Promise<{ updatedAt: number } | null> {
   return rows[0] ? { updatedAt: Number(rows[0].updated_at) } : null;
 }
 
-/**
- * Optional R2 schedule hooks. Campaign/reminder tables may not exist yet — callers
- * pass null until R2-04 wires real mins.
- */
+/** Edition-adjusted settings, then the free-tier biweekly override from the latest snapshot. */
+export async function scheduledSettings(): Promise<Schedule & Pick<Settings, 'retentionDays'>> {
+  const edition = await backgroundEdition();
+  const settings = effectiveSchedule(await getSettings(), edition.features);
+  const snap = await latestCommitted();
+  return applyFreeTierFrequency(settings, edition.edition, activeHumansFromStats(snap?.stats));
+}
+
 export async function refreshGate(
   now = Date.now(),
   extras: { nextCampaignAt?: number | null; nextReminderAt?: number | null } = {},
 ): Promise<TickGate> {
-  const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
+  const settings = await scheduledSettings();
   let nextCampaignAt = extras.nextCampaignAt;
   let nextReminderAt = extras.nextReminderAt;
   if (nextCampaignAt === undefined || nextReminderAt === undefined) {

@@ -53,8 +53,9 @@ function localHour(hourUtc: number): string {
   }).format(d);
 }
 
-function scheduleText(s: Settings): string {
+function scheduleText(s: Settings, freeTier: boolean): string {
   if (s.frequency === 'off') return 'Off (manual snapshots only)';
+  if (freeTier) return t('schedule.freeTier');
   const at = `${String(s.hourUtc).padStart(2, '0')}:00 UTC (${localHour(s.hourUtc)} ${timeZone()})`;
   return s.frequency === 'daily'
     ? `Daily at ${at}`
@@ -148,11 +149,13 @@ function ScheduleForm({
   save,
   cancel,
   advanced,
+  freeTier,
 }: {
   s: Settings;
   save: Saver;
   cancel: () => void;
   advanced: boolean;
+  freeTier: boolean;
 }) {
   const [frequency, setFrequency] = useState(s.frequency);
   const [hourUtc, setHour] = useState(s.hourUtc);
@@ -176,6 +179,7 @@ function ScheduleForm({
         />
       </RadioField>
       {!advanced ? <PlanNote benefit={t('planGate.schedules')} /> : null}
+      {freeTier && frequency !== 'off' ? <p className="subtle">{t('schedule.freeTier')}</p> : null}
       {frequency !== 'off' ? (
         <>
           {frequency === 'weekly' ? (
@@ -457,18 +461,25 @@ export function SettingsView() {
             />
             <Section
               title="Snapshot schedule"
-              description="How often AccessRadar records the access picture of this site."
+              description={
+                v.freeTier
+                  ? t('schedule.freeTier')
+                  : 'How often AccessRadar records the access picture of this site.'
+              }
               action={
                 <Button
                   onClick={() =>
                     edit(
                       'Snapshot schedule',
-                      'Scheduled snapshots run in the background.',
+                      v.freeTier
+                        ? t('schedule.freeTier')
+                        : 'Scheduled snapshots run in the background.',
                       <ScheduleForm
                         s={s}
                         save={save}
                         cancel={close}
                         advanced={v.edition.features.customSchedules}
+                        freeTier={Boolean(v.freeTier)}
                       />,
                     )
                   }
@@ -477,7 +488,7 @@ export function SettingsView() {
                 </Button>
               }
             >
-              <Details rows={[['Schedule', scheduleText(s)]]} />
+              <Details rows={[['Schedule', scheduleText(s, Boolean(v.freeTier))]]} />
             </Section>
             <Section
               title="Key permissions"

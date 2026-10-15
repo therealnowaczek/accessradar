@@ -524,8 +524,16 @@ export async function finalize(ctx: StepContext): Promise<FinalizeResult> {
   const merge = await mergeStage(seq, prev?.seq ?? null);
   const hash = await computeContentHash(seq);
   const stats: Record<string, number> = {};
-  for (const f of [...staged, ...extra])
-    if (f.kind !== 'coverage' && f.kind !== 'carry') stats[f.kind] = (stats[f.kind] ?? 0) + 1;
+  let activeHumans = 0;
+  for (const f of [...staged, ...extra]) {
+    if (f.kind === 'coverage' || f.kind === 'carry') continue;
+    stats[f.kind] = (stats[f.kind] ?? 0) + 1;
+    if (f.kind === 'person') {
+      const attrs = f.attrs as { accountType?: string; active?: boolean };
+      if (attrs.accountType === 'atlassian' && attrs.active !== false) activeHumans += 1;
+    }
+  }
+  stats.activeHumans = activeHumans;
   await clearStage(seq);
   const partial = coverage.some(
     (c) => c.status === 'unreadable' || c.status === 'partial' || c.status === 'carried',
