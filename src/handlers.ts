@@ -61,7 +61,7 @@ function def(name: string, fn: Handler) {
       await ensureMigrated();
       const environmentType = (context as { environmentType?: string }).environmentType;
       // Edition is resolved on the server for every call; resolvers enforce features.
-      const edition = await decideForInvocation(license);
+      const edition = await decideForInvocation(license, environmentType);
       const data = await fn(payload ?? {}, { accountId, environmentType, license, edition });
       console.log(`[ui] ${name} ok`, { ms: Date.now() - started });
       return { ok: true, data };
@@ -128,7 +128,9 @@ def('getSettings', (_p, c) => svc.settingsView(c.accountId, c.edition));
 def('saveSettings', (p, c) => svc.updateSettings(p, c.accountId, c.edition));
 def('getEdition', async (_p, c) => svc.editionView(c.edition));
 def('setEditionOverride', async (p, c) =>
-  svc.editionView(await setEditionOverride(c.accountId, p.edition ?? null, c.license)),
+  svc.editionView(
+    await setEditionOverride(c.accountId, p.edition ?? null, c.license, c.environmentType),
+  ),
 );
 def('getActivity', () => svc.activity());
 def('logExport', (p, c) => svc.logExport(p, c.accountId));
@@ -168,7 +170,8 @@ function defProject(name: string, fn: ProjectHandler) {
       if (!projectId) return { ok: false, error: 'Space context missing', forbidden: true };
 
       await ensureMigrated();
-      const edition = await decideForInvocation(license);
+      const environmentType = (context as { environmentType?: string }).environmentType;
+      const edition = await decideForInvocation(license, environmentType);
       if (!edition.features.delegatedReviews) return { ok: false, error: REQUIRES_ADVANCED };
 
       const siteAdmin = await isJiraAdmin(accountId);
@@ -181,7 +184,6 @@ function defProject(name: string, fn: ProjectHandler) {
         isSiteAdmin: siteAdmin,
       });
 
-      const environmentType = (context as { environmentType?: string }).environmentType;
       const data = await fn(payload ?? {}, {
         accountId,
         environmentType,

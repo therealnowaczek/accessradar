@@ -1159,6 +1159,7 @@ export function editionView(e: EditionDecision) {
     override: e.override,
     features: e.features,
     envOverride: e.source === 'env',
+    canOverride: e.canOverride,
     comingSoon: comingSoonFeatures(featureFlags('advanced')),
   };
 }
