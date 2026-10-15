@@ -2,7 +2,7 @@
 
 Status: draft for Marcin's approval · 2026-10-10 · baseline `main` @ `9ee84d2` · docs only, no code changed.
 
-Implementation status (2026-10-11): every R1 and R2 item (R1-01..R1-08, R2-01..R2-08) is on `main` and released in Settings (no feature is Coming soon any more, including Rovo). Not built: the §8a future major (needs new scopes), R1-09 free-tier schedule, and P-01 pricing (after Marketplace release).
+Implementation status (2026-10-15): every R1 and R2 item (R1-01..R1-08, R2-01..R2-08) is on `main` and released in Settings (nothing is Coming soon, including Rovo). Not built: the §8a future major (needs new scopes) and R1-09 free-tier schedule. Final prices (2026-10-14) are recorded in the docs and `docs/accessradar-pricing-import.csv`; they go live on Marketplace at the first release after approval.
 Inputs: `src/`, `manifest.yml`, `test/`, `static/app/src`, `docs/FEATURE-PARITY.md` (§4 gaps, §5 differentiators, §6 R1/R2, §7 pricing, §7.1 Forge cost, §7.3 APPROVED pricing).
 
 ---
@@ -239,10 +239,10 @@ All pure functions in `src/engine/risk.ts`, input `AccessState` + `EffectiveAcce
 | id | Severity | Definition (exact) | Item id / label |
 |---|---|---|---|
 | `project-no-admin` | medium | Company-managed space where **no** active `atlassian` account resolves `ADMINISTER_PROJECTS` through any path other than global Jira admin membership. projectLead path counts. Spaces whose scheme grants ADMINISTER_PROJECTS only to conditional holders also flagged. Team-managed spaces excluded (coverage info). | `projectId` / `KEY: no space admin` (detail: scheme name) |
-| `direct-user-grants` | low | Permission-scheme grant with `holderType === 'user'` (single user directly in scheme) for any key permission (`settings.keyPermissions`) on a scheme used by ≥1 project. Also role actors of type user on **≥ `directRoleUserThreshold` (default 10) projects** for the same person are NOT included (that is normal role use). | `${schemeId}:${grantId}` / `<scheme>: <PERMISSION> → <user>` (detail: N projects) |
+| `direct-user-grants` | low | Permission-scheme grant with `holderType === 'user'` (single user directly in scheme) for any key permission (`settings.keyPermissions`) on a scheme used by ≥1 space. Also role actors of type user on **≥ `directRoleUserThreshold` (default 10) spaces** for the same person are NOT included (that is normal role use). | `${schemeId}:${grantId}` / `<scheme>: <PERMISSION> → <user>` (detail: N spaces) |
 | `unused-schemes` | low | Permission scheme with no space assigned (`projectsForScheme(id).length === 0`) **or** space role (global role id) that appears in no grant of any used scheme **and** has no actors in any space. Hygiene only. | `scheme:${id}` / `role:${id}` |
-| `empty-groups-in-use` | medium | Group whose members were collected (`groupMembers.has(id)`), has 0 active members, and is referenced by a used scheme grant, role actor, or app role. Risk: someone added later silently inherits access. Groups with `members: 'unreadable' | 'not-collected'` excluded and counted in `partial`. | `groupId` / group name (detail: "grants N projects") |
-| `app-accounts-admin` | high | Account with `accountType !== 'atlassian'` (app/customer) that is in an `admin`/`site-admin` group **or** resolves `ADMINISTER_PROJECTS` on ≥1 project. Ignores `includeAppAccounts` (always evaluated). | `accountId` / display name (detail: groups or N projects) |
+| `empty-groups-in-use` | medium | Group whose members were collected (`groupMembers.has(id)`), has 0 active members, and is referenced by a used scheme grant, role actor, or app role. Risk: someone added later silently inherits access. Groups with `members: 'unreadable' | 'not-collected'` excluded and counted in `partial`. | `groupId` / group name (detail: "grants N spaces") |
+| `app-accounts-admin` | high | Account with `accountType !== 'atlassian'` (app/customer) that is in an `admin`/`site-admin` group **or** resolves `ADMINISTER_PROJECTS` on ≥1 space. Ignores `includeAppAccounts` (always evaluated). | `accountId` / display name (detail: groups or N spaces) |
 
 Settings additions: `directRoleUserThreshold` reserved (not used in v1, do not add); none required. Overview risk cards (existing component) render new ids; each card has "Learn more" text in `src/domain/riskCopy.ts`.
 
@@ -474,15 +474,15 @@ CREATE TABLE IF NOT EXISTS notice (
 **Edition gating.** All admin campaign resolvers and project resolvers check `features.reviewCampaigns` / `delegatedReviews` server-side; background steps check `backgroundEdition()`; on downgrade: campaigns paused (`status='paused_edition'`), existing reviews remain usable by admins in the normal Reviews list.
 
 **AC.**
-1. Quarterly campaign on 3 projects → at start time a snapshot is taken and 3 reviews + 3 assignments exist; owners = project leads who have ADMINISTER_PROJECTS, others unassigned.
+1. Quarterly campaign on 3 spaces → at start time a snapshot is taken and 3 reviews + 3 assignments exist; owners = space leads who have ADMINISTER_PROJECTS, others unassigned.
 2. A space admin who is not the assignee sees "not assigned"; non-admin cannot load the page (Jira hides it) and resolver rejects direct calls (403 path tested).
 3. Delegate decisions are attributed to the delegate in evidence (`decidedBy`), admin signs.
 4. Reminder notices appear at configured offsets ±1 h, once each; overdue daily; never email, no external call (manifest unchanged except modules).
 5. Idle site with paused campaigns: tick still 1 SQL.
 6. Standard edition: campaign resolvers refuse; UI shows promo.
-**Tests.** Unit: `nextRunAt(campaign, now)` (quarterly from start, month-end clamping), reminder schedule calc, delegate resolution. Integration: run → materialize paging (60 projects → 3 events), authorization matrix for project resolver (admin/non-admin/assignee/other project/edition), downgrade pause.
+**Tests.** Unit: `nextRunAt(campaign, now)` (quarterly from start, month-end clamping), reminder schedule calc, delegate resolution. Integration: run → materialize paging (60 spaces → 3 events), authorization matrix for the space-settings resolver (admin/non-admin/assignee/other space/edition), downgrade pause.
 **Audit.** `campaign.created|updated|paused|deleted`, `campaign.run_started|run_materialized|run_completed`, `assignment.reassigned|submitted`, `reminder.issued` (system, `{count}`), `notice.dismissed`.
-**Risks.** ⚠️ new authorization surface; ⚠️ no out-of-Jira notification; ⚠️ large sites (500 projects → 500 reviews) — materialize paging + per-run cap 1 000 projects; project lead ≠ owner.
+**Risks.** ⚠️ new authorization surface; ⚠️ no out-of-Jira notification; ⚠️ large sites (500 spaces → 500 reviews) — materialize paging + per-run cap 1 000 spaces; space lead ≠ owner.
 
 ---
 
@@ -492,9 +492,9 @@ CREATE TABLE IF NOT EXISTS notice (
 
 **Rules (evaluated at snapshot commit vs previous committed snapshot, reusing `engine/diff.ts`):**
 - `new-admin`: account newly in `adminAccounts` (high).
-- `new-anonymous-grant`: new `anyone` grant on used scheme / scheme newly assigned to a project (high).
-- `inactive-with-access`: account deactivated since previous snapshot and still has project access (high); plus still-present weekly digest (medium).
-- `new-project-admin` (medium): new ADMINISTER_PROJECTS holder (user) on any project. Configurable on/off per rule.
+- `new-anonymous-grant`: new `anyone` grant on used scheme / scheme newly assigned to a space (high).
+- `inactive-with-access`: account deactivated since previous snapshot and still has space access (high); plus still-present weekly digest (medium).
+- `new-project-admin` (medium): new ADMINISTER_PROJECTS holder (user) on any space. Configurable on/off per rule. The rule id stays `new-project-admin`.
 - `new-app-account-admin` (high) (links R1-4).
 Cap 500 alerts per snapshot; overflow → one summary alert.
 
@@ -512,7 +512,7 @@ Cap 500 alerts per snapshot; overflow → one summary alert.
 
 ### 4.3 R2-3 Rovo agent — read-only (Advanced)
 
-**Story.** As a Jira admin I ask Rovo "Who can administer project PAY and why?", "What changed since the last review?", "Which reviews are overdue?".
+**Story.** As a Jira admin I ask Rovo "Who can administer space PAY and why?", "What changed since the last review?", "Which reviews are overdue?".
 
 **Manifest (modules only):**
 ```yaml
@@ -522,16 +522,16 @@ rovo:agent:
     description: Answers who has access to what in Jira, why, and what changed — from AccessRadar snapshots. Read-only.
     prompt: resource:rovo-prompt;agent.md
     conversationStarters:
-      - Who can administer project <KEY>?
+      - Who can administer space <KEY>?
       - What changed since the last snapshot?
       - Which access reviews are overdue?
     actions: [ar-who-can-access, ar-why, ar-changes-since, ar-review-status, ar-person-access]
 action:
   - key: ar-who-can-access
-    name: Who can access a project
+    name: Who can access a space
     function: ar-rovo
     actionVerb: GET
-    description: List people and groups with a permission on a project, from the latest snapshot.
+    description: List people and groups with a permission on a space, from the latest snapshot.
     inputs:
       projectKey: { title: Project key, type: string, required: true, description: Jira project key }
       permission: { title: Permission, type: string, required: false, description: e.g. BROWSE_PROJECTS }
@@ -597,22 +597,22 @@ Standard-only features (exceptions, coverage, signature v2/chain, risk rules) ne
 
 ---
 
-## 6. Pricing rollout after release (§7.3 APPROVED)
+## 6. Pricing rollout after release (FINAL 2026-10-14)
 
-**Precondition:** Marketplace approval + public listing live (and Advanced edition enabled in Marketplace after paid app approval — LISTING.md §8). Nothing below before that.
+**Precondition:** Marketplace approval + public listing live (and Advanced edition enabled in Marketplace after paid app approval — LISTING.md §8). The prices below are recorded in the repo now. They go live on the Marketplace listing and pricing import at the first release after that approval. Do not edit Marketplace before then.
 
-New tiers (monthly, per user, progressive from user 1):
+Final tiers (monthly, per user, progressive from user 1):
 | Tier | Standard | Advanced |
 |---|---:|---:|
 | 1–10 | $0 flat | $4 flat |
-| 11–100 | $0.55 | $0.99 |
-| 101–250 | $0.50 | $0.89 |
-| 251–1 000 | $0.40 | $0.79 |
-| 1 001+ (all higher tiers) | $0.25 | $0.45 |
-Examples: Std 100 u. $55, 250 u. $130, 500 u. $230, 1 000 u. $430; Adv 100 u. $99, 250 u. $232.50, 500 u. $430, 1 000 u. $825. Annual 10× monthly, 30-day trial.
+| 11–100 | $0.49 | $0.99 |
+| 101–250 | $0.35 | $0.89 |
+| 251–1 000 | $0.25 | $0.79 |
+| 1 001+ (all higher tiers) | $0.20 | $0.45 |
+Examples: Std 100 u. $49, 250 u. $101.50, 500 u. $164, 1 000 u. $289; Adv 10 u. $4, 100 u. $99, 250 u. $232.50, 500 u. $430, 1 000 u. $825. Annual 10× monthly, 30-day trial. R1 and R2 are released.
 
-Steps (owner: Marcin for console/site deploy; agent PR for repo files):
-1. **Repo PR `docs/pricing-7-3`:** `docs/accessradar-pricing-import.csv` (Standard columns: 0-10 → 0, 11-100 → 0.55, 101-250 → 0.5, 251-1000 → 0.4, every tier ≥1001 → 0.25; add Advanced columns if the import format supports them — verify in partner console, Q7), `docs/LISTING.md` §8 tables + examples + "What each edition includes" (remove *coming soon* for released features), `docs/name-pricing-legal.md` §2.5, `docs/listing-check.py` tier tables, `FEATURE-PARITY.md` §7 status line.
+Steps (owner: Marcin for console/site deploy; repo files are in this docs pass):
+1. **Repo:** `docs/accessradar-pricing-import.csv` (one row per Marketplace `unitCount` for Standard and Advanced; monthly total and annual = 10×), `docs/LISTING.md` §8, `docs/name-pricing-legal.md` §2.5, `docs/listing-check.py`. `FEATURE-PARITY.md` is not in this repo.
 2. **Partner console:** Pricing → Standard tiers; Advanced edition tiers ($4 flat …). Check that existing evaluations/customers follow Marketplace price-change notice rules (60 days for existing customers on increase; this is a decrease vs current entries, so immediate — verify).
 3. **Website accessradar.radrly.com:** edit `~/Desktop/CostRadar GIT/radrly/accessradar/` — `index.html#pricing`, `docs/` (editions page), `terms/` (price reference if any); deploy from Mac: `rsync -avz --delete -e "ssh -p 2244 -i ~/.ssh/vps_radrly" "~/Desktop/CostRadar GIT/radrly/accessradar/" root@84.247.134.34:/srv/radrly/accessradar/` (from `docs/site-prompts.md`), then check page + cache.
 4. **Edition flags:** no code change for pricing; feature rows follow §5 `RELEASED`.

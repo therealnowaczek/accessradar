@@ -14,7 +14,7 @@
 
 1. **Wszystkie potrzebne endpointy działają** (projekty, schematy, granty, role i aktorzy, grupy i członkowie, application roles, `group/bulk?accessType=`, `permissions/check`) zarówno jako **`asApp()`**, jak i jako **offline impersonation `asUser(accountId)`** z kolejki async. Dowód: logi Forge z 18:09–18:10, `docs/spike-results/forge-probes-2026-10-09.json`.
 2. **Zabezpieczenie read-only działa:** kontrolne `search/jql` (odczyt zgłoszeń) zwraca `401 Unauthorized; scope does not match` dla `asApp`, a przy impersonacji kończy się błędem uwierzytelnienia. Aplikacja nie widzi zgłoszeń.
-3. **Niespodzianka (ważna dla security i UX):** przy samych scope'ach `read:*` app user AccessRadar dostał po instalacji **Administer Jira** (grupy `atlassian-addons-admin` i `jira-admins-…`) oraz rolę `atlassian-addons-project-access` we wszystkich projektach. Opcja B (`asApp`) działa więc „z pudełka” na tym site. Szczegóły i konsekwencje w sekcji 3.
+3. **Niespodzianka (ważna dla security i UX):** przy samych scope'ach `read:*` app user AccessRadar dostał po instalacji **Administer Jira** (grupy `atlassian-addons-admin` i `jira-admins-…`) oraz rolę `atlassian-addons-project-access` we wszystkich space'ach. Opcja B (`asApp`) działa więc „z pudełka” na tym site. Szczegóły i konsekwencje w sekcji 3.
 4. **Team-managed (next-gen) projekty mają odczytywalny schemat uprawnień** („KAN: Simplified Permission Scheme”, `scope.type = PROJECT`). Nie trzeba osobnej ścieżki zbierania danych, ale trzeba osobnej semantyki: role są per projekt (`ProjectRole.scope`), a schemat jest 1:1 z projektem.
 5. **Limity:** nagłówki potwierdzają pulę `"global-app-quota";q=65000;w=3600` **także dla impersonacji** (R14: tak, impersonacja liczy się do puli aplikacji). Nagłówki **nie podają pozostałych punktów** (tylko `t` = sekundy do resetu), a `Beta-RateLimit*` nie wystąpiły. Budżet punktów musimy liczyć sami.
 
@@ -30,11 +30,11 @@ Wołania przez gateway `https://api.atlassian.com/ex/jira/{cloudId}/rest/api/3/�
 
 | Obszar | Wynik | Wniosek dla implementacji |
 |---|---|---|
-| Projekty `project/search` | 5 projektów: 4× `style=classic`, 1× `style=next-gen` (`simplified=true`, KAN). Paginacja `startAt/maxResults`, `isLast`, `nextPage` OK | Pętla do `isLast` (zaimplementowane: `src/lib/paginate.ts` + test) |
-| Schemat projektu `project/{key}/permissionscheme` | 200 dla classic **i team-managed**. 4 projekty classic współdzielą „Default software scheme” (10033). KAN ma własny „KAN: Simplified Permission Scheme” (10000) | Deduplikacja po `schemeId`, mapa projekt → schemat |
-| Lista schematów `permissionscheme?expand=all` | 3 schematy, w tym **schemat team-managed** z `scope: {type: PROJECT, project: {id: 10000}}` | Oznaczać schematy z `scope` jako „team-managed / per projekt” |
+| Space `project/search` | 5 spaces: 4× `style=classic`, 1× `style=next-gen` (`simplified=true`, KAN). Paginacja `startAt/maxResults`, `isLast`, `nextPage` OK | Pętla do `isLast` (zaimplementowane: `src/lib/paginate.ts` + test) |
+| Schemat space `project/{key}/permissionscheme` | 200 dla classic **i team-managed**. 4 classic spaces współdzielą „Default software scheme” (10033). KAN ma własny „KAN: Simplified Permission Scheme” (10000) | Deduplikacja po `schemeId`, mapa space → schemat |
+| Lista schematów `permissionscheme?expand=all` | 3 schematy, w tym **schemat team-managed** z `scope: {type: PROJECT, project: {id: 10000}}` | Oznaczać schematy z `scope` jako „team-managed / per space” |
 | Typy holderów na site | `projectRole`, `applicationRole` (bez `parameter` = „każdy z dostępem do dowolnej aplikacji Jira”). Brak `group`/`user`/`anyone` na tym site | Pozostałe typy obsługujemy wg dokumentacji. Fixture'y w testach |
-| Role projektu `project/{key}/role` | Classic: role globalne (10002–10006). KAN: **osobne role z `scope` projektu** (Administrator 10007, Member 10008, Viewer 10009, jira-guest-member 10010, atlassian-addons-project-access 10011) | Klucz roli = (`projectId`, `roleId`). Nazwy ról team-managed się powtarzają, ale id są różne |
+| Role space `project/{key}/role` | Classic: role globalne (10002–10006). KAN: **osobne role z `scope` space** (Administrator 10007, Member 10008, Viewer 10009, jira-guest-member 10010, atlassian-addons-project-access 10011) | Klucz roli = (`projectId`, `roleId`). Nazwy ról team-managed się powtarzają, ale id są różne |
 | Aktorzy `project/{key}/role/{id}` | `actorUser.accountId` / `actorGroup`. Rola `atlassian-addons-project-access` zawiera 11–12 kont typu `app` | Konta `app` domyślnie chowamy (S1) |
 | Wszystkie role `GET /role` | 200, zwraca też role team-managed z `scope` | Przydatne do mapowania nazw |
 | Grupy `group/bulk` | 34 grupy, paginacja OK (`startAt=30` → 4, `isLast=true`). Parametr `applicationKey` **sam w sobie jest ignorowany** | — |
@@ -43,7 +43,7 @@ Wołania przez gateway `https://api.atlassian.com/ex/jira/{cloudId}/rest/api/3/�
 | `group/bulk?accessType=user` | **400**, wymaga `applicationKey` (`jira-software`, `jira-servicedesk`, `jira-product-discovery`, `jira-core`). Z `applicationKey=jira-software` → `jira-users-…`, `org-admins` | Dokumentacja tego nie podkreśla. Iterować po kluczach aplikacji |
 | Członkowie `group/member` | OK, `maxResults` + `isLast` + `nextPage`. Paginacja przetestowana (12 członków, strony po 5 → 3 strony). `groupname=` działa, ale używamy `groupId` | `includeInactiveUsers=true`. Dużo kont `app` w grupach adminów |
 | Application roles `applicationrole` | 3 aplikacje (`jira-software`, `jira-servicedesk`, `jira-customer-service`) z `groupDetails` (groupId) i `defaultGroupsDetails` | Rozwinięcie holdera `applicationRole` = suma grup ról aplikacji |
-| `permissions/check` (inny accountId) | 200, zwraca globalne (np. `USER_PICKER`, `CREATE_PROJECT`, `ADMINISTER`) i projektowe per projekt. Osobny limit burst 200/s | S2 „per osoba” działa. Pełnej listy holderów globalnych dalej nie ma |
+| `permissions/check` (inny accountId) | 200, zwraca globalne (np. `USER_PICKER`, `CREATE_PROJECT`, `ADMINISTER`) i uprawnienia space (pole `projectPermissions`) per space. Osobny limit burst 200/s | S2 „per osoba” działa. Pełnej listy holderów globalnych dalej nie ma |
 | `mypermissions` | 200 (ADMINISTER, USER_PICKER) | Autoryzacja w resolverze (`src/lib/auth.ts`) |
 | `user/groups`, `users/search` | 200. `users/search` zwraca 46 kont, w tym 45 typu `app` | — |
 

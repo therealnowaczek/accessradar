@@ -13,9 +13,9 @@
 - **Limity (jak w MarginRadar, zweryfikowane tam w docs 2026-10-09):** nazwa ≤60, tagline ≤130 **bez kropki na końcu** (z checklisty), summary ≤250, More details ≤1000, 3 highlighty (tytuł ≤50, opis ≤220, podpis ≤220), 2 kategorie + 4 keywords. Wszystkie pola mieszczą się w limitach; skrypt `docs/listing-check.py` to sprawdza i potwierdza, że każdy tekst występuje w tym pliku dosłownie.
 - **Kategorie:** Security and compliance + Administrative tools. **Keywords:** Audit, Compliance, User permissions, Risk Management. Dokładnie taki zestaw mają Project Access Review (Akeles), a podobny Access Reviewer360 i AuditAdmin (sprawdzone w Marketplace REST 2026-10-09). To standard niszy, więc nie ma sensu z nim walczyć.
 - **Pozycjonowanie bez nazywania konkurentów:** „the why” (ścieżka grantu), uczciwa kompletność, dowód z hashem SHA-256, read-only (kontrast z Access Reviewer360, które robi revoke). Konkurentów (AccessLens, Project Access Review, Project Roles) ani JRACLOUD-71967 **nie wymieniamy** w listingu. Ticket to dobry materiał na stronę /docs albo post w Community, ale dopiero po Twojej decyzji.
-- **Ceny (§8, zaktualizowane 2026-10-10, 1:1 z MarginRadar):** Standard $0 do 10 użytkowników (płasko), potem $0.75 / $0.60 / $0.40 / $0.25 (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced $10 płasko do 10 użytkowników, potem $1.99 / $1.49 / $0.99 / $0.49. Rocznie 10× miesięcznie, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $75/mies. = $750/rok. Advanced trafi do Marketplace dopiero po akceptacji płatnej aplikacji; strona www pokazuje Advanced jako „Coming soon”. Progi Standard w Marketplace (dziś 0.75/0.55/0.35/0.20/0.15/0.12) do wyrównania, gdy listing będzie edytowalny.
+- **Ceny (FINAL, decyzja 2026-10-14):** Standard $0 do 10 użytkowników (płasko), potem $0.49 / $0.35 / $0.25 / $0.20 (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced $4 płasko do 10 użytkowników, potem $0.99 / $0.89 / $0.79 / $0.45. Rocznie 10× miesięcznie, 30-dniowy trial, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $49/mies. = $490/rok. Funkcje R1/R2 są wydane. Te stawki wchodzą na listing Marketplace i plik cenowy przy pierwszym wydaniu po akceptacji Marketplace; ten PR nie zmienia samego Marketplace.
 - **Privacy & Security:** gotowe odpowiedzi w §9. Dwie rzeczy wymagają uczciwego ujawnienia: (1) manifest deklaruje `allowImpersonation: true` na scope'ach odczytu, (2) Atlassian po instalacji dodaje app usera AccessRadar do grup adminów (week1-findings §3), choć aplikacja ma wyłącznie scope'y `read:*`. Pytania prawne oznaczyłem **[TO CONFIRM]**.
-- **Feature truth check (stan kodu 2026-10-10, po R1+R2):** jak po R1, plus **łańcuch podpisów**, Advanced: **kampanie**, **alerty zmian**, **delegacja** (space settings page dla space adminów), przypomnienia **tylko in-app**. Agent Rovo (read-only, 5 akcji GET) jest włączony w manifeście i w Settings (bez *coming soon*); w publicznym listingu pojawi się wraz z aktualizacją listingu. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Lista w §11.
+- **Feature truth check (R1 i R2 wydane):** łańcuch podpisów oraz Advanced: kampanie, alerty zmian, delegacja (space settings page dla space adminów), przypomnienia tylko in-app, agent Rovo (read-only, 5 akcji GET) w manifeście i w Settings. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Lista w §11.
 - **Produkcja:** wdrożona 9.10.2026 (gałąź `release/production`, workflow Deploy (production) zielony, spike usunięty w CI). **Instalacja prod przez CLI jest zablokowana przez Atlassian** („Installing a licensed app is not permitted”): aplikacji z `licensing.enabled: true` nie da się zainstalować z produkcji, dopóki listing nie zostanie zatwierdzony (instalacja tylko przez Marketplace). Zrzuty do listingu trzeba więc zrobić z dev/staging (z dopiskiem „Dev”/„Staging”) albo jako kompozycje, a finalne zrzuty z prod podmienić po akceptacji.
 - **Strona dokumentacji działa:** https://accessradar.radrly.com z podstronami /docs /support /privacy /terms /dpa /security, wszystkie zwracają HTTP 200 (sprawdzone curl 9.10.2026 ok. 19:30 czasu warszawskiego). §7.
 - **Bez wymyślonych liczb:** brak liczby klientów, instalacji, opinii, cytatów i obietnic certyfikacji. AccessRadar *wspiera* zbieranie dowodów do SOC 2 / ISO 27001; nie jest certyfikowany i nie gwarantuje zgodności.
@@ -235,50 +235,46 @@ Extra-screenshot caption counts (verified by the script): S4 126 · S5 124 · S6
 
 ## 8. Pricing (USD per month, Paid via Atlassian)
 
-> **Updated 2026-10-10:** editions 1:1 with MarginRadar (approved by Marcin). Replaces the 2026-10-09 Standard-only tiers. Atlassian fixes the tier boundaries; the vendor only sets the price per tier.
+> **Final prices decided 2026-10-14.** Replaces the 2026-10-10 MarginRadar-matched rates and the earlier Standard-only proposal. Atlassian fixes the tier boundaries; the vendor only sets the price per tier. R1 and R2 features are released (nothing is Coming soon). These rates go live on the Marketplace listing and the pricing import at the first release after Marketplace approval. This repository does not change Marketplace itself. `docs/accessradar-pricing-import.csv` is the tier list to paste into the console template then (one row per Atlassian `unitCount`, monthly total and annual = 10×; multi-instance = single-instance).
 
 | Users (Atlassian's monthly tiers) | **Standard** | **Advanced** |
 |---|---:|---:|
-| 1–10 | **$0** (flat, free) | **$10** (flat) |
-| 11–100 | $0.75 / user | $1.99 / user |
-| 101–250 | $0.60 / user | $1.49 / user |
-| 251–1,000 | $0.40 / user | $0.99 / user |
-| 1,001+ (every higher tier up to 90,001+) | $0.25 / user | $0.49 / user |
+| 1–10 | **$0** (flat, free) | **$4** (flat) |
+| 11–100 | $0.49 / user | $0.99 / user |
+| 101–250 | $0.35 / user | $0.89 / user |
+| 251–1,000 | $0.25 / user | $0.79 / user |
+| 1,001+ (every higher tier up to 100,000) | $0.20 / user | $0.45 / user |
 | Annual | 10× monthly (Marketplace rule, automatic), sold in annual user tiers (10, 15, 25, 50, 100, 200, 300, 400, 500, …) | same |
 | Multi-instance | Same as single-instance (checklist §4) | same |
 | Trial | 30-day free trial | 30-day free trial |
-
-**Advanced is added in Marketplace only after the paid app is approved.** Until then the listing sells Standard only, and the website shows Advanced as **Coming soon**.
-
-**Marketplace action pending:** the Standard tiers currently entered in Marketplace are the old ones ($0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12). Align them with the table above ($0.75 / $0.60 / $0.40 / $0.25 on every tier from 1,001 up) as soon as the listing is editable (Marketplace review is pending). `docs/accessradar-pricing-import.csv` must be updated at the same time.
 
 **How the price is calculated (progressive, from the first user):** once a site has 11 or more users, every user is paid for, including the first ten: users 1–100 at the 11–100 rate, users 101–250 at the 101–250 rate, and so on (verified on 26 Marketplace apps, `name-pricing-legal.md` §2.1).
 
 | Users | Monthly (list) | Calculation | Annual equivalent (10×) |
 |---:|---:|---|---:|
 | 10 | $0.00 | flat free tier | $0 |
-| 25 | $18.75 | 25 × $0.75 | $187.50 |
-| 50 | $37.50 | 50 × $0.75 | $375 |
-| 100 | $75.00 | 100 × $0.75 | $750 |
-| 250 | $165.00 | 100 × $0.75 + 150 × $0.60 | $1,650 |
-| 500 | $265.00 | $165.00 + 250 × $0.40 | $2,650 |
-| 1,000 | $465.00 | $265.00 + 500 × $0.40 | $4,650 |
-| 2,500 | $840.00 | $465.00 + 1,500 × $0.25 | $8,400 |
-| 5,000 | $1,465.00 | $840.00 + 2,500 × $0.25 | $14,650 |
+| 25 | $12.25 | 25 × $0.49 | $122.50 |
+| 50 | $24.50 | 50 × $0.49 | $245 |
+| 100 | $49.00 | 100 × $0.49 | $490 |
+| 250 | $101.50 | 100 × $0.49 + 150 × $0.35 | $1,015 |
+| 500 | $164.00 | $101.50 + 250 × $0.25 | $1,640 |
+| 1,000 | $289.00 | $164.00 + 500 × $0.25 | $2,890 |
+| 2,500 | $589.00 | $289.00 + 1,500 × $0.20 | $5,890 |
+| 5,000 | $1,089.00 | $589.00 + 2,500 × $0.20 | $10,890 |
 
 Advanced (same method):
 
 | Users | Advanced monthly | Calculation | Annual equivalent (10×) |
 |---:|---:|---|---:|
-| 10 | $10.00 | flat | $100 |
-| 25 | $49.75 | 25 × $1.99 | $497.50 |
-| 50 | $99.50 | 50 × $1.99 | $995 |
-| 100 | $199.00 | 100 × $1.99 | $1,990 |
-| 250 | $422.50 | 100 × $1.99 + 150 × $1.49 | $4,225 |
-| 500 | $670.00 | $422.50 + 250 × $0.99 | $6,700 |
-| 1,000 | $1,165.00 | $670.00 + 500 × $0.99 | $11,650 |
-| 2,500 | $1,900.00 | $1,165.00 + 1,500 × $0.49 | $19,000 |
-| 5,000 | $3,125.00 | $1,900.00 + 2,500 × $0.49 | $31,250 |
+| 10 | $4.00 | flat | $40 |
+| 25 | $24.75 | 25 × $0.99 | $247.50 |
+| 50 | $49.50 | 50 × $0.99 | $495 |
+| 100 | $99.00 | 100 × $0.99 | $990 |
+| 250 | $232.50 | 100 × $0.99 + 150 × $0.89 | $2,325 |
+| 500 | $430.00 | $232.50 + 250 × $0.79 | $4,300 |
+| 1,000 | $825.00 | $430.00 + 500 × $0.79 | $8,250 |
+| 2,500 | $1,500.00 | $825.00 + 1,500 × $0.45 | $15,000 |
+| 5,000 | $2,625.00 | $1,500.00 + 2,500 × $0.45 | $26,250 |
 
 `docs/listing-check.py` recomputes these examples from the tier tables.
 
@@ -296,7 +292,7 @@ Advanced (same method):
 | | Audit evidence pack PDF with SOC 2 / ISO control mapping |
 | | Rovo agent (read-only) |
 
-*(PL) Punkty odniesienia (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2): Access Lens 100, Project Roles 200, AuditAdmin 450, Group Permission Audit 650, Access Auditor 750, Clearance 800, AccessLens 900, Recert 1 250, Keyring 1 360, Access Reviewer360 1 620, Certia 4 000, Access Evidence 4 530; Project Access Review darmowa. Mediana płatnych bezpośrednich konkurentów: $900. Standard $750 jest poniżej mediany; ceny obu edycji 1:1 z MarginRadar.*
+*(PL) Punkty odniesienia konkurencji (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2) zostają historyczne. Finalna cena AccessRadar (2026-10-14): Standard 100 u. = $490/rok, Advanced 100 u. = $990/rok. Wchodzi na listing po akceptacji Marketplace.*
 
 Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime Forge revenue, then the standard Forge rate).
 
@@ -349,7 +345,7 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 ---
 
 ## 10. Accuracy notes (keep the listing truthful)
-- Listing claims map to shipped R1 + R2 features in code (2026-10-10), including space-settings delegation. Rovo is no longer Coming soon in Settings (`rovo` is released); claim it in the public listing once the listing update is submitted (Rovo must be enabled on the site; answers come from the latest snapshot, Jira admins only). No Slack/email notifications, no Confluence, no write scopes.
+- Listing claims map to shipped R1 + R2 features in code, including space-settings delegation and the read-only Rovo agent (released; Rovo must be enabled on the site; answers come from the latest snapshot, Jira admins only). No Slack/email notifications, no Confluence, no write scopes.
 - Campaigns, alerts, signature chain and the space Access review page are in development builds. Listing copy uses the UI's labels (Keep / Revoke / Exception, Campaigns, Alerts, Verify chain, Access review).
 - Known limitation (also in product copy): campaign delegates are not notified outside Jira; reminders and alerts are in-app only.
 - Risk indicators match `src/engine/risk.ts`: anonymous, broad-app-role, admins, wide-admin, inactive, large-groups.

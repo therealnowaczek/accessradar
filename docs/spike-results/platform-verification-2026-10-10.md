@@ -45,16 +45,16 @@ Not measured from Developer Console in this step. Baseline code path still does 
 
 ## 6. Pricing CSV
 
-`docs/accessradar-pricing-import.csv` is **referenced** in LISTING / name-pricing-legal / PRD but **absent from the repo** at this commit. No file to scrub for injected “system notice” text. P-01 (post Marketplace) should add a clean CSV; skip until then per PRD.
+`docs/accessradar-pricing-import.csv` now holds the 2026-10-14 final prices (Standard and Advanced, one row per Marketplace `unitCount`). It is not uploaded to Marketplace until the first release after Marketplace approval.
 
 ## 7. Open-question defaults applied (PRD §9)
 
 | # | Default used |
 |---|---|
-| Q1 | In-app reminders only; Jira-issue reminders deferred to §8a |
+| Q1 | In-app reminders only; Jira work-item reminders deferred to §8a |
 | Q2 | Public filters/dashboards rule deferred to R3 / §8a |
 | Q3 | Free-tier ≤10 users → biweekly scheduled snapshot (R1-09) |
-| Q4 | Delegation surface = project admins; lead without ADMINISTER_PROJECTS → Unassigned |
+| Q4 | Delegation surface = space admins; space lead without ADMINISTER_PROJECTS → Unassigned |
 | Q5 | `delegateCanSign` default **false** (admin signs) |
 | Q6 | Block delete of signed reviews (R2-07) |
 | Q7 | Advanced CSV columns: verify in partner console at P-01 |

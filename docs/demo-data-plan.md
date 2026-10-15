@@ -3,7 +3,7 @@
 Script: `scripts/demo/seed.py` (+ `data.py`, `jira.py`), modelled on `/workspace/mr-assets/seed.py` and `jira.py`.
 **Phase 1 applied on 2026-10-09** (accountIds and ids in `docs/demo-people.json`); phase 2 not run yet. Default mode is a
 dry run without network calls; `--apply` needs `JIRA_API_TOKEN` or `JIRA_WRITE_TOKEN` of an account that is site admin
-(invites, groups, memberships) and Jira admin (roles, schemes, projects). Re-running is idempotent; invites stop if the
+(invites, groups, memberships) and Jira admin (roles, schemes, spaces). Re-running is idempotent; invites stop if the
 user count would exceed `MAX_USERS` (10); WEB/MOB/RET/INT are guarded (only WEB / Administrators <- Jordan Pike).
 
 ## Story on the screens
@@ -27,11 +27,11 @@ user count would exceed `MAX_USERS` (10); WEB/MOB/RET/INT are guarded (only WEB 
 - Space roles Administrators, Developers, Auditors (only the missing ones)
 - 3 permission schemes: “AR Demo · Standard” (29 grants), “AR Demo · Operations” (30), “AR Demo · Public roadmap” (26)
 - 4 company-managed spaces: PAY Payments Platform, HR People Ops, OPS Operations, PUB Public Roadmap
-- 11 role actors (incl. Jordan Pike as Administrators in the existing MarginRadar project WEB; its scheme is untouched)
+- 11 role actors (incl. Jordan Pike as Administrators in the existing MarginRadar space WEB; its scheme is untouched)
 
 ## Limits and manual steps
 - Jira REST cannot set display names or deactivate accounts: accept the invites and set names; deactivate Ellis Ward
   in admin.atlassian.com.
-- The new projects will also be visible to MarginRadar on the shared demo site (no budgets, so they stay empty there).
+- The new spaces will also be visible to MarginRadar on the shared demo site (no budgets, so they stay empty there).
 - Then: snapshot #1 → phase 2 → snapshot #2 → review “Q4 2026 access review” (PAY + HR, Revoke 3) → sign off → shots
   (`brand/marketplace/shots/README.md`).

@@ -12,7 +12,7 @@ Zasada: liczby pochodzą wyłącznie z API lub ze stron, które podaję. Czego n
 1. **Nazwa „AccessRadar” jest wolna w Marketplace.** 0 wyników dla `AccessRadar`, `accessradar`, `access-radar`, `PermissionRadar`, `AuditRadar` we wszystkich hostingach (bez filtra, cloud, server, datacenter). Klucze `accessradar`, `access-radar`, `com.radrly.accessradar` i podobne zwracają 404. Poza Marketplace ta sama nazwa jest już używana: skaner dostępności WCAG (WCAG.World, getaccessradar.com) oraz IAM/GRC „Vennx Access Radar” (Brazylia). Rejestrów znaków towarowych (EUIPO/WIPO) **nie udało się sprawdzić** automatycznie, więc ten punkt jest NIESPRAWDZONY.
 2. **Pełna nazwa nie koliduje dosłownie z niczym, ale jej opisowa część jest prawie identyczna z dwoma konkurentami:** *AccessLens — Permission Audit & Access Review for Jira* oraz *Clearance for Jira (Permission Audit & Access Review)*. To nie jest problem prawny (sformułowanie jest opisowe), ale osłabia wyróżnienie w wynikach wyszukiwania. Alternatywa A z LISTING.md (*Permission Audit & Access Reviews*) jest jeszcze bliższa AccessLens, więc jej nie polecam.
 3. **Nisza jest zatłoczona i nikt w niej nie ma trakcji.** Znalazłem **20 aplikacji** typu access review / permission audit dla Jira Cloud (19 płatnych i darmową Akeles). Żadna nie przekracza 114 instalacji, a większość ma 0–3. Cena za 100 użytkowników rocznie wynosi od **$100 do $4 530**, mediana **$900**. Aplikacje adminowe z realną trakcją (750+ instalacji) biorą **$1.00/user** w progu 11–100.
-4. **Ceny (PRZYJĘTE 2026-10-10, 1:1 z MarginRadar, zastępują rekomendację z §2.4):** Standard $0 płasko do 10 użytkowników, potem **$0.75 / $0.60 / $0.40 / $0.25** (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced **$10** płasko do 10 użytkowników, potem **$1.99 / $1.49 / $0.99 / $0.49**. Rocznie 10× miesięcznie, multi-instance = single-instance. Standard: **$750 rocznie za 100 użytkowników**. Szczegóły w §2.5.
+4. **Ceny (FINAL 2026-10-14, zastępują §2.4 i stawki z 2026-10-10):** Standard $0 płasko do 10 użytkowników, potem **$0.49 / $0.35 / $0.25 / $0.20** (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced **$4** płasko do 10 użytkowników, potem **$0.99 / $0.89 / $0.79 / $0.45**. Rocznie 10× miesięcznie, 30-dniowy trial, multi-instance = single-instance. Standard: **$490 rocznie za 100 użytkowników**. Szczegóły w §2.5. Na listing Marketplace i import cen wchodzą przy pierwszym wydaniu po akceptacji Marketplace.
 5. **Błąd w LISTING.md §8:** przykłady cen liczą płatnych użytkowników dopiero od 11. (np. „100 users $54.00 = $540/year”). Atlassian liczy jednak próg 11–100 od pierwszego użytkownika. Zweryfikowałem to na 26 aplikacjach (cena roczna / 10 = suma progresywna od 1. użytkownika). Przy starej propozycji $0.60 prawidłowo wychodzi **100 u. = $60/mies. = $600/rok**, a nie $540. Trzeba to poprawić w LISTING.md.
 6. **Prawo i prywatność:** z 7 pytań [TO CONFIRM] 3 wymagają prawnika (kontroler/procesor, CCPA, transfer poza EOG). Kod ujawnił też 4 rzeczy do poprawy przed submitem (§3.3). Najważniejsza: po zamknięciu konta zamieniamy tylko wyświetlaną nazwę, a accountId zostaje w snapshotach, recenzjach i audit logu. To pseudonimizacja, a nie usunięcie danych.
 
@@ -188,30 +188,30 @@ Czego **nie wiem** i nie zgaduję: konwersji trial→paid w tej niszy, przychod�
 
 **Do poprawy w LISTING.md §8:** stawki (jeśli przyjmiesz rekomendację) i przykłady. Stare przykłady są policzone błędnie, bo liczą płatność od 11. użytkownika. Poprawnie dla starej propozycji wychodzi: 25 u. $15.00 · 50 u. $30.00 · 100 u. $60.00 (= $600/rok) · 250 u. $132.00 · 500 u. $212.00. W notce PL w §8 trzeba też zaktualizować punkty odniesienia (Access Reviewer360 $1 620 i AccessLens $900 są aktualne; dochodzą Clearance $800, Access Auditor $750, Recert $1 250, Keyring $1 360, Certia $4 000, Access Evidence $4 530).
 
-### 2.5 Przyjęte ceny: edycje Standard i Advanced (2026-10-10, zatwierdził Marcin)
+### 2.5 Finalne ceny: edycje Standard i Advanced (2026-10-14)
 
-Ceny 1:1 z MarginRadar. Zastępują propozycję z §2.4 (tabela §2.4 zostaje jako historia decyzji).
+Zastępują propozycję z §2.4 i stawki 1:1 z MarginRadar z 2026-10-10 (obie zostają w tym pliku jako historia decyzji). R1 i R2 są wydane.
 
 | Próg (miesięcznie, progresywnie od 1. użytkownika) | Standard | Advanced |
 |---|---:|---:|
-| 1–10 | **$0** (płasko) | **$10** (płasko) |
-| 11–100 | $0.75 | $1.99 |
-| 101–250 | $0.60 | $1.49 |
-| 251–1 000 | $0.40 | $0.99 |
-| 1 001+ (wszystkie wyższe progi do 90 001+) | $0.25 | $0.49 |
+| 1–10 | **$0** (płasko) | **$4** (płasko) |
+| 11–100 | $0.49 | $0.99 |
+| 101–250 | $0.35 | $0.89 |
+| 251–1 000 | $0.25 | $0.79 |
+| 1 001+ (wszystkie wyższe progi) | $0.20 | $0.45 |
 | Rocznie | 10× miesięcznie | 10× miesięcznie |
+| Trial | 30 dni | 30 dni |
 | Multi-instance | jak single-instance | jak single-instance |
 
-Wyliczenia Standard (miesięcznie): 25 u. $18.75 · 50 u. $37.50 · 100 u. **$75** ($750/rok) · 250 u. $165 · 500 u. $265 · 1 000 u. $465 · 2 500 u. $840 · 5 000 u. $1 465.
-Wyliczenia Advanced: 10 u. $10 · 25 u. $49.75 · 100 u. **$199** ($1 990/rok) · 250 u. $422.50 · 500 u. $670 · 1 000 u. $1 165 · 5 000 u. $3 125.
+Wyliczenia Standard (miesięcznie): 25 u. $12.25 · 50 u. $24.50 · 100 u. **$49** ($490/rok) · 250 u. $101.50 · 500 u. $164 · 1 000 u. $289 · 2 500 u. $589 · 5 000 u. $1 089.
+Wyliczenia Advanced: 10 u. $4 · 25 u. $24.75 · 100 u. **$99** ($990/rok) · 250 u. $232.50 · 500 u. $430 · 1 000 u. $825 · 2 500 u. $1 500 · 5 000 u. $2 625.
 
 **Podział funkcji** (egzekwowany po stronie serwera, `src/domain/edition.ts`):
-- **Standard:** snapshoty ręczne i tygodniowe, historia 90 dni, Explore (projekty / grupy / osoby ze ścieżką „why”), diff snapshotów, przeglądy Keep / Revoke / Note z podpisem SHA-256, eksport CSV i PDF, wskaźniki ryzyka.
-- **Advanced:** harmonogramy dzienne i własne, nieograniczona historia; wkrótce (flagi + „Coming soon”, jeszcze niezbudowane): przeglądy delegowane do właścicieli projektów z przypomnieniami, cykliczne kampanie przeglądów, alerty zmian (nowy admin, publiczny grant, nieaktywny użytkownik z dostępem), audit evidence pack PDF (metodologia + ścieżka decyzji), agent Rovo.
+- **Standard:** snapshoty ręczne i tygodniowe, historia 90 dni, Explore (space / grupy / osoby ze ścieżką „why”), diff snapshotów, przeglądy Keep / Revoke / Exception z podpisem SHA-256, eksport CSV i PDF, wskaźniki ryzyka.
+- **Advanced (wydane):** harmonogramy dzienne i własne, nieograniczona historia, przeglądy delegowane do space ownerów z przypomnieniami w aplikacji, cykliczne kampanie przeglądów, alerty zmian (nowy admin, publiczny grant, nieaktywny użytkownik z dostępem), audit evidence pack PDF (metodologia + ścieżka decyzji), agent Rovo.
 
 **Uwagi:**
-- Edycja Advanced zostanie dodana w Marketplace dopiero po zatwierdzeniu płatnej aplikacji. Do tego czasu strona www pokazuje Advanced jako **„Coming soon”**.
-- **Do zrobienia w Marketplace:** progi Standard wpisane w Marketplace to wciąż stare stawki (0.75 / 0.55 / 0.35 / 0.20 / 0.15 / 0.12). Wyrównać do 0.75 / 0.60 / 0.40 / 0.25, gdy listing będzie edytowalny (review w toku); razem z `docs/accessradar-pricing-import.csv`.
+- Te stawki wchodzą na listing Marketplace i `docs/accessradar-pricing-import.csv` (już w repo) przy pierwszym wydaniu po akceptacji Marketplace. Ten dokument nie publikuje cen w Marketplace.
 
 ---
 
@@ -222,8 +222,8 @@ Każde pytanie to prosta decyzja dla Ciebie. Rekomendacje opierają się na tym,
 ### 3.1 Pytania
 
 **P1. Czy aplikacja zapisuje dane użytkowników końcowych w logach?** (*Logs End-User Data?*, w LISTING: „No [TO CONFIRM]”)
-- **Co to znaczy:** czy w logach Forge (konsola developera, Atlassian je przechowuje, a admin klienta może je pobrać) trafiają dane klienta: accountId, nazwy osób, nazwy grup lub projektów, treści.
-- **Co robi kod:** produkcyjne logi (`src/collector/run.ts`, `src/handlers.ts`, `src/api/service.ts`) zawierają tylko numery snapshotów, nazwy kroków, liczniki, czasy i fragment hasha recenzji. **Nie ma** w nich accountId, e-maili ani nazw osób. Są jednak dwa wyjątki: (a) przy błędach logujemy treść błędu z Jiry (do 200–300 znaków, np. `Project list unreadable (403): <komunikat Jiry>`), a komunikaty Jiry mogą czasem zawierać identyfikatory lub nazwy; (b) kod „spike” (`src/spike/probe.ts`, `formatProbeLog`) loguje pełne wyniki sond. Działa tylko przy `ACCESSRADAR_SPIKE=1` i w środowisku DEVELOPMENT, ale jest w buildzie.
+- **Co to znaczy:** czy w logach Forge (konsola developera, Atlassian je przechowuje, a admin klienta może je pobrać) trafiają dane klienta: accountId, nazwy osób, nazwy grup lub space'ów, treści.
+- **Co robi kod:** produkcyjne logi (`src/collector/run.ts`, `src/handlers.ts`, `src/api/service.ts`) zawierają tylko numery snapshotów, nazwy kroków, liczniki, czasy i fragment hasha recenzji. **Nie ma** w nich accountId, e-maili ani nazw osób. Są jednak dwa wyjątki: (a) przy błędach logujemy treść błędu z Jiry (do 200–300 znaków, np. `Space list unreadable (403): <komunikat Jiry>`), a komunikaty Jiry mogą czasem zawierać identyfikatory lub nazwy; (b) kod „spike” (`src/spike/probe.ts`, `formatProbeLog`) loguje pełne wyniki sond. Działa tylko przy `ACCESSRADAR_SPIKE=1` i w środowisku DEVELOPMENT, ale jest w buildzie.
 - **Rekomendacja:** **„No”**, pod warunkiem że przed submitem (1) błędy Jiry logujemy jako sam kod statusu i nazwę obszaru, bez treści komunikatu, oraz (2) usuniemy kod spike z buildu produkcyjnego albo potwierdzimy, że zmienna nie istnieje w produkcji. Bez tych poprawek uczciwa odpowiedź to **„Yes: limited, logs stay in Atlassian (Forge logs, 30 days)”**.
 - **Ryzyko:** „No” bez poprawek grozi niezgodnością deklaracji z działaniem (recenzja Atlassian, utrata zaufania przy audycie bezpieczeństwa klienta). „Yes” jest uczciwe, ale część zespołów bezpieczeństwa zada dodatkowe pytania. Prawnik: **nie potrzebny** (to kwestia techniczna).
 
