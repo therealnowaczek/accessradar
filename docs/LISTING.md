@@ -181,7 +181,7 @@ Sampled 2026-10-09 from Marketplace REST (`/rest/2/addons/{key}` → `tags`): Pr
 Every image needs alt text. Show the app inside the Jira UI, not marketing slides. Capture from **production** (dev shows a "Dev" label: checklist §1), viewport 1840×900 (or 920×450 at 2×), browser chrome hidden, light theme for the three highlights, demo data only, fictional names and avatars.
 
 **Asset files (2026-10-09, `brand/marketplace/`, built with Python + Pillow by the MarginRadar method; scripts in `brand/marketplace/_build/`, MarginRadar originals for reference in `_build/reference/marginradar/`):**
-- `brand/marketplace/logo-144.png`: 144×144, padlock on the brand gradient #236BB4 → #6569CB → #9B53C6, rounded chiclet (`_build/brand.py`)
+- `brand/marketplace/logo-144.png`: 144×144, the standard logo `brand/accessradar-logo.svg` (v2, 2026-10-16; previous master kept as `brand/accessradar-logo-v1.svg`) as a rounded chiclet (`_build/brand.py`)
 - `brand/marketplace/banner-1120x548.png`: 1120×548, MarginRadar banner layout: logo, "AccessRadar", "by Radrly", line "Who has access in Jira, and why. Read-only access reviews", Why-path card (`_build/brand.py`); variant with the full gradient background and white text: `banner-1120x548-gradient.png`
 - Highlights 1–3 and gallery 1–4 (1840×900): **not generated yet**. `_build/make.py` (highlights) and `_build/visuals.py` (gallery) wait for real 2x screenshots in `brand/marketplace/shots/` (list in `shots/README.md`), captured after the demo seed (`scripts/demo/seed.py`, plan in `docs/demo-data-plan.md`).
 
