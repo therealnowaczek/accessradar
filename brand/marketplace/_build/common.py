@@ -40,43 +40,18 @@ def rounded_mask(w, h, r):
     return m.resize((w, h), Image.LANCZOS)
 
 
-def logo(size, rounded=True, sheen=True, edge=True):
-    """AccessRadar padlock (geometry of brand/accessradar-logo.svg, viewBox 1043) on the brand
-    gradient chiclet. Drawn at 4x and downsampled. rounded=True gives the MarginRadar chiclet
-    (corner radius 22% like the in-app BrandMark, rx 230/1043) with transparent corners."""
-    S = size * K; s = S / 1043.0
-    P = lambda v: v * s
-    bg = gradient(S, S).convert('RGBA')
-    if sheen:  # soft radial highlight top-left, as in the MarginRadar logo
-        y, x = np.mgrid[0:S, 0:S].astype(np.float32)
-        d = np.sqrt((x - 0.25 * S) ** 2 + (y - 0.0) ** 2) / (1.1 * S)
-        a = (np.clip(1 - d / 0.6, 0, 1) * 0.16 * 255).astype(np.uint8)
-        white = Image.new('RGBA', (S, S), (255, 255, 255, 0)); white.putalpha(Image.fromarray(a, 'L'))
-        bg.alpha_composite(white)
-    lay = Image.new('RGBA', (S, S), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    W_ = (255, 255, 255, 255)
-    # shine quad (white 0 -> 50% along (521.5,616)->(672.1,357.9)), under the strokes
-    y, x = np.mgrid[0:S, 0:S].astype(np.float32)
-    ax, ay, bx, by = P(521.5), P(616), P(672.109), P(357.876)
-    vx, vy = bx - ax, by - ay
-    t = np.clip(((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy), 0, 1)
-    inside = (x >= P(521.5)) & (x <= P(818)) & (y >= P(443)) & (y <= P(616))
-    a = (t * 0.5 * 255 * inside).astype(np.uint8)
-    sh = Image.new('RGBA', (S, S), (255, 255, 255, 0)); sh.putalpha(Image.fromarray(a, 'L'))
-    lay.alpha_composite(sh)
-    # shackle: two verticals + upper half ellipse, stroke 47, round caps
-    sw = P(47)
-    d.arc((P(330) - sw / 2 + 0, P(164) - sw / 2, P(713) + sw / 2, P(532) + sw / 2), 180, 360, fill=W_, width=round(sw))
-    for cx in (330, 713):
-        d.rectangle((P(cx) - sw / 2, P(348), P(cx) + sw / 2, P(443)), fill=W_)
-    # body: rounded rect stroked 47 centred on (225,443)-(818,873) r=67
-    d.rounded_rectangle((P(225) - sw / 2, P(443) - sw / 2, P(818) + sw / 2, P(873) + sw / 2), P(67) + sw / 2, outline=W_, width=round(sw))
-    # keyhole
-    r = P(46.125); d.ellipse((P(521.5) - r, P(616) - r, P(521.5) + r, P(616) + r), fill=W_)
-    kw = P(38); d.line((P(521.5), P(648), P(521.5), P(725)), fill=W_, width=round(kw))
-    for cy in (648, 725):
-        d.ellipse((P(521.5) - kw / 2, P(cy) - kw / 2, P(521.5) + kw / 2, P(cy) + kw / 2), fill=W_)
-    bg.alpha_composite(lay)
+LOGO_SVG = os.path.join(os.path.dirname(MKT), 'accessradar-logo.svg')   # brand/accessradar-logo.svg (standard logo)
+
+
+def logo(size, rounded=True, edge=True):
+    """The STANDARD AccessRadar logo (brand/accessradar-logo.svg, viewBox 1043; same mark at every size,
+    no small/bold variant), rasterised with rsvg-convert at 4x and downsampled. rounded=True gives the
+    MarginRadar chiclet (corner radius 22% like the in-app BrandMark, rx 230/1043) with transparent corners."""
+    import io, subprocess
+    S = size * K
+    png = subprocess.run(['rsvg-convert', '-w', str(S), '-h', str(S), LOGO_SVG], check=True, capture_output=True).stdout
+    bg = Image.open(io.BytesIO(png)).convert('RGBA')
+    P = lambda v: v * S / 1043.0
     if edge and rounded:   # 8% black hairline like the MarginRadar chiclet
         e = Image.new('RGBA', (S, S), (0, 0, 0, 0))
         ImageDraw.Draw(e).rounded_rectangle((K // 2, K // 2, S - 1 - K // 2, S - 1 - K // 2), P(230), outline=(0, 0, 0, 20), width=2 * K)

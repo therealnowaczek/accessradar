@@ -25,8 +25,8 @@ export function SplitLayout({ sidebar, children }: { sidebar: ReactNode; childre
 }
 
 /**
- * AccessRadar logo (brand/accessradar-logo.svg): white padlock on the brand gradient
- * #236BB4 → #6C70CD (65%) → #A96BCE. Brand colours appear only here; the rest of the UI uses ADS tokens.
+ * AccessRadar logo (brand/accessradar-logo.svg, v2: padlock raised to sit inside circular avatars):
+ * white padlock on the brand gradient #236BB4 → #6C70CD (65%) → #A96BCE. Brand colours appear only here; the rest of the UI uses ADS tokens.
  */
 export function BrandMark({ size = 32 }: { size?: number }) {
   const id = useId().replace(/:/g, '');
@@ -51,9 +51,9 @@ export function BrandMark({ size = 32 }: { size?: number }) {
         <linearGradient
           id={shine}
           x1="521.5"
-          y1="616"
+          y1="572"
           x2="672.109"
-          y2="357.876"
+          y2="313.876"
           gradientUnits="userSpaceOnUse"
         >
           <stop stopColor="white" stopOpacity="0" />
@@ -62,19 +62,19 @@ export function BrandMark({ size = 32 }: { size?: number }) {
       </defs>
       <rect width="1043" height="1043" rx="230" fill={`url(#${bg})`} />
       <path
-        d="M330 443V348C330 242 415 164 521.5 164C628 164 713 242 713 348V443"
+        d="M330 399V304C330 198 415 120 521.5 120C628 120 713 198 713 304V399"
         strokeWidth="47"
         strokeLinecap="round"
         stroke="white"
       />
-      <path d="M521.5 616V443H818V616H521.5Z" fill={`url(#${shine})`} />
+      <path d="M521.5 572V399H818V572H521.5Z" fill={`url(#${shine})`} />
       <path
-        d="M292 443H751C788.003 443 818 472.997 818 510V806C818 843.003 788.003 873 751 873H292C254.997 873 225 843.003 225 806V510C225 472.997 254.997 443 292 443Z"
+        d="M751 399H292C254.997 399 225 428.997 225 466V762C225 799.003 254.997 829 292 829H751C788.003 829 818 799.003 818 762V466C818 428.997 788.003 399 751 399Z"
         strokeWidth="47"
         stroke="white"
       />
-      <circle cx="521.5" cy="616" r="46.125" fill="white" />
-      <path d="M521.5 648V725" strokeWidth="38" strokeLinecap="round" stroke="white" />
+      <circle cx="521.5" cy="572" r="46.125" fill="white" />
+      <path d="M521.5 604V681" strokeWidth="38" strokeLinecap="round" stroke="white" />
     </svg>
   );
 }
