@@ -21,6 +21,7 @@ const en = {
     'See whether each revoked access really disappeared in the next snapshot.',
   'planGate.projectReview':
     'Let space owners review access to their own space, with in-app reminders.',
+  'schedule.freeTier': 'Free plan: every two weeks; manual snapshots any time',
   // Sample data shown (faded, aria-hidden) above the note of a locked panel.
   'planGate.sample.subject1': 'Sample user A',
   'planGate.sample.subject2': 'Sample user B',

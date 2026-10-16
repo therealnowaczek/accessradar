@@ -3,6 +3,7 @@ import { exec, q } from '../db/sql';
 import { getSettings } from '../db/settings';
 import { effectiveSchedule } from '../domain/edition';
 import { backgroundEdition } from '../api/edition';
+import { scheduledSettings } from './gate';
 import {
   addUsage,
   applyRetention,
@@ -243,8 +244,8 @@ export async function runCollectStep(
 }
 
 export async function scheduledTick(): Promise<void> {
-  // Standard runs a saved daily schedule weekly (server-side edition gate).
-  const settings = effectiveSchedule(await getSettings(), (await backgroundEdition()).features);
+  // Standard runs a saved daily schedule weekly; free tier (≤10 active humans) is biweekly.
+  const settings = await scheduledSettings();
   const rows = await q<{ started_at: number }>(
     "SELECT MAX(started_at) AS started_at FROM snap WHERE trigger_kind = 'scheduled'",
   );
