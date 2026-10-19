@@ -1,7 +1,6 @@
 name: Deploy (production)
 on:
-  push:
-    branches: [release/production]
+  workflow_dispatch:
 concurrency:
   group: deploy-production
   cancel-in-progress: false
@@ -9,6 +8,7 @@ permissions:
   contents: read
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/release/production'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

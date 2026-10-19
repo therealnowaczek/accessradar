@@ -1,10 +1,5 @@
 name: Deploy (development)
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
   workflow_dispatch:
     inputs:
       upgrade_install:
