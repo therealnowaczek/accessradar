@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
 import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
 import type { AccessChange, Changes, FactChange } from '../api';
@@ -22,6 +23,8 @@ import {
   Pill,
   TableSkeleton,
   ToggleField,
+  WrapAnywhere,
+  PagePinned,
 } from '../ui';
 
 type Opt = { label: string; value: string };
@@ -41,7 +44,7 @@ function AccessTable({ rows, empty }: { rows: AccessChange[]; empty: string }) {
       rows={rows.map((c, i) => ({
         key: `${c.subject.key}-${c.project.id}-${c.permission}-${i}`,
         cells: [
-          { key: c.project.key, content: <strong>{c.project.key}</strong> },
+          { key: c.project.key, content: <Text weight="bold">{c.project.key}</Text> },
           {
             key: c.subject.name.toLowerCase(),
             content: <SubjectCell subject={c.subject} compact />,
@@ -50,17 +53,23 @@ function AccessTable({ rows, empty }: { rows: AccessChange[]; empty: string }) {
           {
             key: 'why',
             content: (
-              <span className="subtle wrap-anywhere">
-                {c.reasons[0]}
-                {c.reasons.length > 1 ? ` (+${c.reasons.length - 1} more)` : ''}
-              </span>
+              <WrapAnywhere>
+                <Text color="color.text.subtle">
+                  {c.reasons[0]}
+                  {c.reasons.length > 1 ? ` (+${c.reasons.length - 1} more)` : ''}
+                </Text>
+              </WrapAnywhere>
             ),
           },
         ],
       }))}
       rowsPerPage={25}
       defaultPage={1}
-      emptyView={<p className="subtle">{empty}</p>}
+      emptyView={
+        <Text as="p" color="color.text.subtle">
+          {empty}
+        </Text>
+      }
     />
   );
 }
@@ -84,12 +93,23 @@ function FactTable({ rows }: { rows: FactChange[] }) {
           { key: f.change, content: <Pill tone={CHANGE_TONE[f.change]}>{f.change}</Pill> },
           { key: f.category, content: f.category },
           { key: 'what', content: f.label },
-          { key: 'detail', content: <span className="subtle wrap-anywhere">{f.detail}</span> },
+          {
+            key: 'detail',
+            content: (
+              <WrapAnywhere>
+                <Text color="color.text.subtle">{f.detail}</Text>
+              </WrapAnywhere>
+            ),
+          },
         ],
       }))}
       rowsPerPage={25}
       defaultPage={1}
-      emptyView={<p className="subtle">No configuration changes match.</p>}
+      emptyView={
+        <Text as="p" color="color.text.subtle">
+          No configuration changes match.
+        </Text>
+      }
     />
   );
 }
@@ -192,7 +212,7 @@ export function ChangesView() {
         allowLatest={false}
         size="medium"
       />
-      <span className="subtle">→</span>
+      <Text color="color.text.subtle">→</Text>
       <SnapshotPicker snapshots={list} value={b} onChange={setB} label="To" size="medium" />
       <ToggleField label="Show all permissions" isChecked={all} onChange={setAll} />
     </FilterBar>
@@ -201,7 +221,7 @@ export function ChangesView() {
   if (!tabbed) {
     return (
       <PageFrame header={header}>
-        <div className="page-stack">
+        <Stack space="space.300">
           {pickers}
           {r.error && !d ? (
             <ErrorState title="Changes unavailable" message={r.error} retry={r.reload} />
@@ -216,7 +236,7 @@ export function ChangesView() {
               action={null}
             />
           )}
-        </div>
+        </Stack>
       </PageFrame>
     );
   }
@@ -263,15 +283,15 @@ export function ChangesView() {
 
   return (
     <PageFrame header={header} fixed>
-      <div className="page-pinned">
+      <PagePinned>
         {pickers}
-        <p className="subtle">
+        <Text as="p" color="color.text.subtle">
           Comparing snapshot #{d!.a!.seq} with #{d!.b!.seq} ·{' '}
           {all
             ? 'all permissions'
             : `key permissions: ${d!.keyPermissions.map(permissionLabel).join(', ')}`}
-        </p>
-      </div>
+        </Text>
+      </PagePinned>
       <PageTabs>
         <Tabs id="changes-tabs">
           <PageTabBar>

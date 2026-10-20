@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import {
@@ -9,7 +10,7 @@ import {
   type SettingsView,
   type WithSnapshot,
 } from '../api';
-import { ReasonList, SearchField, Section, SnapshotPicker, SubjectCell } from '../components';
+import { ReasonList, SearchField, Section, SnapshotPicker, SubjectCell, Hash } from '../components';
 import { useCall } from '../data';
 import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
 import { formatLocal, permissionLabel, plural } from '../format';
@@ -26,6 +27,8 @@ import {
   PageHeader,
   Pill,
   ToggleField,
+  DividedListItem,
+  DividedList,
 } from '../ui';
 
 type Opt = { label: string; value: string };
@@ -83,7 +86,7 @@ export function PeopleView() {
   const snapshot = list.data?.snapshot ?? null;
   return (
     <PageFrame header={<PageHeader title={meta.title} description={meta.description} />}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {list.error && !list.data ? (
           <ErrorState title="People unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
@@ -151,7 +154,7 @@ export function PeopleView() {
                     content: p.adminProjects ? (
                       plural(p.adminProjects, 'space')
                     ) : (
-                      <span className="subtle">—</span>
+                      <Text color="color.text.subtle">—</Text>
                     ),
                   },
                   { key: p.groups, content: p.groups },
@@ -165,11 +168,15 @@ export function PeopleView() {
               defaultPage={1}
               defaultSortKey="name"
               defaultSortOrder="ASC"
-              emptyView={<p className="subtle">Nobody matches.</p>}
+              emptyView={
+                <Text as="p" color="color.text.subtle">
+                  Nobody matches.
+                </Text>
+              }
             />
           </>
         )}
-      </div>
+      </Stack>
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
@@ -213,12 +220,7 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
       <SubjectCell subject={d.person} />
       <Details
         rows={[
-          [
-            'Account ID',
-            <code className="hash" key="id">
-              {d.person.id}
-            </code>,
-          ],
+          ['Account ID', <Hash key="id" value={d.person.id} />],
           ['Account type', d.person.accountType ?? 'unknown'],
           ['Status', d.person.active === false ? <Pill tone="danger">Inactive</Pill> : 'Active'],
           [
@@ -238,53 +240,61 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
           </Button>
         }
       >
-        {global.error ? <p className="danger-text">{global.error}</p> : null}
+        {global.error ? (
+          <Text as="p" color="color.text.danger">
+            {global.error}
+          </Text>
+        ) : null}
         {global.data ? (
-          <ul className="plain-list">
+          <DividedList>
             {global.data.checked.map((p) => (
-              <li key={p}>
+              <DividedListItem key={p}>
                 {global.data!.granted.includes(p) ? (
                   <Pill tone="warning">Granted</Pill>
                 ) : (
                   <Pill>No</Pill>
                 )}
                 {permissionLabel(p)}
-              </li>
+              </DividedListItem>
             ))}
-            <li className="subtle">Checked {formatLocal(global.data.at)}</li>
-          </ul>
+            <DividedListItem>
+              <Text color="color.text.subtle">Checked {formatLocal(global.data.at)}</Text>
+            </DividedListItem>
+          </DividedList>
         ) : null}
       </Section>
       {d.changes && (d.changes.granted.length || d.changes.revoked.length) ? (
         <Section title="Changes" description={`Since snapshot #${d.changes.fromSeq}`}>
-          <ul className="plain-list">
+          <DividedList>
             {d.changes.granted.map((c, i) => (
-              <li key={`g${i}`}>
+              <DividedListItem key={`g${i}`}>
                 <Pill tone="success">Granted</Pill>
                 {permissionLabel(c.permission)} in {c.project.key}
-                <span className="subtle"> — {c.reasons[0]}</span>
-              </li>
+                <Text color="color.text.subtle"> — {c.reasons[0]}</Text>
+              </DividedListItem>
             ))}
             {d.changes.revoked.map((c, i) => (
-              <li key={`r${i}`}>
+              <DividedListItem key={`r${i}`}>
                 <Pill tone="danger">Revoked</Pill>
                 {permissionLabel(c.permission)} in {c.project.key}
-              </li>
+              </DividedListItem>
             ))}
-          </ul>
+          </DividedList>
         </Section>
       ) : null}
       <Section title={`Groups (${d.groups.length})`}>
         {d.groups.length ? (
-          <span className="chip-row">
+          <Inline as="span" space="space.050" shouldWrap>
             {d.groups.map((g) => (
               <Pill key={g.id} tone={g.access.some((a) => a !== 'user') ? 'danger' : 'neutral'}>
                 {g.name}
               </Pill>
             ))}
-          </span>
+          </Inline>
         ) : (
-          <p className="subtle">Not a member of any group.</p>
+          <Text as="p" color="color.text.subtle">
+            Not a member of any group.
+          </Text>
         )}
       </Section>
       <Section
@@ -292,18 +302,20 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
         description="Permissions in each space, with the path that grants them."
       >
         {d.projects.length ? (
-          <ul className="reason-list">
+          <DividedList>
             {d.projects.map((p) => (
-              <li key={p.project.id}>
+              <DividedListItem key={p.project.id} loose>
                 <LinkButton onClick={() => go('explore-projects', { projectId: p.project.id })}>
                   {p.project.key} · {p.project.name}
                 </LinkButton>
                 <ReasonList perms={p.perms} keyPermissions={d.keyPermissions} />
-              </li>
+              </DividedListItem>
             ))}
-          </ul>
+          </DividedList>
         ) : (
-          <p className="subtle">No space access.</p>
+          <Text as="p" color="color.text.subtle">
+            No space access.
+          </Text>
         )}
       </Section>
     </DrawerBody>

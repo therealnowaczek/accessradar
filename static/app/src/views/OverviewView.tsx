@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { Box, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
-import Heading from '@atlaskit/heading';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
 import SectionMessage from '@atlaskit/section-message';
 import type { Overview, Risk } from '../api';
@@ -19,7 +19,20 @@ import {
   useTakeSnapshot,
   type Params,
 } from '../shared';
-import { Empty, ErrorState, LinkButton, Loading, Metric, PageFrame, PageHeader, Pill } from '../ui';
+import {
+  Empty,
+  ErrorState,
+  LinkButton,
+  Loading,
+  Metric,
+  PageFrame,
+  PageHeader,
+  Pill,
+  MetricGrid,
+  DividedListItem,
+  DividedList,
+  SectionHeader,
+} from '../ui';
 
 const SEVERITY_TONE = { high: 'danger', medium: 'warning', low: 'neutral' } as const;
 const SEVERITY_LABEL = { high: 'High', medium: 'Medium', low: 'Low' } as const;
@@ -59,20 +72,20 @@ export function OverviewView() {
       actions={
         <>
           <Button
-            iconBefore={RefreshIcon}
-            isLoading={refreshing}
-            isDisabled={refreshing}
-            onClick={() => void refresh()}
-          >
-            Refresh
-          </Button>
-          <Button
             appearance={ov.data?.snapshot || active ? 'primary' : 'default'}
             isLoading={take.busy}
             isDisabled={Boolean(active)}
             onClick={() => void take.run()}
           >
             Take snapshot now
+          </Button>
+          <Button
+            iconBefore={RefreshIcon}
+            isLoading={refreshing}
+            isDisabled={refreshing}
+            onClick={() => void refresh()}
+          >
+            Refresh
           </Button>
         </>
       }
@@ -100,31 +113,35 @@ export function OverviewView() {
         description: r.description,
         content: (
           <DrawerBody>
-            {r.learnMore ? <p className="subtle">{r.learnMore}</p> : null}
+            {r.learnMore ? (
+              <Text as="p" color="color.text.subtle">
+                {r.learnMore}
+              </Text>
+            ) : null}
             {r.partial ? (
               <SectionMessage appearance="warning">
-                <p>Some related data was incomplete; this list may be partial.</p>
+                <Text as="p">Some related data was incomplete; this list may be partial.</Text>
               </SectionMessage>
             ) : null}
-            <ul className="plain-list">
+            <DividedList>
               {r.items.map((i) => (
-                <li key={i.id}>
-                  <span>
-                    <strong>{i.label}</strong>
-                    {i.detail ? <span className="subtle"> — {i.detail}</span> : null}
-                  </span>
-                </li>
+                <DividedListItem key={i.id}>
+                  <Text>
+                    <Text weight="bold">{i.label}</Text>
+                    {i.detail ? <Text color="color.text.subtle"> — {i.detail}</Text> : null}
+                  </Text>
+                </DividedListItem>
               ))}
-            </ul>
+            </DividedList>
             {r.count > r.items.length ? (
-              <p className="subtle">
+              <Text as="p" color="color.text.subtle">
                 Showing {r.items.length} of {r.count}.
-              </p>
+              </Text>
             ) : null}
             {RISK_TARGET[r.id] ? (
-              <div>
+              <Box>
                 <Button onClick={() => go(...RISK_TARGET[r.id])}>Open in Explore</Button>
-              </div>
+              </Box>
             ) : null}
           </DrawerBody>
         ),
@@ -133,17 +150,17 @@ export function OverviewView() {
 
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {active ? <SnapshotProgress active={active} /> : null}
         {(status.data?.alertCount ?? 0) > 0 ? (
           <SectionMessage
             appearance="warning"
             title={`${status.data!.alertCount} unread change alert${status.data!.alertCount === 1 ? '' : 's'}`}
           >
-            <p>
+            <Text as="p">
               New admins, anonymous grants, or inactive accounts with access were detected since a
               recent snapshot. <LinkButton onClick={() => go('alerts')}>Open alerts</LinkButton>
-            </p>
+            </Text>
           </SectionMessage>
         ) : null}
         {status.data?.lastAttempt?.status === 'failed' && !active ? (
@@ -151,10 +168,10 @@ export function OverviewView() {
             appearance="error"
             title={`Snapshot #${status.data.lastAttempt.seq} failed`}
           >
-            <p>
+            <Text as="p">
               {status.data.lastAttempt.error ??
                 'The collector stopped. Try again; completed data is kept.'}
-            </p>
+            </Text>
           </SectionMessage>
         ) : null}
         {!d.snapshot ? (
@@ -180,22 +197,18 @@ export function OverviewView() {
                 ])
               }
             />
-            <div className="section-header">
-              <div>
-                <div className="status-row">
-                  <Heading size="medium" as="h2">
-                    Snapshot #{d.snapshot.seq}
-                  </Heading>
-                  <SnapshotLozenge status={d.snapshot.status} />
-                </div>
-                <p className="subtle">
+            <SectionHeader
+              title={`Snapshot #${d.snapshot.seq}`}
+              status={<SnapshotLozenge status={d.snapshot.status} />}
+              description={
+                <>
                   {formatLocal(d.snapshot.startedAt)} ({relative(d.snapshot.startedAt)}) ·{' '}
                   <LinkButton onClick={() => go('snapshots')}>Snapshot history</LinkButton>
-                </p>
-              </div>
-            </div>
+                </>
+              }
+            />
             {d.metrics ? (
-              <div className="metric-grid">
+              <MetricGrid>
                 <Metric
                   label="Spaces"
                   value={d.metrics.projects}
@@ -221,7 +234,7 @@ export function OverviewView() {
                   value={d.metrics.accessEntries}
                   hint="Who × space × permission"
                 />
-              </div>
+              </MetricGrid>
             ) : null}
             <Section
               title="Risk indicators"
@@ -254,7 +267,9 @@ export function OverviewView() {
                           content: (
                             <>
                               <LinkButton onClick={() => openRisk(r)}>{r.title}</LinkButton>
-                              <div className="subtle">{r.description}</div>
+                              <Text as="p" color="color.text.subtle">
+                                {r.description}
+                              </Text>
                             </>
                           ),
                         },
@@ -266,7 +281,9 @@ export function OverviewView() {
                     }))}
                 />
               ) : (
-                <p className="subtle">No risk indicators in this snapshot.</p>
+                <Text as="p" color="color.text.subtle">
+                  No risk indicators in this snapshot.
+                </Text>
               )}
             </Section>
             <Section
@@ -275,7 +292,7 @@ export function OverviewView() {
               action={<Button onClick={() => go('changes')}>Open Changes</Button>}
             >
               {d.changes ? (
-                <div className="metric-grid">
+                <MetricGrid>
                   <Metric
                     label="Access granted"
                     value={d.changes.granted}
@@ -286,9 +303,11 @@ export function OverviewView() {
                     value={d.changes.revoked}
                     hint={`Since snapshot #${d.changes.fromSeq}`}
                   />
-                </div>
+                </MetricGrid>
               ) : (
-                <p className="subtle">The next snapshot will show what changed since this one.</p>
+                <Text as="p" color="color.text.subtle">
+                  The next snapshot will show what changed since this one.
+                </Text>
               )}
             </Section>
           </>
@@ -299,8 +318,8 @@ export function OverviewView() {
           action={<Button onClick={() => go('reviews')}>Open Reviews</Button>}
         >
           {d.reviews.open || d.reviews.signed ? (
-            <div className="section-stack">
-              <div className="metric-grid">
+            <Stack space="space.200">
+              <MetricGrid>
                 <Metric label="Open" value={d.reviews.open} />
                 <Metric
                   label="Signed"
@@ -320,16 +339,16 @@ export function OverviewView() {
                       : undefined
                   }
                 />
-              </div>
+              </MetricGrid>
               {d.reviews.overdue.length ? (
                 <SectionMessage
                   appearance="warning"
                   title={`${plural(d.reviews.overdue.length, 'review')} past due`}
                 >
-                  <p>{d.reviews.overdue.map((r) => r.name).join(', ')}</p>
+                  <Text as="p">{d.reviews.overdue.map((r) => r.name).join(', ')}</Text>
                 </SectionMessage>
               ) : null}
-            </div>
+            </Stack>
           ) : d.snapshot ? (
             <Empty
               title="No reviews yet"
@@ -339,14 +358,16 @@ export function OverviewView() {
               }
             />
           ) : (
-            <p className="subtle">Reviews start from a snapshot.</p>
+            <Text as="p" color="color.text.subtle">
+              Reviews start from a snapshot.
+            </Text>
           )}
         </Section>
-        <p className="subtle">
+        <Text as="p" color="color.text.subtle">
           Collector usage this hour: {d.usage.points.toLocaleString()} of{' '}
           {d.budget.toLocaleString()} rate points · {plural(d.usage.calls, 'call')}
-        </p>
-      </div>
+        </Text>
+      </Stack>
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}

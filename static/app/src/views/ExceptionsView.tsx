@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Box, Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
 import { useCall } from '../data';
 import { formatLocal, permissionLabel } from '../format';
@@ -14,6 +15,7 @@ import {
   PageFrame,
   PageHeader,
   Pill,
+  NoWrap,
 } from '../ui';
 
 type ExceptionRow = {
@@ -77,7 +79,7 @@ export function ExceptionsView() {
   const items = list.data.items;
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         <FilterBar>
           <FilterSelect
             label="Exception status"
@@ -117,8 +119,10 @@ export function ExceptionsView() {
                   key: 'exp',
                   content: (
                     <>
-                      <div>{expiryLozenge(e.status, e.expiresAt, now)}</div>
-                      <div className="subtle nowrap">{formatLocal(e.expiresAt)}</div>
+                      <Box>{expiryLozenge(e.status, e.expiresAt, now)}</Box>
+                      <NoWrap>
+                        <Text color="color.text.subtle">{formatLocal(e.expiresAt)}</Text>
+                      </NoWrap>
                     </>
                   ),
                 },
@@ -144,7 +148,7 @@ export function ExceptionsView() {
             }
           />
         )}
-      </div>
+      </Stack>
     </PageFrame>
   );
 }

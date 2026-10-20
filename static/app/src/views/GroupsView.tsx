@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Inline, Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
 import type { GroupDetail, GroupRow, SettingsView, WithSnapshot } from '../api';
 import { ReasonList, SearchField, Section, SnapshotPicker, SubjectCell } from '../components';
@@ -16,6 +17,8 @@ import {
   PageFrame,
   PageHeader,
   Pill,
+  DividedListItem,
+  DividedList,
 } from '../ui';
 
 type Opt = { label: string; value: string };
@@ -74,7 +77,7 @@ export function GroupsView() {
   const snapshot = list.data?.snapshot ?? null;
   return (
     <PageFrame header={<PageHeader title={meta.title} description={meta.description} />}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {list.error && !list.data ? (
           <ErrorState title="Groups unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
@@ -122,13 +125,13 @@ export function GroupsView() {
                     key: g.members ?? -1,
                     content:
                       g.membersStatus === 'collected' ? (
-                        <span className="status-row tight">
+                        <Inline as="span" space="space.075" alignBlock="center" shouldWrap>
                           {g.members}
                           {g.inactiveMembers ? (
-                            <span className="subtle">({g.inactiveMembers} inactive)</span>
+                            <Text color="color.text.subtle">({g.inactiveMembers} inactive)</Text>
                           ) : null}
                           {(g.members ?? 0) >= large ? <Pill tone="warning">Large</Pill> : null}
-                        </span>
+                        </Inline>
                       ) : (
                         <Pill tone="warning">
                           {g.membersStatus === 'not-collected'
@@ -140,7 +143,7 @@ export function GroupsView() {
                   {
                     key: 'access',
                     content: (
-                      <span className="chip-row">
+                      <Inline as="span" space="space.050" shouldWrap>
                         {g.access
                           .filter((a) => a !== 'user')
                           .map((a) => (
@@ -153,7 +156,7 @@ export function GroupsView() {
                             {a}
                           </Pill>
                         ))}
-                      </span>
+                      </Inline>
                     ),
                   },
                   { key: g.projects, content: g.projects },
@@ -164,11 +167,15 @@ export function GroupsView() {
               defaultPage={1}
               defaultSortKey="name"
               defaultSortOrder="ASC"
-              emptyView={<p className="subtle">No groups match.</p>}
+              emptyView={
+                <Text as="p" color="color.text.subtle">
+                  No groups match.
+                </Text>
+              }
             />
           </>
         )}
-      </div>
+      </Stack>
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
@@ -198,7 +205,7 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
     <DrawerBody>
       <Section title="Access" description="Application and administration access from this group.">
         {g.access.length || g.applications.length ? (
-          <span className="chip-row">
+          <Inline as="span" space="space.050" shouldWrap>
             {g.access.map((a) => (
               <Pill key={a} tone={a === 'user' ? 'neutral' : 'danger'}>
                 {ACCESS_LABEL[a] ?? a}
@@ -209,43 +216,47 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
                 {a}
               </Pill>
             ))}
-          </span>
+          </Inline>
         ) : (
-          <p className="subtle">No application or admin access.</p>
+          <Text as="p" color="color.text.subtle">
+            No application or admin access.
+          </Text>
         )}
       </Section>
       <Section title="Spaces" description="Where membership of this group grants access.">
         {g.usage.length ? (
-          <ul className="reason-list">
+          <DividedList>
             {g.usage.map((u) => (
-              <li key={u.project.id}>
+              <DividedListItem key={u.project.id} loose>
                 <LinkButton onClick={() => go('explore-projects', { projectId: u.project.id })}>
                   {u.project.key} · {u.project.name}
                 </LinkButton>
                 <ReasonList
                   perms={Object.fromEntries(u.permissions.map((p) => [p.permission, p.reasons]))}
                 />
-              </li>
+              </DividedListItem>
             ))}
-          </ul>
+          </DividedList>
         ) : (
-          <p className="subtle">This group grants no space permissions.</p>
+          <Text as="p" color="color.text.subtle">
+            This group grants no space permissions.
+          </Text>
         )}
       </Section>
       {g.schemeGrants.length || g.roles.length ? (
         <Section title="Configuration" description="Scheme grants and space role memberships.">
-          <ul className="plain-list">
+          <DividedList>
             {g.schemeGrants.map((s, i) => (
-              <li key={`s${i}`}>
+              <DividedListItem key={`s${i}`}>
                 Scheme “{s.scheme}” grants {permissionLabel(s.permission)}
-              </li>
+              </DividedListItem>
             ))}
             {g.roles.map((x) => (
-              <li key={`r${x.projectId}-${x.roleId}`}>
+              <DividedListItem key={`r${x.projectId}-${x.roleId}`}>
                 Role “{x.roleName}” in {x.project.key}
-              </li>
+              </DividedListItem>
             ))}
-          </ul>
+          </DividedList>
         </Section>
       ) : null}
       <Section
@@ -258,22 +269,28 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
       >
         {g.membersStatus === 'collected' ? (
           g.members.length ? (
-            <ul className="plain-list">
+            <DividedList>
               {g.members.slice(0, 500).map((m) => (
-                <li key={m.key}>
+                <DividedListItem key={m.key}>
                   <SubjectCell
                     subject={m}
                     compact
                     onSelect={() => go('explore-people', { accountId: m.id })}
                   />
-                </li>
+                </DividedListItem>
               ))}
               {g.members.length > 500 ? (
-                <li className="subtle">{plural(g.members.length - 500, 'more member')}</li>
+                <DividedListItem>
+                  <Text color="color.text.subtle">
+                    {plural(g.members.length - 500, 'more member')}
+                  </Text>
+                </DividedListItem>
               ) : null}
-            </ul>
+            </DividedList>
           ) : (
-            <p className="subtle">This group has no members.</p>
+            <Text as="p" color="color.text.subtle">
+              This group has no members.
+            </Text>
           )
         ) : null}
       </Section>

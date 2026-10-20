@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
@@ -9,7 +10,17 @@ import { useCall } from '../data';
 import { formatLocal, permissionLabel, plural } from '../format';
 import { t } from '../i18n';
 import { useToast } from '../Toast';
-import { Empty, ErrorState, Loading, Metric, PageFrame, PageHeader, Pill, PlanNote } from '../ui';
+import {
+  Empty,
+  ErrorState,
+  Loading,
+  Metric,
+  PageFrame,
+  PageHeader,
+  Pill,
+  PlanNote,
+  MetricGrid,
+} from '../ui';
 
 type Notice = {
   id: number;
@@ -128,7 +139,7 @@ export function ProjectReviewView() {
 
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {(d.notices ?? []).map((n) => (
           <SectionMessage
             key={n.id}
@@ -140,7 +151,7 @@ export function ProjectReviewView() {
               </SectionMessageAction>
             }
           >
-            {n.body ? <p>{n.body}</p> : null}
+            {n.body ? <Text as="p">{n.body}</Text> : null}
           </SectionMessage>
         ))}
 
@@ -156,20 +167,20 @@ export function ProjectReviewView() {
         ) : (
           <>
             <SectionMessage appearance="information" title={d.review.name}>
-              <p>
+              <Text as="p">
                 Due {formatLocal(d.assignment.dueAt)} · snapshot #{d.review.baseSeq} ·{' '}
                 {d.access === 'site-admin' ? (
                   <Pill tone="info">Viewing as Jira admin</Pill>
                 ) : (
                   <Pill tone="info">Assigned to you</Pill>
                 )}
-              </p>
-              <p className="subtle">
+              </Text>
+              <Text as="p" color="color.text.subtle">
                 Submit when every item has a decision. A Jira admin signs the evidence pack.
                 Delegates are not notified outside Jira.
-              </p>
+              </Text>
             </SectionMessage>
-            <div className="metric-grid">
+            <MetricGrid>
               <Metric label="Items" value={decidable.length} />
               <Metric
                 label="Decided"
@@ -181,8 +192,8 @@ export function ProjectReviewView() {
                 label="Revoke"
                 value={decidable.filter((i) => i.decision === 'revoke').length}
               />
-            </div>
-            <div className="status-row tight">
+            </MetricGrid>
+            <Inline space="space.075" alignBlock="center" shouldWrap>
               <Button
                 isDisabled={busy || !pending}
                 onClick={() =>
@@ -205,7 +216,7 @@ export function ProjectReviewView() {
               >
                 Revoke remaining
               </Button>
-            </div>
+            </Inline>
             <DynamicTable
               head={{
                 cells: [
@@ -241,13 +252,13 @@ export function ProjectReviewView() {
                         {i.decision}
                       </Pill>
                     ) : (
-                      <span className="subtle">—</span>
+                      <Text color="color.text.subtle">—</Text>
                     ),
                   },
                   {
                     key: 'a',
                     content: (
-                      <span className="status-row tight">
+                      <Inline as="span" space="space.075" alignBlock="center" shouldWrap>
                         <Button
                           appearance="subtle"
                           isDisabled={busy}
@@ -262,7 +273,7 @@ export function ProjectReviewView() {
                         >
                           Revoke
                         </Button>
-                      </span>
+                      </Inline>
                     ),
                   },
                 ],
@@ -272,7 +283,7 @@ export function ProjectReviewView() {
             />
           </>
         )}
-      </div>
+      </Stack>
     </PageFrame>
   );
 }

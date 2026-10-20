@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
@@ -41,6 +42,7 @@ import {
   Pill,
   TableSkeleton,
   ToggleField,
+  NoWrap,
 } from '../ui';
 
 type Opt = { label: string; value: string };
@@ -110,7 +112,7 @@ export function ProjectsView() {
   );
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {list.error && !list.data ? (
           <ErrorState title="Spaces unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
@@ -172,40 +174,46 @@ export function ProjectsView() {
                   },
                   {
                     key: p.schemeName ?? '',
-                    content: p.schemeName ?? <span className="subtle">Per-space</span>,
+                    content: p.schemeName ?? <Text color="color.text.subtle">Per-space</Text>,
                   },
                   {
                     key: p.people,
                     content: (
-                      <span>
+                      <Text>
                         {p.people}
                         {p.appAccounts ? (
-                          <span className="subtle"> · {plural(p.appAccounts, 'app account')}</span>
+                          <Text color="color.text.subtle">
+                            {' '}
+                            · {plural(p.appAccounts, 'app account')}
+                          </Text>
                         ) : null}
-                      </span>
+                      </Text>
                     ),
                   },
                   {
                     key: p.admins,
                     content: (
-                      <span>
+                      <Text>
                         {p.admins}
                         {p.appAdmins ? (
-                          <span className="subtle"> · {plural(p.appAdmins, 'app account')}</span>
+                          <Text color="color.text.subtle">
+                            {' '}
+                            · {plural(p.appAdmins, 'app account')}
+                          </Text>
                         ) : null}
-                      </span>
+                      </Text>
                     ),
                   },
                   {
                     key: 'flags',
                     content: (
-                      <span className="chip-row">
+                      <Inline as="span" space="space.050" shouldWrap>
                         {p.anonymous ? <Pill tone="danger">Anonymous</Pill> : null}
                         {p.unexpanded ? (
                           <Pill tone="warning">{p.unexpanded} unread groups</Pill>
                         ) : null}
                         {p.conditional ? <Pill tone="discovery">Work item-dependent</Pill> : null}
-                      </span>
+                      </Inline>
                     ),
                   },
                 ],
@@ -214,16 +222,20 @@ export function ProjectsView() {
               defaultPage={1}
               defaultSortKey="key"
               defaultSortOrder="ASC"
-              emptyView={<p className="subtle">No spaces match.</p>}
+              emptyView={
+                <Text as="p" color="color.text.subtle">
+                  No spaces match.
+                </Text>
+              }
             />
-            <p className="subtle">
+            <Text as="p" color="color.text.subtle">
               People and space admin counts include people only. App accounts (bots and
               integrations) are shown separately; turn on “Show app accounts” in a space to list
               them.
-            </p>
+            </Text>
           </>
         )}
-      </div>
+      </Stack>
     </PageFrame>
   );
 }
@@ -313,7 +325,7 @@ function ProjectDetail({
   );
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {detail.error && !detail.data ? (
           <ErrorState title="Space unavailable" message={detail.error} retry={detail.reload} />
         ) : !d ? (
@@ -329,54 +341,54 @@ function ProjectDetail({
               />
               <ToggleField label="Show app accounts" isChecked={showApps} onChange={setShowApps} />
             </FilterBar>
-            <div className="table-wrap">
-              <DynamicTable
-                head={{
+            <DynamicTable
+              head={{
+                cells: [
+                  { key: 'who', content: 'Who', isSortable: true },
+                  ...keyPerms.map((perm) => ({ key: perm, content: permissionLabel(perm) })),
+                  { key: 'all', content: 'All permissions', isSortable: true },
+                  { key: 'via', content: 'Through' },
+                  { key: 'why', content: '' },
+                ],
+              }}
+              rows={rows.map((r) => {
+                const all = Object.values(r.perms).flat();
+                return {
+                  key: r.subject.key,
                   cells: [
-                    { key: 'who', content: 'Who', isSortable: true },
-                    ...keyPerms.map((perm) => ({ key: perm, content: permissionLabel(perm) })),
-                    { key: 'all', content: 'All permissions', isSortable: true },
-                    { key: 'via', content: 'Through' },
-                    { key: 'why', content: '' },
+                    { key: r.subject.name, content: <SubjectCell subject={r.subject} compact /> },
+                    ...keyPerms.map((perm) => ({
+                      key: perm,
+                      content: r.perms[perm] ? (
+                        <NoWrap>✓</NoWrap>
+                      ) : (
+                        <Text color="color.text.subtle">—</Text>
+                      ),
+                    })),
+                    { key: Object.keys(r.perms).length, content: Object.keys(r.perms).length },
+                    { key: 'via', content: <ViaChips reasons={all} /> },
+                    {
+                      key: 'why',
+                      content: (
+                        <Button appearance="subtle" onClick={() => why(r.subject, r.perms)}>
+                          Why?
+                        </Button>
+                      ),
+                    },
                   ],
-                }}
-                rows={rows.map((r) => {
-                  const all = Object.values(r.perms).flat();
-                  return {
-                    key: r.subject.key,
-                    cells: [
-                      { key: r.subject.name, content: <SubjectCell subject={r.subject} compact /> },
-                      ...keyPerms.map((perm) => ({
-                        key: perm,
-                        content: r.perms[perm] ? (
-                          <span className="perm-cell">✓</span>
-                        ) : (
-                          <span className="subtle">—</span>
-                        ),
-                      })),
-                      { key: Object.keys(r.perms).length, content: Object.keys(r.perms).length },
-                      { key: 'via', content: <ViaChips reasons={all} /> },
-                      {
-                        key: 'why',
-                        content: (
-                          <Button appearance="subtle" onClick={() => why(r.subject, r.perms)}>
-                            Why?
-                          </Button>
-                        ),
-                      },
-                    ],
-                  };
-                })}
-                rowsPerPage={25}
-                defaultPage={1}
-                emptyView={
-                  <p className="subtle">Nobody has access to this space in this snapshot.</p>
-                }
-              />
-            </div>
+                };
+              })}
+              rowsPerPage={25}
+              defaultPage={1}
+              emptyView={
+                <Text as="p" color="color.text.subtle">
+                  Nobody has access to this space in this snapshot.
+                </Text>
+              }
+            />
           </>
         )}
-      </div>
+      </Stack>
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}

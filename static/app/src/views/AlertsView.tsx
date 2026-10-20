@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Box, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import { call, errorText } from '../api';
@@ -19,6 +20,7 @@ import {
   PageHeader,
   Pill,
   PlanNote,
+  NoWrap,
 } from '../ui';
 
 type AlertRow = {
@@ -98,7 +100,7 @@ export function AlertsView() {
 
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         <FilterBar>
           <FilterSelect
             label="Alert status"
@@ -141,17 +143,19 @@ export function AlertsView() {
                 {
                   key: 'title',
                   content: (
-                    <div>
-                      <div>{humanizePermissionKeys(a.title)}</div>
+                    <Box>
+                      <Box>{humanizePermissionKeys(a.title)}</Box>
                       {a.body ? (
-                        <div className="subtle">{humanizePermissionKeys(a.body)}</div>
+                        <Text as="p" color="color.text.subtle">
+                          {humanizePermissionKeys(a.body)}
+                        </Text>
                       ) : null}
-                    </div>
+                    </Box>
                   ),
                 },
                 {
                   key: 'when',
-                  content: <span className="nowrap">{formatLocal(a.createdAt)}</span>,
+                  content: <NoWrap>{formatLocal(a.createdAt)}</NoWrap>,
                 },
                 {
                   key: 'snap',
@@ -181,7 +185,7 @@ export function AlertsView() {
             }))}
           />
         )}
-      </div>
+      </Stack>
     </PageFrame>
   );
 }

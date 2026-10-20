@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
@@ -37,6 +38,8 @@ import {
   PlanNote,
   RadioField,
   ToggleField,
+  DividedListItem,
+  DividedList,
 } from '../ui';
 import { SpikePanel } from './SpikePanel';
 
@@ -83,14 +86,14 @@ function EditForm({
   return (
     <>
       <DrawerBody>
-        <div className="form-stack">
+        <Stack space="space.150">
           {children}
           {error ? (
             <SectionMessage appearance="error">
-              <p>{error}</p>
+              <Text as="p">{error}</Text>
             </SectionMessage>
           ) : null}
-        </div>
+        </Stack>
       </DrawerBody>
       <DrawerFooter onCancel={onCancel}>
         <Button
@@ -403,9 +406,9 @@ function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () 
   const [alerts, setAlerts] = useState(base);
   return (
     <EditForm onCancel={cancel} onSave={() => save({ alerts })}>
-      <p className="subtle">
+      <Text as="p" color="color.text.subtle">
         Alerts are evaluated when a snapshot commits (Advanced). Delivery is in-app only — no email.
-      </p>
+      </Text>
       {ALERT_RULE_LABELS.map((r) => (
         <ToggleField
           key={r.key}
@@ -442,7 +445,7 @@ export function SettingsView() {
 
   return (
     <PageFrame header={<PageHeader title={meta.title} description={meta.description} />}>
-      <div className="page-stack settings-content">
+      <Stack space="space.300">
         {r.error && !v ? (
           <ErrorState title="Settings unavailable" message={r.error} retry={r.reload} />
         ) : !v || !s ? (
@@ -451,11 +454,11 @@ export function SettingsView() {
           <>
             {!s.saved ? (
               <SectionMessage appearance="information">
-                <p>
+                <Text as="p">
                   You have not changed any settings yet, so AccessRadar uses the defaults shown
                   below. They are already in effect, including the snapshot schedule. Use Edit on a
                   section to change it.
-                </p>
+                </Text>
               </SectionMessage>
             ) : null}
             <EditionSection
@@ -506,11 +509,11 @@ export function SettingsView() {
                 </Button>
               }
             >
-              <span className="chip-row">
+              <Inline as="span" space="space.050" shouldWrap>
                 {s.keyPermissions.map((k) => (
                   <Pill key={k}>{permissionLabel(k)}</Pill>
                 ))}
-              </span>
+              </Inline>
             </Section>
             <Section
               title="Retention"
@@ -689,13 +692,13 @@ export function SettingsView() {
               />
             </Section>
             {status.data?.spike ? (
-              <section className="section-stack form-section-top">
+              <Section>
                 <SpikePanel />
-              </section>
+              </Section>
             ) : null}
           </>
         )}
-      </div>
+      </Stack>
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
@@ -761,12 +764,12 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
   const rows: Array<[string, ReactNode]> = [
     [
       'Edition',
-      <span key="e" className="chip-row">
+      <Inline as="span" space="space.050" shouldWrap key="e">
         <Pill tone={edition.edition === 'advanced' ? 'discovery' : 'neutral'}>
           {edition.edition === 'advanced' ? 'Advanced' : 'Standard'}
         </Pill>
-        <span className="subtle">{SOURCE_TEXT[edition.source]}</span>
-      </span>,
+        <Text color="color.text.subtle">{SOURCE_TEXT[edition.source]}</Text>
+      </Inline>,
     ],
   ];
   if (edition.canOverride === true) {
@@ -785,11 +788,11 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
   }
   rows.push([
     'Advanced',
-    <ul key="a" className="plain-list">
+    <DividedList key="a">
       {ADVANCED_FEATURES.map((f) => {
         const soon = (edition.comingSoon ?? []).includes(f.key);
         return (
-          <li key={f.key}>
+          <DividedListItem key={f.key}>
             {f.label}{' '}
             {soon ? (
               <Pill tone="info">Coming soon</Pill>
@@ -798,10 +801,10 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
             ) : (
               <AdvancedBadge />
             )}
-          </li>
+          </DividedListItem>
         );
       })}
-    </ul>,
+    </DividedList>,
   ]);
   return (
     <Section

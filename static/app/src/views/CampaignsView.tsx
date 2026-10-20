@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Stack, Text, Inline } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import { DropdownItem } from '@atlaskit/dropdown-menu';
@@ -299,10 +300,10 @@ export function CampaignsView() {
       confirmLabel: 'Delete campaign',
       onConfirm: () => remove(c.id),
       body: (
-        <p>
+        <Text as="p">
           The campaign stops scheduling runs and disappears from this list. Reviews it already
           created are not deleted.
-        </p>
+        </Text>
       ),
     });
   const openRun = (runId: string) => {
@@ -324,12 +325,12 @@ export function CampaignsView() {
 
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         <SectionMessage appearance="information">
-          <p>
+          <Text as="p">
             Delegates are reminded in the app only (no email). Tell space owners through your usual
             channels. Detection uses your snapshot schedule.
-          </p>
+          </Text>
         </SectionMessage>
         {!items.length ? (
           <Empty
@@ -361,7 +362,7 @@ export function CampaignsView() {
                 {
                   key: 'act',
                   content: (
-                    <span className="row-actions">
+                    <Inline as="span" space="space.050" alignBlock="center" alignInline="end">
                       {c.status === 'active' ? (
                         <Button isDisabled={busy} onClick={() => void run(c.id)}>
                           Run now
@@ -373,7 +374,7 @@ export function CampaignsView() {
                         ) : null}
                         <DropdownItem onClick={() => confirmDelete(c)}>Delete…</DropdownItem>
                       </RowMenu>
-                    </span>
+                    </Inline>
                   ),
                 },
               ],
@@ -382,7 +383,7 @@ export function CampaignsView() {
             defaultPage={1}
           />
         )}
-      </div>
+      </Stack>
       {confirmDialog}
       <StackDrawer
         levels={drawer}
@@ -410,7 +411,7 @@ function CampaignForm({
   return (
     <>
       <DrawerBody>
-        <div className="page-stack">
+        <Stack space="space.300">
           <FormField label="Name">
             {(id) => (
               <Textfield
@@ -514,7 +515,7 @@ function CampaignForm({
               />
             )}
           </FormField>
-        </div>
+        </Stack>
       </DrawerBody>
       <DrawerFooter onCancel={onCancel}>
         <Button
@@ -551,10 +552,10 @@ function PreviewBody({
   return (
     <>
       <DrawerBody>
-        <div className="page-stack">
+        <Stack space="space.300">
           {preview.warnings.map((w) => (
             <SectionMessage key={w} appearance="warning">
-              <p>{w}</p>
+              <Text as="p">{w}</Text>
             </SectionMessage>
           ))}
           <DynamicTable
@@ -583,7 +584,7 @@ function PreviewBody({
               />
             }
           />
-        </div>
+        </Stack>
       </DrawerBody>
       <DrawerFooter onCancel={onBack} cancelLabel="Back">
         <Button
@@ -647,15 +648,15 @@ function RunDetail({
   return (
     <>
       <DrawerBody>
-        <div className="page-stack">
-          <p className="subtle">
+        <Stack space="space.300">
+          <Text as="p" color="color.text.subtle">
             Status {run.status}
             {run.seq != null ? ` · snapshot #${run.seq}` : ''} · {run.reviewCount} review(s) · due{' '}
             {formatLocal(run.dueAt)}
-          </p>
+          </Text>
           {run.error ? (
             <SectionMessage appearance="error">
-              <p>{run.error}</p>
+              <Text as="p">{run.error}</Text>
             </SectionMessage>
           ) : null}
           {assignments.length ? (
@@ -698,7 +699,7 @@ function RunDetail({
               Refresh
             </Button>
           ) : null}
-        </div>
+        </Stack>
       </DrawerBody>
       <DrawerFooter>
         <Button appearance="primary" onClick={onClose}>

@@ -1,17 +1,19 @@
+import Tooltip from '@atlaskit/tooltip';
 import DynamicTable from '../Table';
+import { Stack, Text } from '@atlaskit/primitives';
 import type { ActivityEvent } from '../api';
 import { useCall } from '../data';
 import { activityDetail, activityLabel, activityTarget } from '../activity';
 import { formatLocal, formatUtc } from '../format';
 import { navItem } from '../routes';
-import { Empty, ErrorState, Loading, PageFrame, PageHeader } from '../ui';
+import { Empty, ErrorState, Loading, PageFrame, PageHeader, WrapAnywhere } from '../ui';
 
 export function ActivityView() {
   const meta = navItem('activity');
   const r = useCall<{ events: ActivityEvent[] }>('getActivity');
   return (
     <PageFrame header={<PageHeader title={meta.title} description={meta.description} />}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {r.error && !r.data ? (
           <ErrorState title="Activity unavailable" message={r.error} retry={r.reload} />
         ) : !r.data ? (
@@ -35,21 +37,28 @@ export function ActivityView() {
             rows={r.data.events.map((e) => ({
               key: String(e.id),
               cells: [
-                { key: e.at, content: <span title={formatUtc(e.at)}>{formatLocal(e.at)}</span> },
+                {
+                  key: e.at,
+                  content: (
+                    <Tooltip content={formatUtc(e.at)}>
+                      <Text>{formatLocal(e.at)}</Text>
+                    </Tooltip>
+                  ),
+                },
                 { key: e.actorName, content: e.actorName },
                 {
                   key: activityLabel(e.action),
                   content: (() => {
                     const target = activityTarget(e);
                     return (
-                      <span className="wrap-anywhere">
+                      <WrapAnywhere>
                         {activityLabel(e.action)}
-                        {target ? <span className="subtle"> · {target}</span> : null}
-                      </span>
+                        {target ? <Text color="color.text.subtle"> · {target}</Text> : null}
+                      </WrapAnywhere>
                     );
                   })(),
                 },
-                { key: 'd', content: <span className="subtle">{activityDetail(e)}</span> },
+                { key: 'd', content: <Text color="color.text.subtle">{activityDetail(e)}</Text> },
               ],
             }))}
             rowsPerPage={50}
@@ -58,7 +67,7 @@ export function ActivityView() {
             defaultSortOrder="DESC"
           />
         )}
-      </div>
+      </Stack>
     </PageFrame>
   );
 }

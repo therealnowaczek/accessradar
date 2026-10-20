@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
@@ -84,14 +85,6 @@ export function SnapshotsView() {
       actions={
         <>
           <Button
-            iconBefore={RefreshIcon}
-            isLoading={refreshing}
-            isDisabled={refreshing}
-            onClick={() => void refresh()}
-          >
-            Refresh
-          </Button>
-          <Button
             appearance={list.length || active ? 'primary' : 'default'}
             isLoading={take.busy}
             isDisabled={Boolean(active)}
@@ -99,13 +92,21 @@ export function SnapshotsView() {
           >
             Take snapshot now
           </Button>
+          <Button
+            iconBefore={RefreshIcon}
+            isLoading={refreshing}
+            isDisabled={refreshing}
+            onClick={() => void refresh()}
+          >
+            Refresh
+          </Button>
         </>
       }
     />
   );
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {active ? <SnapshotProgress active={active} /> : null}
         {snaps.error && !snaps.data ? (
           <ErrorState title="Snapshots unavailable" message={snaps.error} retry={snaps.reload} />
@@ -143,7 +144,9 @@ export function SnapshotsView() {
                       <LinkButton onClick={() => open(s)}>
                         #{s.seq} · {formatLocal(s.startedAt)}
                       </LinkButton>
-                      <div className="subtle">{relative(s.startedAt)}</div>
+                      <Text as="p" color="color.text.subtle">
+                        {relative(s.startedAt)}
+                      </Text>
                     </>
                   ),
                 },
@@ -153,20 +156,20 @@ export function SnapshotsView() {
                 {
                   key: 'size',
                   content: s.stats ? (
-                    <span className="subtle">
+                    <Text color="color.text.subtle">
                       {s.stats.project ?? 0} spaces · {s.stats.group ?? 0} groups ·{' '}
                       {s.stats.person ?? 0} people
-                    </span>
+                    </Text>
                   ) : (
-                    <span className="subtle">—</span>
+                    <Text color="color.text.subtle">—</Text>
                   ),
                 },
                 {
                   key: 'cost',
                   content: (
-                    <span className="subtle">
+                    <Text color="color.text.subtle">
                       {s.calls} calls · {s.points.toLocaleString()} points
-                    </span>
+                    </Text>
                   ),
                 },
               ],
@@ -177,7 +180,7 @@ export function SnapshotsView() {
             defaultSortOrder="DESC"
           />
         )}
-      </div>
+      </Stack>
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
@@ -245,7 +248,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
           title="Export"
           description="Access matrix: who has which permission in which space, and why."
         >
-          <div className="actions">
+          <Inline space="space.100" alignBlock="center" shouldWrap>
             <ExportMenu
               label="Export access matrix"
               onCsv={() =>
@@ -271,7 +274,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
             >
               Download coverage CSV
             </Button>
-          </div>
+          </Inline>
         </Section>
       ) : null}
     </DrawerBody>

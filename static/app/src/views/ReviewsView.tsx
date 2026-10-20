@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import Checkbox from '@atlaskit/checkbox';
 import { DropdownItem } from '@atlaskit/dropdown-menu';
@@ -68,6 +69,9 @@ import {
   PlanGate,
   PlanNote,
   RadioField,
+  WrapAnywhere,
+  MetricGrid,
+  PathList,
 } from '../ui';
 
 const STATUS: Record<ReviewSummary['status'], [string, 'neutral' | 'info' | 'success']> = {
@@ -125,21 +129,21 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
       description={meta.description}
       actions={
         <>
+          <Button appearance="primary" isDisabled={!hasSnapshot} onClick={openCreate}>
+            Start a review
+          </Button>
           {hasChained ? (
             <Button appearance="subtle" onClick={openVerifyChain}>
               Verify chain
             </Button>
           ) : null}
-          <Button appearance="primary" isDisabled={!hasSnapshot} onClick={openCreate}>
-            Start a review
-          </Button>
         </>
       }
     />
   );
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {list.error && !list.data ? (
           <ErrorState title="Reviews unavailable" message={list.error} retry={list.reload} />
         ) : !list.data || (status.loading && !status.data) ? (
@@ -179,7 +183,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                       <LinkButton onClick={() => go('reviews', { reviewId: r.id })}>
                         {r.name}
                       </LinkButton>
-                      <div className="subtle">
+                      <Text as="p" color="color.text.subtle">
                         {r.scope.type === 'site'
                           ? 'Whole site'
                           : plural(
@@ -187,7 +191,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                               r.scope.type === 'projects' ? 'space' : 'group',
                             )}{' '}
                         · snapshot #{r.baseSeq}
-                      </div>
+                      </Text>
                     </>
                   ),
                 },
@@ -202,10 +206,10 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                       r.chainSeq != null ? (
                         String(r.chainSeq)
                       ) : (
-                        <span className="subtle">pre-chain</span>
+                        <Text color="color.text.subtle">pre-chain</Text>
                       )
                     ) : (
-                      <span className="subtle">—</span>
+                      <Text color="color.text.subtle">—</Text>
                     ),
                 },
                 { key: 'p', content: `${r.decided ?? 0} of ${r.itemCount}` },
@@ -213,19 +217,23 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                 {
                   key: r.dueAt ?? 0,
                   content: r.dueAt ? (
-                    <span className="status-row tight">
+                    <Inline as="span" space="space.075" alignBlock="center" shouldWrap>
                       {formatLocal(r.dueAt).split(',')[0]}
                       {r.status !== 'signed' && r.dueAt < now ? (
                         <Pill tone="danger">Overdue</Pill>
                       ) : null}
-                    </span>
+                    </Inline>
                   ) : (
-                    <span className="subtle">—</span>
+                    <Text color="color.text.subtle">—</Text>
                   ),
                 },
                 {
                   key: r.signedAt ?? 0,
-                  content: r.signedAt ? formatLocal(r.signedAt) : <span className="subtle">—</span>,
+                  content: r.signedAt ? (
+                    formatLocal(r.signedAt)
+                  ) : (
+                    <Text color="color.text.subtle">—</Text>
+                  ),
                 },
               ],
             }))}
@@ -233,7 +241,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
             defaultPage={1}
           />
         )}
-      </div>
+      </Stack>
       <StackDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
@@ -305,7 +313,7 @@ function CreateReview({
   return (
     <>
       <DrawerBody>
-        <div className="form-stack">
+        <Stack space="space.150">
           <FormField label="Name">
             {(id) => (
               <Textfield
@@ -392,16 +400,16 @@ function CreateReview({
           <FormField label="Due date (optional)">
             {(id) => <DateField id={id} value={due} onChange={(v) => setDue(v)} />}
           </FormField>
-          <p className="subtle">
+          <Text as="p" color="color.text.subtle">
             Reviewers are Jira administrators. Key permissions from Settings define which access is
             listed.
-          </p>
+          </Text>
           {error ? (
             <SectionMessage appearance="error">
-              <p>{error}</p>
+              <Text as="p">{error}</Text>
             </SectionMessage>
           ) : null}
-        </div>
+        </Stack>
       </DrawerBody>
       <DrawerFooter onCancel={onCancel}>
         <Button appearance="primary" isLoading={busy} onClick={() => void submit()}>
@@ -578,10 +586,10 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         }
       },
       body: (
-        <p>
+        <Text as="p">
           This deletes the draft review and its decisions. Snapshots are not affected. Signed
           reviews cannot be deleted.
-        </p>
+        </Text>
       ),
     });
 
@@ -598,24 +606,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
       }
       actions={
         <>
-          <Button iconBefore={ArrowLeftIcon} onClick={onBack}>
-            All reviews
-          </Button>
-          <ExportMenu
-            isDisabled={!d}
-            onCsv={() =>
-              void exporter('Review CSV', () => {
-                downloadCsv(reviewFileName(d!, 'csv'), reviewCsv(d!, exportContext(siteUrl)));
-                logExport('review-csv', id, d!.limitations?.version);
-              })
-            }
-            onPdf={() =>
-              void exporter('Review PDF', async () => {
-                downloadPdf(reviewFileName(d!, 'pdf'), await reviewPdf(d!, exportContext(siteUrl)));
-                logExport('review-pdf', id, d!.limitations?.version);
-              })
-            }
-          />
+          {/* Primary first (left of the group): ADS PageHeader right-aligns its actions slot. */}
           {signed ? (
             <>
               <Button
@@ -651,14 +642,34 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             </>
           ) : (
             <>
-              <Button appearance="subtle" onClick={openDelete} isDisabled={!d}>
-                Delete
-              </Button>
               <Button appearance="primary" isDisabled={!d || pending > 0} onClick={openSign}>
                 Sign off
               </Button>
             </>
           )}
+          <ExportMenu
+            isDisabled={!d}
+            onCsv={() =>
+              void exporter('Review CSV', () => {
+                downloadCsv(reviewFileName(d!, 'csv'), reviewCsv(d!, exportContext(siteUrl)));
+                logExport('review-csv', id, d!.limitations?.version);
+              })
+            }
+            onPdf={() =>
+              void exporter('Review PDF', async () => {
+                downloadPdf(reviewFileName(d!, 'pdf'), await reviewPdf(d!, exportContext(siteUrl)));
+                logExport('review-pdf', id, d!.limitations?.version);
+              })
+            }
+          />
+          {!signed ? (
+            <Button appearance="subtle" onClick={openDelete} isDisabled={!d}>
+              Delete
+            </Button>
+          ) : null}
+          <Button iconBefore={ArrowLeftIcon} onClick={onBack}>
+            All reviews
+          </Button>
         </>
       }
     />
@@ -679,18 +690,18 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   const filteredOpen = items.filter((i) => i.change !== 'removed').map((i) => i.idx);
   return (
     <PageFrame header={header}>
-      <div className="page-stack">
+      <Stack space="space.300">
         {signed ? (
           <SectionMessage
             appearance="success"
             title={`Signed by ${d.review.signedByName ?? 'Jira admin'}`}
           >
-            <div className="section-stack">
-              <p>
+            <Stack space="space.200">
+              <Text as="p">
                 {formatUtc(d.review.signedAt)} ·{' '}
                 {formatLocal(d.review.signedAt, d.review.signerTz ?? timeZone())} (
                 {d.review.signerTz}). This review is read-only.
-              </p>
+              </Text>
               <Details
                 rows={[
                   ['Evidence hash (SHA-256)', <Hash key="h" value={d.review.evidenceHash} />],
@@ -710,12 +721,12 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                   ['Signature', `v${d.review.signatureVersion ?? 1}`],
                 ]}
               />
-            </div>
+            </Stack>
           </SectionMessage>
         ) : null}
         {signed ? <RemediationPanel reviewId={id} items={d.items} /> : null}
         <CoverageLimitations coverage={d.coverage} limitations={d.limitations} />
-        <div className="metric-grid">
+        <MetricGrid>
           <Metric
             label="Items"
             value={decidable.length}
@@ -732,7 +743,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           />
           <Metric label="Keep" value={decidable.filter((i) => i.decision === 'keep').length} />
           <Metric label="Revoke" value={flagged} hint="Remove manually in Jira" />
-        </div>
+        </MetricGrid>
         <FilterBar>
           <SearchField
             value={query}
@@ -801,37 +812,43 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               {
                 key: i.subject.name.toLowerCase(),
                 content: (
-                  <span className="section-stack">
+                  <Stack as="span" space="space.200">
                     <SubjectCell subject={i.subject} compact />
                     {i.change === 'new' ? (
                       <Pill tone="info">New</Pill>
                     ) : i.change === 'removed' ? (
                       <Pill tone="neutral">Removed since comparison</Pill>
                     ) : null}
-                  </span>
+                  </Stack>
                 ),
               },
               {
                 key: i.project?.key ?? i.groupName ?? 'site',
-                content: i.project ? <strong>{i.project.key}</strong> : (i.groupName ?? 'Site'),
+                content: i.project ? (
+                  <Text weight="bold">{i.project.key}</Text>
+                ) : (
+                  (i.groupName ?? 'Site')
+                ),
               },
               { key: 'access', content: i.permissions.map(permissionLabel).join(', ') },
               {
                 key: 'why',
                 content: (
-                  <span className="subtle wrap-anywhere">
-                    {i.reasons[0]}
-                    {i.reasons.length > 1 ? ` (+${i.reasons.length - 1})` : ''}
-                  </span>
+                  <WrapAnywhere>
+                    <Text color="color.text.subtle">
+                      {i.reasons[0]}
+                      {i.reasons.length > 1 ? ` (+${i.reasons.length - 1})` : ''}
+                    </Text>
+                  </WrapAnywhere>
                 ),
               },
               {
                 key: i.decision ?? '',
                 content:
                   i.change === 'removed' ? (
-                    <span className="subtle">—</span>
+                    <Text color="color.text.subtle">—</Text>
                   ) : (
-                    <span className="section-stack">
+                    <Stack as="span" space="space.200">
                       {i.decision === 'keep' ? (
                         <Pill tone="success">Keep</Pill>
                       ) : i.decision === 'revoke' ? (
@@ -847,8 +864,8 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                       ) : (
                         <Pill>Undecided</Pill>
                       )}
-                      {i.note ? <span className="subtle">“{i.note}”</span> : null}
-                    </span>
+                      {i.note ? <Text color="color.text.subtle">“{i.note}”</Text> : null}
+                    </Stack>
                   ),
               },
               {
@@ -859,7 +876,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                       Details
                     </Button>
                   ) : (
-                    <span className="actions">
+                    <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
                       <Button
                         spacing="compact"
                         isDisabled={busy}
@@ -881,14 +898,18 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                         </DropdownItem>
                         <DropdownItem onClick={() => openNote(i)}>Note</DropdownItem>
                       </RowMenu>
-                    </span>
+                    </Inline>
                   ),
               },
             ],
           }))}
           rowsPerPage={50}
           defaultPage={1}
-          emptyView={<p className="subtle">No items match.</p>}
+          emptyView={
+            <Text as="p" color="color.text.subtle">
+              No items match.
+            </Text>
+          }
         />
         <Section title="Review record">
           <Details
@@ -904,7 +925,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             ]}
           />
         </Section>
-      </div>
+      </Stack>
       {confirmDialog}
       <StackDrawer
         levels={drawer}
@@ -954,23 +975,17 @@ function ItemDrawer({
           ]}
         />
         <Section title="Why">
-          <ul className="reason-paths">
-            {item.reasons.map((x, n) => (
-              <li key={n} className="subtle">
-                {x}
-              </li>
-            ))}
-          </ul>
+          <PathList paths={item.reasons} />
         </Section>
         {readOnly ? (
           item.note ? (
-            <p>“{item.note}”</p>
+            <Text as="p">“{item.note}”</Text>
           ) : null
         ) : (
-          <div className="form-stack">
+          <Stack space="space.150">
             {error ? (
               <SectionMessage appearance="error">
-                <p>{error}</p>
+                <Text as="p">{error}</Text>
               </SectionMessage>
             ) : null}
             <RadioField label="Decision">
@@ -1024,7 +1039,7 @@ function ItemDrawer({
                 )}
               </FormField>
             ) : null}
-          </div>
+          </Stack>
         )}
       </DrawerBody>
       {readOnly ? null : (
@@ -1083,9 +1098,11 @@ function RemediationSample() {
     [t('planGate.sample.subject3'), t('planGate.sample.stillPresent'), 'danger', 12],
   ];
   return (
-    <div className="section-stack">
+    <Stack space="space.200">
       <ProgressBar value={1 / 3} />
-      <span className="subtle">{t('planGate.sample.closedOf', { closed: 1, total: 3 })}</span>
+      <Text color="color.text.subtle">
+        {t('planGate.sample.closedOf', { closed: 1, total: 3 })}
+      </Text>
       <DynamicTable
         head={{
           cells: [
@@ -1103,7 +1120,7 @@ function RemediationSample() {
           ],
         }))}
       />
-    </div>
+    </Stack>
   );
 }
 
@@ -1136,9 +1153,9 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
     }
     return (
       <Section title="Remediation">
-        <p className="subtle">
+        <Text as="p" color="color.text.subtle">
           No Revoke decisions in this review, so nothing needs to be removed in Jira.
-        </p>
+        </Text>
       </Section>
     );
   }
@@ -1151,19 +1168,21 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
   }
   return (
     <Section title="Remediation" description={description}>
-      <div className="section-stack">
+      <Stack space="space.200">
         {!gated && untracked < total ? (
           <>
             <ProgressBar value={total ? closed / total : 0} ariaLabel="Remediation progress" />
-            <span className="subtle">
+            <Text color="color.text.subtle">
               {closed} of {plural(total, 'revocation')} closed
-            </span>
+            </Text>
           </>
         ) : (
-          <span className="subtle">{plural(total, 'revocation')} to remove manually in Jira</span>
+          <Text color="color.text.subtle">
+            {plural(total, 'revocation')} to remove manually in Jira
+          </Text>
         )}
         {!gated && untracked ? (
-          <p className="subtle">
+          <Text as="p" color="color.text.subtle">
             {untracked === total
               ? 'These revocations are'
               : untracked === 1
@@ -1171,7 +1190,7 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
                 : `${untracked} revocations are`}{' '}
             not tracked for verification: remediation verification was off when the review was
             signed. Remove the access in Jira; after the next snapshot, Changes shows it as revoked.
-          </p>
+          </Text>
         ) : null}
         <DynamicTable
           head={{
@@ -1192,7 +1211,7 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
                 {
                   key: 'p',
                   content: e.item.project ? (
-                    <strong>{e.item.project.key}</strong>
+                    <Text weight="bold">{e.item.project.key}</Text>
                   ) : (
                     (e.item.groupName ?? 'Site')
                   ),
@@ -1201,16 +1220,16 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
                 {
                   key: 's',
                   content: (
-                    <span className="section-stack">
+                    <Stack as="span" space="space.200">
                       <Pill tone={tone}>
                         {e.status === 'verified' && e.verifiedSeq
                           ? `Verified #${e.verifiedSeq}`
                           : label}
                       </Pill>
                       {e.detail && e.checkCount >= 3 ? (
-                        <span className="subtle">{e.detail}</span>
+                        <Text color="color.text.subtle">{e.detail}</Text>
                       ) : null}
-                    </span>
+                    </Stack>
                   ),
                 },
                 ...(gated
@@ -1223,7 +1242,7 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
           defaultPage={1}
         />
         {gated ? <PlanNote benefit={t('planGate.remediation')} /> : null}
-      </div>
+      </Stack>
     </Section>
   );
 }
@@ -1264,12 +1283,12 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
       <DrawerBody>
         {error ? (
           <SectionMessage appearance="error">
-            <p>{error}</p>
+            <Text as="p">{error}</Text>
           </SectionMessage>
         ) : busy || !result ? (
           <Loading />
         ) : (
-          <div className="section-stack">
+          <Stack space="space.200">
             <Pill tone={result.ok ? 'success' : 'danger'}>
               {result.ok
                 ? `Intact · ${result.length} signed`
@@ -1277,7 +1296,7 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
             </Pill>
             {!result.ok && result.reason ? (
               <SectionMessage appearance="error">
-                <p>{result.reason}</p>
+                <Text as="p">{result.reason}</Text>
               </SectionMessage>
             ) : null}
             {result.length ? (
@@ -1301,7 +1320,7 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
                     },
                     {
                       key: l.reason ?? '',
-                      content: l.reason ?? <span className="subtle">—</span>,
+                      content: l.reason ?? <Text color="color.text.subtle">—</Text>,
                     },
                   ],
                 }))}
@@ -1309,9 +1328,11 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
                 defaultPage={1}
               />
             ) : (
-              <p className="subtle">No chained signatures yet.</p>
+              <Text as="p" color="color.text.subtle">
+                No chained signatures yet.
+              </Text>
             )}
-          </div>
+          </Stack>
         )}
       </DrawerBody>
       <DrawerFooter>
@@ -1414,12 +1435,12 @@ function VerifyDrawer({
         <Section title="Signature">
           {sigError ? (
             <SectionMessage appearance="error">
-              <p>{sigError}</p>
+              <Text as="p">{sigError}</Text>
             </SectionMessage>
           ) : !sig ? (
             <Loading />
           ) : (
-            <div className="section-stack">
+            <Stack space="space.200">
               <Pill tone={sig.ok ? 'success' : 'danger'}>{sig.ok ? 'Verified' : 'Mismatch'}</Pill>
               <Details
                 rows={[
@@ -1430,40 +1451,42 @@ function VerifyDrawer({
               />
               {!sig.ok ? (
                 <SectionMessage appearance="error">
-                  <p>Stored records no longer match the signed evidence hash.</p>
+                  <Text as="p">Stored records no longer match the signed evidence hash.</Text>
                 </SectionMessage>
               ) : null}
-            </div>
+            </Stack>
           )}
         </Section>
         <Section title="Snapshot integrity">
-          <p className="subtle">
+          <Text as="p" color="color.text.subtle">
             Recomputes the content hash of snapshot #{snapshotSeq} from stored facts and compares it
             to the hash recorded when the review was signed.
-          </p>
+          </Text>
           {!job ? (
             <Button appearance="primary" onClick={() => void startDeep()}>
               Check snapshot integrity
             </Button>
           ) : null}
           {polling && !deepDone ? (
-            <div className="section-stack">
+            <Stack space="space.200">
               <ProgressBar isIndeterminate />
-              <span className="subtle">Checking snapshot facts…</span>
-            </div>
+              <Text color="color.text.subtle">Checking snapshot facts…</Text>
+            </Stack>
           ) : null}
           {deepError ? (
             <SectionMessage appearance="error">
-              <p>{deepError}</p>
+              <Text as="p">{deepError}</Text>
             </SectionMessage>
           ) : null}
           {job?.status === 'purged' ? (
             <SectionMessage appearance="warning">
-              <p>Snapshot data was deleted by retention; only the signature can be checked.</p>
+              <Text as="p">
+                Snapshot data was deleted by retention; only the signature can be checked.
+              </Text>
             </SectionMessage>
           ) : null}
           {deepDone && job.status !== 'purged' ? (
-            <div className="section-stack">
+            <Stack space="space.200">
               <Pill tone={job.status === 'ok' ? 'success' : 'danger'}>
                 {job.status === 'ok' ? 'Verified' : 'Mismatch'}
               </Pill>
@@ -1475,10 +1498,10 @@ function VerifyDrawer({
               />
               {job.status === 'mismatch' ? (
                 <SectionMessage appearance="error">
-                  <p>Recomputed snapshot hash does not match the signed value.</p>
+                  <Text as="p">Recomputed snapshot hash does not match the signed value.</Text>
                 </SectionMessage>
               ) : null}
-            </div>
+            </Stack>
           ) : null}
         </Section>
       </DrawerBody>
@@ -1534,11 +1557,11 @@ function SignDrawer({
             ['Signed at', `Now, recorded in UTC and ${timeZone()}`],
           ]}
         />
-        <p className="subtle">
+        <Text as="p" color="color.text.subtle">
           Signing locks the review (signature v2). AccessRadar records your account ID and the time,
           and computes a SHA-256 hash over the review, decisions, coverage hash, and base snapshot
           hash. Revocations must still be done in Jira.
-        </p>
+        </Text>
         <Checkbox
           isChecked={attest}
           onChange={(e) => setAttest(e.target.checked)}
@@ -1546,7 +1569,7 @@ function SignDrawer({
         />
         {error ? (
           <SectionMessage appearance="error">
-            <p>{error}</p>
+            <Text as="p">{error}</Text>
           </SectionMessage>
         ) : null}
       </DrawerBody>
