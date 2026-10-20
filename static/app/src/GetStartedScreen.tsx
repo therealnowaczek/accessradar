@@ -1,16 +1,35 @@
 import { router } from '@forge/bridge';
+import Badge from '@atlaskit/badge';
 import Button from '@atlaskit/button/new';
 import Heading from '@atlaskit/heading';
 import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
+import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import ProgressBar from '@atlaskit/progress-bar';
 import { useState } from 'react';
 import SectionMessage from '@atlaskit/section-message';
+import { token } from '@atlaskit/tokens';
 import { call, errorText } from './api';
 import { usePoll, useStatus } from './data';
 import { MODULE_KEYS } from './routes';
 import { useRefresh } from './shared';
 import { ToastProvider } from './Toast';
 import { BrandMark, ErrorState, Loading, PageFrame, PageHeader, Pill } from './ui';
+
+const contentStyles = xcss({ maxWidth: '35rem' });
+const stepListStyles = xcss({ listStyle: 'none', margin: 'space.0', padding: 'space.0' });
+const stepStyles = xcss({
+  paddingBlock: 'space.200',
+  borderBlockEndWidth: 'border.width',
+  borderBlockEndStyle: 'solid',
+  borderBlockEndColor: 'color.border',
+});
+const stepMarkerStyles = xcss({
+  display: 'flex',
+  flexShrink: 0,
+  justifyContent: 'center',
+  width: '1.75rem',
+  paddingBlockStart: 'space.025',
+});
 
 const openApp = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.main });
 const openConfig = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.config });
@@ -92,75 +111,83 @@ function GetStartedBody() {
         />
       }
     >
-      <div className="page-stack settings-content">
-        <div className="brand-hero">
-          <BrandMark size={56} />
-          <div>
-            <Heading size="medium" as="h2">
-              AccessRadar
-            </Heading>
-            <p className="subtle">
-              Who has access to what in Jira, why, and what changed. Read-only.
-            </p>
-          </div>
-        </div>
-        <div className="section-stack">
-          <ProgressBar
-            value={done / steps.length}
-            ariaLabel={`${done} of ${steps.length} steps complete`}
-          />
-          <p className="subtle">
-            {done} of {steps.length} steps complete
-          </p>
-        </div>
-        {startError ? (
-          <SectionMessage appearance="error" title="Snapshot could not start">
-            <p>{startError}</p>
-          </SectionMessage>
-        ) : null}
-        {done === steps.length ? (
-          <SectionMessage appearance="success" title="You are set up">
-            <div className="section-stack">
-              <p>
-                The first snapshot is ready. Explore who has access to what, or start your first
-                review.
-              </p>
-              <div>
+      <Box xcss={contentStyles}>
+        <Stack space="space.300">
+          <Inline space="space.200" alignBlock="center">
+            <BrandMark size={56} />
+            <Stack space="space.050">
+              <Heading size="medium" as="h2">
+                AccessRadar
+              </Heading>
+              <Text as="p" color="color.text.subtle">
+                Who has access to what in Jira, why, and what changed. Read-only.
+              </Text>
+            </Stack>
+          </Inline>
+          <Stack space="space.200">
+            <ProgressBar
+              value={done / steps.length}
+              ariaLabel={`${done} of ${steps.length} steps complete`}
+            />
+            <Text as="p" color="color.text.subtle">
+              {done} of {steps.length} steps complete
+            </Text>
+          </Stack>
+          {startError ? (
+            <SectionMessage appearance="error" title="Snapshot could not start">
+              <Text as="p">{startError}</Text>
+            </SectionMessage>
+          ) : null}
+          {done === steps.length ? (
+            <SectionMessage appearance="success" title="You are set up">
+              <Stack space="space.200" alignInline="start">
+                <Text as="p">
+                  The first snapshot is ready. Explore who has access to what, or start your first
+                  review.
+                </Text>
                 <Button appearance="primary" onClick={openApp}>
                   Open AccessRadar
                 </Button>
-              </div>
-            </div>
-          </SectionMessage>
-        ) : null}
-        <ol className="steps">
-          {steps.map((step, index) => (
-            <li className="step" key={step.id}>
-              <span className={`step-marker ${step.done ? 'is-done' : ''}`} aria-hidden="true">
-                {step.done ? <CheckCircleIcon label="" /> : index + 1}
-              </span>
-              <div className="step-body">
-                <div className="status-row">
-                  <Heading size="small" as="h2">
-                    {step.title}
-                  </Heading>
-                  {step.done ? <Pill tone="success">Done</Pill> : null}
-                </div>
-                <p className="subtle">{step.detail}</p>
-                {!step.done && step.action ? (
-                  <Button
-                    appearance={step.action.primary ? 'primary' : 'default'}
-                    onClick={step.action.run}
-                    isLoading={step.id === 'snapshot' && busy}
-                  >
-                    {step.action.label}
-                  </Button>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
+              </Stack>
+            </SectionMessage>
+          ) : null}
+          <Stack as="ol" xcss={stepListStyles}>
+            {steps.map((step, index) => (
+              <Box as="li" xcss={stepStyles} key={step.id}>
+                <Inline space="space.200" alignBlock="start">
+                  <Box xcss={stepMarkerStyles} aria-hidden="true">
+                    {step.done ? (
+                      <CheckCircleIcon label="" color={token('color.icon.success')} />
+                    ) : (
+                      <Badge>{index + 1}</Badge>
+                    )}
+                  </Box>
+                  <Stack space="space.100" alignInline="start">
+                    <Inline space="space.100" alignBlock="center" shouldWrap>
+                      <Heading size="small" as="h2">
+                        {step.title}
+                      </Heading>
+                      {step.done ? <Pill tone="success">Done</Pill> : null}
+                    </Inline>
+                    <Text as="p" color="color.text.subtle">
+                      {step.detail}
+                    </Text>
+                    {!step.done && step.action ? (
+                      <Button
+                        appearance={step.action.primary ? 'primary' : 'default'}
+                        onClick={step.action.run}
+                        isLoading={step.id === 'snapshot' && busy}
+                      >
+                        {step.action.label}
+                      </Button>
+                    ) : null}
+                  </Stack>
+                </Inline>
+              </Box>
+            ))}
+          </Stack>
+        </Stack>
+      </Box>
     </PageFrame>
   );
 }

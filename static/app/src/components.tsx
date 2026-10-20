@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Avatar from '@atlaskit/avatar';
 import Button, { IconButton } from '@atlaskit/button/new';
 import DropdownMenu, { DropdownItem, DropdownItemGroup } from '@atlaskit/dropdown-menu';
+import { Code } from '@atlaskit/code';
 import { IconTile } from '@atlaskit/icon';
 import DownloadIcon from '@atlaskit/icon/core/download';
 import GlobeIcon from '@atlaskit/icon/core/globe';
@@ -9,11 +10,35 @@ import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
 import QuestionCircleIcon from '@atlaskit/icon/core/question-circle';
 import SearchIcon from '@atlaskit/icon/core/search';
 import ShowMoreIcon from '@atlaskit/icon/core/show-more-horizontal';
+import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import SectionMessage from '@atlaskit/section-message';
 import Textfield from '@atlaskit/textfield';
+import Tooltip from '@atlaskit/tooltip';
 import type { Coverage, Limitations, Reason, Snapshot, SubjectView } from './api';
 import { formatLocal, permissionLabel } from './format';
-import { FilterSelect, LinkButton, Pill, SectionHeader } from './ui';
+import {
+  DividedList,
+  DividedListItem,
+  FilterControl,
+  FilterSelect,
+  LinkButton,
+  PathList,
+  Pill,
+  SectionHeader,
+  Subtle,
+} from './ui';
+
+const personNameStyles = xcss({ minWidth: '0' });
+const searchIconStyles = xcss({ display: 'flex', paddingInline: 'space.100' });
+const sectionStyles = xcss({
+  paddingBlockStart: 'space.300',
+  borderBlockStartWidth: 'border.width',
+  borderBlockStartStyle: 'solid',
+  borderBlockStartColor: 'color.border',
+  // The page/drawer header already draws a separator; the first section must not stack a second one.
+  ':first-child': { paddingBlockStart: 'space.0', borderBlockStartStyle: 'none' },
+});
+const hashStyles = xcss({ wordBreak: 'break-all' });
 
 export function SubjectCell({
   subject,
@@ -27,7 +52,7 @@ export function SubjectCell({
 }) {
   const app = subject.type === 'user' && subject.accountType !== 'atlassian';
   return (
-    <span className="person-cell">
+    <Inline as="span" space="space.100" alignBlock="center">
       {subject.type === 'user' ? (
         <Avatar size="small" name={subject.name} />
       ) : (
@@ -46,12 +71,12 @@ export function SubjectCell({
           }
         />
       )}
-      <span className="person-name">
-        <span className="status-row tight">
+      <Box as="span" xcss={personNameStyles}>
+        <Inline as="span" space="space.075" alignBlock="center" shouldWrap>
           {onSelect ? (
             <LinkButton onClick={onSelect}>{subject.name}</LinkButton>
           ) : (
-            <span>{subject.name}</span>
+            <Text>{subject.name}</Text>
           )}
           {subject.type === 'user' && subject.active === false ? (
             <Pill tone="danger">Inactive</Pill>
@@ -62,12 +87,14 @@ export function SubjectCell({
           {subject.type === 'conditional' ? (
             <Pill tone="discovery">Work item-dependent</Pill>
           ) : null}
-        </span>
+        </Inline>
         {!compact && subject.type === 'group' ? (
-          <span className="subtle person-id">Group members could not be read</span>
+          <Text as="p" size="small" color="color.text.subtle">
+            Group members could not be read
+          </Text>
         ) : null}
-      </span>
-    </span>
+      </Box>
+    </Inline>
   );
 }
 
@@ -85,13 +112,13 @@ export function ViaChips({ reasons }: { reasons: Reason[] }) {
   const seen = new Map<string, Reason['via']>();
   for (const r of reasons) seen.set(`${r.via.kind}:${r.via.label}`, r.via);
   return (
-    <span className="chip-row">
+    <Inline as="span" space="space.050" shouldWrap>
       {[...seen.values()].map((via) => (
         <Pill key={`${via.kind}:${via.label}`} tone={VIA_TONE[via.kind] ?? 'neutral'}>
           {via.label}
         </Pill>
       ))}
-    </span>
+    </Inline>
   );
 }
 
@@ -109,26 +136,17 @@ export function ReasonList({
     return ka - kb || permissionLabel(a).localeCompare(permissionLabel(b));
   });
   return (
-    <ul className="reason-list">
+    <DividedList>
       {keys.map((perm) => (
-        <li key={perm}>
-          <div className="status-row tight">
-            <strong>{permissionLabel(perm)}</strong>
+        <DividedListItem key={perm} loose>
+          <Inline space="space.075" alignBlock="center" shouldWrap>
+            <Text weight="bold">{permissionLabel(perm)}</Text>
             {keyPermissions?.includes(perm) ? <Pill tone="info">Key</Pill> : null}
-          </div>
-          <ul className="reason-paths">
-            {perms[perm].map((r, i) => {
-              const text = typeof r === 'string' ? r : r.text;
-              return (
-                <li key={i} className="subtle">
-                  {text}
-                </li>
-              );
-            })}
-          </ul>
-        </li>
+          </Inline>
+          <PathList paths={perms[perm].map((r) => (typeof r === 'string' ? r : r.text))} />
+        </DividedListItem>
       ))}
-    </ul>
+    </DividedList>
   );
 }
 
@@ -201,20 +219,20 @@ export function SearchField({
   placeholder: string;
 }) {
   return (
-    <div className="filter-control">
+    <FilterControl>
       <Textfield
         aria-label={placeholder}
         placeholder={placeholder}
         value={value}
         isCompact
         elemBeforeInput={
-          <span className="input-affix">
-            <SearchIcon label="" size="small" />
-          </span>
+          <Box xcss={searchIconStyles}>
+            <SearchIcon label="" size="small" color="currentColor" />
+          </Box>
         }
         onChange={(e) => onChange((e.target as HTMLInputElement).value)}
       />
-    </div>
+    </FilterControl>
   );
 }
 
@@ -262,20 +280,20 @@ const COVERAGE_TONE: Record<string, 'warning' | 'neutral' | 'info' | 'danger'> =
 
 /** "What we could not see" – shown wherever data is used, never hidden. */
 export function CoverageList({ coverage }: { coverage: Coverage[] }) {
-  if (!coverage.length) return <p className="subtle">Everything AccessRadar reads was readable.</p>;
+  if (!coverage.length) return <Subtle block>Everything AccessRadar reads was readable.</Subtle>;
   return (
-    <ul className="coverage-list">
+    <DividedList>
       {coverage.map((c, i) => (
-        <li key={`${c.area}-${c.target}-${i}`}>
+        <DividedListItem key={`${c.area}-${c.target}-${i}`}>
           <Pill tone={COVERAGE_TONE[c.status] ?? 'neutral'}>{c.status}</Pill>
-          <span>
-            <strong>{c.area.replace(/-/g, ' ')}</strong>
+          <Text>
+            <Text weight="bold">{c.area.replace(/-/g, ' ')}</Text>
             {c.target !== 'all' ? ` · ${c.target}` : ''}
-            <span className="subtle"> — {c.reason}</span>
-          </span>
-        </li>
+            <Text color="color.text.subtle"> — {c.reason}</Text>
+          </Text>
+        </DividedListItem>
       ))}
-    </ul>
+    </DividedList>
   );
 }
 
@@ -291,31 +309,36 @@ export function CoverageLimitations({
   const partial = limitations?.completeness === 'partial' || limitations?.completeness === 'failed';
   return (
     <SectionMessage appearance={partial ? 'warning' : 'information'} title="Coverage & limitations">
-      <div className="section-stack">
+      <Stack space="space.200">
         {limitations ? (
-          <p>
-            Completeness: <strong>{limitations.label}</strong> (limitations v{limitations.version})
-          </p>
+          <Text as="p">
+            Completeness: <Text weight="bold">{limitations.label}</Text> (limitations v
+            {limitations.version})
+          </Text>
         ) : null}
         <CoverageList coverage={coverage} />
         {limitations?.statements?.length ? (
-          <ul className="plain-list">
+          <DividedList>
             {limitations.statements.map((s) => (
-              <li key={s}>{s}</li>
+              <DividedListItem key={s}>
+                <Text>{s}</Text>
+              </DividedListItem>
             ))}
-          </ul>
+          </DividedList>
         ) : null}
-      </div>
+      </Stack>
     </SectionMessage>
   );
 }
 
 export function Hash({ value }: { value: string | null | undefined }) {
-  if (!value) return <span className="subtle">—</span>;
+  if (!value) return <Subtle>—</Subtle>;
   return (
-    <code className="hash" title={value}>
-      {value}
-    </code>
+    <Tooltip content={value}>
+      <Box as="span" xcss={hashStyles}>
+        <Code>{value}</Code>
+      </Box>
+    </Tooltip>
   );
 }
 
@@ -325,16 +348,19 @@ export function Section({
   action,
   children,
 }: {
-  title: string;
+  /** Omit only when the content brings its own header. */
+  title?: string;
   description?: string;
   action?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <section className="section-stack form-section-top">
-      <SectionHeader title={title} description={description} action={action} />
-      {children}
-    </section>
+    <Box as="section" xcss={sectionStyles}>
+      <Stack space="space.200">
+        {title ? <SectionHeader title={title} description={description} action={action} /> : null}
+        {children}
+      </Stack>
+    </Box>
   );
 }
 

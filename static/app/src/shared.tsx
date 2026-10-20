@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import Button from '@atlaskit/button/new';
+import { Box, Stack, Text, xcss } from '@atlaskit/primitives';
 import ProgressBar from '@atlaskit/progress-bar';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import { call, errorText, type Snapshot, type Status } from './api';
@@ -8,7 +9,9 @@ import type { ExportContext } from './export/evidence';
 import { relative, timeZone } from './format';
 import type { ViewId } from './routes';
 import { useToast } from './Toast';
-import { Empty } from './ui';
+import { Empty, FilterBar } from './ui';
+
+const progressStyles = xcss({ maxWidth: '35rem' });
 
 export type Params = Record<string, string>;
 
@@ -97,21 +100,25 @@ export function SnapshotProgress({ active }: { active: Snapshot }) {
       appearance="information"
       title={`Snapshot #${active.seq} is ${active.status === 'queued' ? 'queued' : 'running'}`}
     >
-      <div className="progress-block">
-        <ProgressBar
-          value={value}
-          isIndeterminate={value === undefined}
-          ariaLabel="Snapshot progress"
-        />
-        <p className="subtle">
-          {p ? (STEP_LABEL[p.step] ?? p.step) : 'Waiting for the collector'}
-          {p?.batches ? ` · batch ${p.batch + 1} of ${p.batches}` : ''}
-          {p?.message ? ` · ${p.message}` : ''} · started {relative(active.startedAt)}
-        </p>
-        {counts.length ? (
-          <p className="subtle">{counts.map(([k, n]) => `${n} ${k}`).join(' · ')}</p>
-        ) : null}
-      </div>
+      <Box xcss={progressStyles}>
+        <Stack space="space.075">
+          <ProgressBar
+            value={value}
+            isIndeterminate={value === undefined}
+            ariaLabel="Snapshot progress"
+          />
+          <Text as="p" color="color.text.subtle">
+            {p ? (STEP_LABEL[p.step] ?? p.step) : 'Waiting for the collector'}
+            {p?.batches ? ` · batch ${p.batch + 1} of ${p.batches}` : ''}
+            {p?.message ? ` · ${p.message}` : ''} · started {relative(active.startedAt)}
+          </Text>
+          {counts.length ? (
+            <Text as="p" color="color.text.subtle">
+              {counts.map(([k, n]) => `${n} ${k}`).join(' · ')}
+            </Text>
+          ) : null}
+        </Stack>
+      </Box>
     </SectionMessage>
   );
 }
@@ -154,16 +161,16 @@ export function PartialBanner({
         ) : undefined
       }
     >
-      <p>
+      <Text as="p">
         {snapshot.gaps} area{snapshot.gaps === 1 ? '' : 's'} could not be read completely. Results
         below may miss access granted through those areas.
-      </p>
+      </Text>
     </SectionMessage>
   );
 }
 
 export function Toolbar({ children }: { children: ReactNode }) {
-  return <div className="filter-bar">{children}</div>;
+  return <FilterBar>{children}</FilterBar>;
 }
 
 /** Runs an export with toasts; exports never leave the browser. */

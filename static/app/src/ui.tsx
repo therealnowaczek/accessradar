@@ -5,17 +5,23 @@ import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
 import LockIcon from '@atlaskit/icon/core/lock-locked';
 import Lozenge from '@atlaskit/lozenge';
-import { Text } from '@atlaskit/primitives';
+import AtlaskitPageHeader from '@atlaskit/page-header';
+import { Box, Grid, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
+import Skeleton from '@atlaskit/skeleton';
 import Spinner from '@atlaskit/spinner';
 import Toggle from '@atlaskit/toggle';
 import { DatePicker } from '@atlaskit/datetime-picker';
+import { token } from '@atlaskit/tokens';
 import { DATE_PICKER_FORMAT, parseDateInput } from './format';
 import { t } from './i18n';
 
-// Layout primitives mirror MarginRadar (static/app/src/ui.tsx): blank adminPage layout,
-// sidebar + pinned page header + scrolling content, spacing on design tokens.
+export { BrandHeader, BrandMark } from './brand';
+
+// Every widget here is an Atlassian Design System component or primitive (Box, Stack, Inline,
+// Grid, Text) styled with ADS tokens. styles.css only holds layout glue for the Forge iframe
+// (pinned header, scroll areas, the ≤768px single-scroll layout).
 
 /**
  * App shell. Wide screens: fixed-width sidebar + content pane. Narrow screens (≤768px, CSS):
@@ -35,98 +41,10 @@ export function SplitLayout({
       <aside className="split-sidebar">{sidebar}</aside>
       {mobileNav ? (
         <nav className="split-mobile-nav" aria-label="AccessRadar">
-          {mobileNav}
+          <Stack space="space.100">{mobileNav}</Stack>
         </nav>
       ) : null}
       <div className="split-main">{children}</div>
-    </div>
-  );
-}
-
-/**
- * AccessRadar logo, Radrly icon family v3 (resources/icons/accessradar.svg, brand/accessradar-logo.svg):
- * white padlock with a radar sweep on the v3 gradient #8D6FDC → #8646CD (60%) → #7A36A9. Brand colours appear only here; the rest of the UI uses ADS tokens.
- */
-const AR_SWEEP: Array<[string, number]> = [
-  ['M521.5 607.8L521.5 -892.2L756.1 -873.8L985.0 -818.8L1202.5 -728.7L1403.2 -605.7L1582.1 -452.9L1735.0 -273.9L1858.0 -73.2L1948.1 144.3L2003.0 373.1L2021.5 607.8Z', 0.0045],
-  ['M521.5 607.8L619.6 -889.0L867.4 -851.8L1105.6 -773.8L1327.4 -657.3L1526.8 -505.5L1698.1 -322.6L1836.6 -113.7L1938.3 115.3L2000.5 358.1L2021.5 607.8Z', 0.0091],
-  ['M521.5 607.8L717.3 -879.4L951.7 -829.2L1175.1 -742.3L1381.8 -620.9L1566.6 -468.2L1724.7 -288.0L1852.0 -84.8L1945.3 136.0L2002.3 368.8L2021.5 607.8Z', 0.0125],
-  ['M521.5 607.8L814.1 -863.4L1061.3 -791.7L1292.6 -678.8L1501.2 -528.0L1681.0 -343.8L1826.6 -131.6L1933.8 102.4L1999.4 351.3L2021.5 607.8Z', 0.0155],
-  ['M521.5 607.8L909.7 -841.1L1140.5 -758.5L1354.8 -639.4L1546.9 -487.0L1711.5 -305.4L1844.4 -99.3L1941.9 125.6L2001.4 363.4L2021.5 607.8Z', 0.0183],
-  ['M521.5 607.8L1003.6 -812.6L1217.7 -720.8L1415.0 -597.0L1590.8 -444.2L1740.8 -265.9L1861.3 -66.6L1949.6 148.9L2003.4 375.6L2021.5 607.8Z', 0.0211],
-  ['M521.5 607.8L1095.5 -778.0L1319.5 -662.3L1521.0 -510.7L1694.2 -327.5L1834.3 -117.8L1937.3 112.4L2000.3 356.5L2021.5 607.8Z', 0.0238],
-  ['M521.5 607.8L1184.9 -737.5L1389.5 -615.6L1572.2 -462.8L1728.4 -283.0L1854.1 -80.7L1946.3 138.9L2002.6 370.4L2021.5 607.8Z', 0.0265],
-  ['M521.5 607.8L1271.5 -691.3L1456.7 -565.0L1621.1 -412.5L1760.8 -237.2L1872.9 -43.0L1954.8 165.6L2004.7 384.2L2021.5 607.8Z', 0.0294],
-  ['M521.5 607.8L1354.8 -639.4L1546.9 -487.0L1711.5 -305.4L1844.4 -99.3L1941.9 125.6L2001.4 363.4L2021.5 607.8Z', 0.0324],
-  ['M521.5 607.8L1434.6 -582.3L1605.0 -429.5L1750.2 -252.6L1866.8 -55.7L1952.1 156.7L2004.0 379.6L2021.5 607.8Z', 0.0355],
-  ['M521.5 607.8L1510.5 -520.0L1687.2 -336.2L1830.2 -125.2L1935.4 107.1L1999.8 353.8L2021.5 607.8Z', 0.0389],
-  ['M521.5 607.8L1582.1 -452.9L1735.0 -273.9L1858.0 -73.2L1948.1 144.3L2003.0 373.1L2021.5 607.8Z', 0.0426],
-  ['M521.5 607.8L1649.2 -381.2L1779.5 -209.2L1883.7 -20.2L1959.7 181.8L2006.0 392.5L2021.5 607.8Z', 0.0466],
-  ['M521.5 607.8L1711.5 -305.4L1844.4 -99.3L1941.9 125.6L2001.4 363.4L2021.5 607.8Z', 0.0510],
-  ['M521.5 607.8L1768.7 -225.6L1877.5 -33.6L1956.9 172.4L2005.2 387.7L2021.5 607.8Z', 0.0559],
-  ['M521.5 607.8L1820.5 -142.2L1907.3 33.8L1970.4 219.5L2008.6 412.0L2021.5 607.8Z', 0.0615],
-  ['M521.5 607.8L1866.8 -55.7L1952.1 156.7L2004.0 379.6L2021.5 607.8Z', 0.0678],
-  ['M521.5 607.8L1907.3 33.8L1970.4 219.5L2008.6 412.0L2021.5 607.8Z', 0.0753],
-  ['M521.5 607.8L1941.9 125.6L2001.4 363.4L2021.5 607.8Z', 0.0840],
-  ['M521.5 607.8L1970.4 219.5L2008.6 412.0L2021.5 607.8Z', 0.0945],
-  ['M521.5 607.8L1992.7 315.1L2014.3 460.8L2021.5 607.8Z', 0.1074],
-  ['M521.5 607.8L2008.6 412.0L2021.5 607.8Z', 0.1236],
-  ['M521.5 607.8L2018.3 509.7L2021.5 607.8Z', 0.1448],
-];
-const AR_BODY = 'M362.9 461.7L680.1 461.7A80.0 80.0 0 0 1 760.1 541.7L760.1 673.9A80.0 80.0 0 0 1 680.1 753.9L362.9 753.9A80.0 80.0 0 0 1 282.9 673.9L282.9 541.7A80.0 80.0 0 0 1 362.9 461.7Z';
-
-export function BrandMark({ size = 32 }: { size?: number }) {
-  const id = useId().replace(/:/g, '');
-  const bg = `ar-bg-${id}`;
-  const clip = `ar-clip-${id}`;
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 1043 1043"
-      fill="none"
-      role="img"
-      aria-label="AccessRadar"
-    >
-      <title>AccessRadar</title>
-      <defs>
-        <linearGradient id={bg} x1="0" y1="0" x2="1043" y2="1043" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#8D6FDC" />
-          <stop offset="0.6" stopColor="#8646CD" />
-          <stop offset="1" stopColor="#7A36A9" />
-        </linearGradient>
-        <clipPath id={clip}>
-          <path d={AR_BODY} />
-        </clipPath>
-      </defs>
-      <rect width="1043" height="1043" rx="230" fill={`url(#${bg})`} />
-      <g clipPath={`url(#${clip})`}>
-        {AR_SWEEP.map(([d, o], i) => (
-          <path key={i} d={d} fill="white" fillOpacity={o} />
-        ))}
-        <path d="M521.5 607.8L2021.5 607.8" stroke="white" strokeWidth="14" strokeOpacity="0.95" />
-      </g>
-      <path d={AR_BODY} stroke="white" strokeWidth="47" strokeLinejoin="round" />
-      <path
-        d="M396.2 461.7L396.2 372.2A125.2 125.2 0 0 1 646.7 372.2L646.7 461.7"
-        stroke="white"
-        strokeWidth="47"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="521.5" cy="607.8" r="46" fill="white" />
-    </svg>
-  );
-}
-
-export function BrandHeader({ subtitle }: { subtitle: string }) {
-  return (
-    <div className="brand-header">
-      <BrandMark />
-      <div className="brand-header-text">
-        <span className="brand-header-name">AccessRadar</span>
-        <span className="brand-header-sub">{subtitle}</span>
-      </div>
     </div>
   );
 }
@@ -157,7 +75,7 @@ export function PageFrame({
 export function PageScroll({ children }: { children: ReactNode }) {
   return (
     <div className="page-scroll">
-      <div className="page-stack">{children}</div>
+      <Stack space="space.300">{children}</Stack>
     </div>
   );
 }
@@ -175,6 +93,20 @@ export function PageTabBar({ children }: { children: ReactNode }) {
   return <div className="page-tabs-bar">{children}</div>;
 }
 
+/** Content pinned between the page header and the tab bar (pickers, a summary line). */
+export function PagePinned({ children }: { children: ReactNode }) {
+  return (
+    <div className="page-pinned">
+      <Stack space="space.150">{children}</Stack>
+    </div>
+  );
+}
+
+/**
+ * ADS PageHeader. Put the primary action FIRST in `actions`: ADS PageHeader always places its
+ * actions slot at the end of the title row (right-aligned on wide screens), so "primary first"
+ * is the reading order inside that group. Description and status sit under the title.
+ */
 export function PageHeader({
   title,
   description,
@@ -191,70 +123,144 @@ export function PageHeader({
 }) {
   return (
     <header className={flush ? 'page-header is-flush' : 'page-header'}>
-      <div>
-        <div className="status-row">
-          <Heading size="large" as="h1">
-            {title}
-          </Heading>
-          {status}
-        </div>
-        {description ? <p className="subtle">{description}</p> : null}
-      </div>
-      {actions ? <div className="actions">{actions}</div> : null}
+      <AtlaskitPageHeader
+        actions={
+          actions ? (
+            <Inline space="space.100" alignBlock="center" shouldWrap>
+              {actions}
+            </Inline>
+          ) : undefined
+        }
+        bottomBar={
+          description || status ? (
+            <Inline space="space.100" alignBlock="center" shouldWrap>
+              {status}
+              {description ? <Text color="color.text.subtle">{description}</Text> : null}
+            </Inline>
+          ) : undefined
+        }
+      >
+        {title}
+      </AtlaskitPageHeader>
     </header>
   );
 }
 
+const sectionHeaderStyles = xcss({ minWidth: '0' });
+
 export function SectionHeader({
   title,
   description,
+  status,
   action,
+  as = 'h2',
 }: {
-  title: string;
-  description?: string;
+  title: ReactNode;
+  description?: ReactNode;
+  status?: ReactNode;
   action?: ReactNode;
+  as?: 'h2' | 'h3';
 }) {
   return (
-    <div className="section-header">
-      <div>
-        <Heading size="medium" as="h2">
-          {title}
-        </Heading>
-        {description ? <p className="subtle">{description}</p> : null}
-      </div>
+    <Inline space="space.200" alignBlock="center" spread="space-between" shouldWrap>
+      <Box xcss={sectionHeaderStyles}>
+        <Stack space="space.050">
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            <Heading size="medium" as={as}>
+              {title}
+            </Heading>
+            {status}
+          </Inline>
+          {description ? (
+            <Text as="p" color="color.text.subtle">
+              {description}
+            </Text>
+          ) : null}
+        </Stack>
+      </Box>
       {action}
-    </div>
+    </Inline>
   );
 }
 
-export function Metric({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
+/** KPI tiles: equal height, as many per row as fit (ADS Grid). */
+export function MetricGrid({ children }: { children: ReactNode }) {
   return (
-    <div className="metric">
-      <div className="metric-label">{label}</div>
-      <div className="metric-value">{value}</div>
-      {hint ? <div className="metric-hint">{hint}</div> : null}
-    </div>
+    <Grid gap="space.150" templateColumns="repeat(auto-fit, minmax(10rem, 1fr))">
+      {children}
+    </Grid>
   );
 }
+
+const metricStyles = xcss({
+  minWidth: '0',
+  padding: 'space.150',
+  borderWidth: 'border.width',
+  borderStyle: 'solid',
+  borderColor: 'color.border',
+  borderRadius: 'radius.large',
+  backgroundColor: 'elevation.surface.raised',
+  overflowWrap: 'anywhere',
+});
+
+/** One KPI tile: ADS Box on the raised surface with label, value (Heading) and hint. */
+export function Metric({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
+  return (
+    <Box xcss={metricStyles}>
+      <Stack space="space.050">
+        <Text size="small" color="color.text.subtle">
+          {label}
+        </Text>
+        <Heading size="medium" as="span">
+          {value}
+        </Heading>
+        {hint ? (
+          <Text size="small" color="color.text.subtlest">
+            {hint}
+          </Text>
+        ) : null}
+      </Stack>
+    </Box>
+  );
+}
+
+const loadingStyles = xcss({
+  display: 'grid',
+  placeItems: 'center',
+  minHeight: '15rem',
+});
+const compactLoadingStyles = xcss({ minHeight: '10rem' });
 
 export function Loading({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`loading ${compact ? 'compact-loading' : ''}`}>
+    <Box xcss={[loadingStyles, compact && compactLoadingStyles]}>
       <Spinner size="large" label="Loading" />
-    </div>
+    </Box>
   );
 }
 
-/** Table-shaped loading placeholder for list pages whose data takes a few seconds. */
+/** Table-shaped loading placeholder (ADS Skeleton rows) for list pages whose data takes a few seconds. */
 export function TableSkeleton({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="skeleton" role="status" aria-live="polite" aria-label="Loading">
-      <Spinner size="small" label="Loading" />
-      <div className="skeleton-bar is-head" />
-      {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="skeleton-bar" />
-      ))}
-    </div>
+    <Box role="status" aria-live="polite" aria-label="Loading">
+      <Stack space="space.150">
+        <Skeleton
+          width="100%"
+          height={token('space.300')}
+          borderRadius={token('radius.small')}
+          isShimmering
+        />
+        {Array.from({ length: rows }, (_, i) => (
+          <Skeleton
+            key={i}
+            width={i % 2 ? '100%' : '92%'}
+            height={token('space.200')}
+            borderRadius={token('radius.small')}
+            isShimmering
+          />
+        ))}
+      </Stack>
+    </Box>
   );
 }
 
@@ -301,7 +307,7 @@ export function ErrorState({
       title={title}
       actions={<SectionMessageAction onClick={retry}>Try again</SectionMessageAction>}
     >
-      <p>{message}</p>
+      <Text as="p">{message}</Text>
     </SectionMessage>
   );
 }
@@ -317,14 +323,7 @@ export function Empty({
   action: ReactNode;
 }) {
   return (
-    <div className="empty-state">
-      <EmptyState
-        header={title}
-        headingLevel={2}
-        description={description}
-        primaryAction={action}
-      />
-    </div>
+    <EmptyState header={title} headingLevel={2} description={description} primaryAction={action} />
   );
 }
 
@@ -337,6 +336,8 @@ const PILL_APPEARANCE = {
   discovery: 'discovery',
 } as const;
 
+const pillSlotStyles = xcss({ display: 'inline-flex', flexShrink: 0 });
+
 /** Small status badge. Always an Atlaskit Lozenge; tone maps onto its appearance. */
 export function Pill({
   tone = 'neutral',
@@ -346,9 +347,9 @@ export function Pill({
   children: ReactNode;
 }) {
   return (
-    <span className="lozenge-slot">
+    <Box as="span" xcss={pillSlotStyles}>
       <Lozenge appearance={PILL_APPEARANCE[tone]}>{children}</Lozenge>
-    </span>
+    </Box>
   );
 }
 
@@ -364,6 +365,99 @@ export function LinkButton({ onClick, children }: { onClick: () => void; childre
   );
 }
 
+/** Secondary text (descriptions, hints, empty cells): ADS Text in the subtle colour. */
+export function Subtle({
+  children,
+  block = false,
+  size,
+}: {
+  children: ReactNode;
+  /** Render as a paragraph (own line) instead of inline text. */
+  block?: boolean;
+  size?: 'small' | 'medium';
+}) {
+  return (
+    <Text as={block ? 'p' : 'span'} color="color.text.subtle" size={size}>
+      {children}
+    </Text>
+  );
+}
+
+const noWrapStyles = xcss({ whiteSpace: 'nowrap' });
+const wrapAnywhereStyles = xcss({ overflowWrap: 'anywhere' });
+
+/** Keeps dates and short identifiers on one line inside table cells. */
+export function NoWrap({ children }: { children: ReactNode }) {
+  return (
+    <Box as="span" xcss={noWrapStyles}>
+      {children}
+    </Box>
+  );
+}
+
+/** Lets long paths and hashes break anywhere instead of widening a table column. */
+export function WrapAnywhere({ children }: { children: ReactNode }) {
+  return (
+    <Box as="span" xcss={wrapAnywhereStyles}>
+      {children}
+    </Box>
+  );
+}
+
+const listStyles = xcss({ listStyle: 'none', margin: 'space.0', padding: 'space.0' });
+const listItemStyles = xcss({
+  paddingBlock: 'space.075',
+  borderBlockEndWidth: 'border.width',
+  borderBlockEndStyle: 'solid',
+  borderBlockEndColor: 'color.border',
+  ':last-child': { borderBlockEndStyle: 'none' },
+});
+const looseListItemStyles = xcss({ paddingBlock: 'space.150' });
+
+/** Unstyled list on dividers (ADS Stack + Box). */
+export function DividedList({ children }: { children: ReactNode }) {
+  return (
+    <Stack as="ul" xcss={listStyles}>
+      {children}
+    </Stack>
+  );
+}
+
+/** One row of a DividedList: an inline row, or `loose` (stacked, more padding) for rows with a heading and nested paths. */
+export function DividedListItem({
+  children,
+  loose = false,
+}: {
+  children: ReactNode;
+  loose?: boolean;
+}) {
+  return (
+    <Box as="li" xcss={[listItemStyles, loose && looseListItemStyles]}>
+      {loose ? (
+        <Stack space="space.050">{children}</Stack>
+      ) : (
+        <Inline space="space.100" alignBlock="baseline" shouldWrap>
+          {children}
+        </Inline>
+      )}
+    </Box>
+  );
+}
+
+/** Indented "↳ path" lines explaining how access is granted. */
+export function PathList({ paths }: { paths: string[] }) {
+  return (
+    <Stack as="ul" xcss={listStyles} space="space.025">
+      {paths.map((path, i) => (
+        <Box as="li" key={i}>
+          <Text color="color.text.subtlest">↳ </Text>
+          <Text color="color.text.subtle">{path}</Text>
+        </Box>
+      ))}
+    </Stack>
+  );
+}
+
 /** Labelled form control: ADS Label above the control, optional ADS HelperMessage below. */
 export function FormField({
   label,
@@ -376,13 +470,19 @@ export function FormField({
 }) {
   const id = useId();
   return (
-    <div className="field">
+    <Stack space="space.050">
       <Label htmlFor={id}>{label}</Label>
       {children(id)}
       {helper ? <HelperMessage>{helper}</HelperMessage> : null}
-    </div>
+    </Stack>
   );
 }
+
+const toggleRowStyles = xcss({
+  whiteSpace: 'nowrap',
+  // ADS Toggle insets its track; pull it back so it lines up with the fields.
+  marginInlineStart: 'space.negative.075',
+});
 
 /**
  * The one on/off setting control: ADS Toggle with the setting name as regular body text beside it
@@ -404,19 +504,21 @@ export function ToggleField({
 }) {
   const id = useId();
   return (
-    <div className="toggle-field">
-      <div className="toggle-row">
-        <Toggle
-          id={id}
-          label={label}
-          isChecked={isChecked}
-          isDisabled={isDisabled}
-          onChange={(event) => onChange(event.target.checked)}
-        />
-        <Text>{label}</Text>
-      </div>
+    <Stack>
+      <Box xcss={toggleRowStyles}>
+        <Inline space="space.100" alignBlock="center">
+          <Toggle
+            id={id}
+            label={label}
+            isChecked={isChecked}
+            isDisabled={isDisabled}
+            onChange={(event) => onChange(event.target.checked)}
+          />
+          <Text>{label}</Text>
+        </Inline>
+      </Box>
       {helper ? <HelperMessage>{helper}</HelperMessage> : null}
-    </div>
+    </Stack>
   );
 }
 
@@ -424,32 +526,60 @@ export function ToggleField({
 export function RadioField({ label, children }: { label: string; children: ReactNode }) {
   const id = useId();
   return (
-    <div className="field" role="group" aria-labelledby={id}>
-      <Text id={id} as="span" size="small" weight="bold" color="color.text.subtle">
-        {label}
-      </Text>
-      {children}
-    </div>
+    <Box role="group" aria-labelledby={id}>
+      <Stack space="space.050">
+        <Text id={id} as="span" size="small" weight="bold" color="color.text.subtle">
+          {label}
+        </Text>
+        {children}
+      </Stack>
+    </Box>
   );
 }
 
-/** Definition list on dividers (no nested cards). */
+const detailsStyles = xcss({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, auto) minmax(0, 1fr)',
+  rowGap: 'space.100',
+  columnGap: 'space.150',
+  margin: 'space.0',
+  padding: 'space.0',
+  maxWidth: '35rem',
+});
+const detailTermStyles = xcss({ margin: 'space.0' });
+const detailValueStyles = xcss({ margin: 'space.0', overflowWrap: 'anywhere', minWidth: '0' });
+
+/** Definition list (ADS Grid of term / value pairs, no nested cards). */
 export function Details({ rows }: { rows: Array<[string, ReactNode]> }) {
   return (
-    <dl className="details settings-form">
+    <Box as="dl" xcss={detailsStyles}>
       {rows.map(([term, value]) => (
-        <div className="details-row" key={term}>
-          <dt>{term}</dt>
-          <dd>{value}</dd>
-        </div>
+        <DetailsRow key={term} term={term} value={value} />
       ))}
-    </dl>
+    </Box>
+  );
+}
+
+function DetailsRow({ term, value }: { term: string; value: ReactNode }) {
+  return (
+    <>
+      <Box as="dt" xcss={detailTermStyles}>
+        <Text color="color.text.subtle">{term}</Text>
+      </Box>
+      <Box as="dd" xcss={detailValueStyles}>
+        {value}
+      </Box>
+    </>
   );
 }
 
 /** Toolbar row above tables: search, filters, actions. Wraps on narrow screens. */
 export function FilterBar({ children }: { children: ReactNode }) {
-  return <div className="filter-bar">{children}</div>;
+  return (
+    <Inline space="space.150" alignBlock="center" shouldWrap>
+      {children}
+    </Inline>
+  );
 }
 
 type FilterSize = 'narrow' | 'medium' | 'wide' | 'fill';
@@ -459,6 +589,17 @@ const FILTER_SIZE_CLASS: Record<FilterSize, string> = {
   wide: 'filter-control is-wide',
   fill: 'filter-control is-fill',
 };
+
+/** Width slot for a filter-bar control (layout glue: fixed widths, flexible below 768px). */
+export function FilterControl({
+  size = 'medium',
+  children,
+}: {
+  size?: FilterSize;
+  children: ReactNode;
+}) {
+  return <div className={FILTER_SIZE_CLASS[size]}>{children}</div>;
+}
 
 /**
  * The one Select for filter bars: compact, labelled for screen readers, and its menu is fixed so it
@@ -484,7 +625,7 @@ export function FilterSelect<T extends { label: string; value: string | number }
   inputId?: string;
 }) {
   return (
-    <div className={FILTER_SIZE_CLASS[size]}>
+    <FilterControl size={size}>
       <Select<T>
         inputId={inputId}
         aria-label={label}
@@ -496,7 +637,7 @@ export function FilterSelect<T extends { label: string; value: string | number }
         isSearchable={isSearchable}
         menuPosition="fixed"
       />
-    </div>
+    </FilterControl>
   );
 }
 
@@ -505,23 +646,39 @@ export function AdvancedBadge() {
   return <Pill tone="discovery">{t('planGate.badge')}</Pill>;
 }
 
+const planNoteStyles = xcss({
+  paddingBlock: 'space.100',
+  paddingInline: 'space.150',
+  borderWidth: 'border.width',
+  borderStyle: 'dashed',
+  borderColor: 'color.border',
+  borderRadius: 'radius.large',
+});
+
 /**
  * One quiet line for a locked feature: lock icon, Advanced badge, the benefit and the admin hint.
  * Use alone when there is nothing meaningful to preview.
  */
 export function PlanNote({ benefit }: { benefit: string }) {
   return (
-    <div className="plan-note" role="note">
-      <span className="plan-note-icon">
-        <LockIcon label="" size="small" />
-      </span>
-      <AdvancedBadge />
-      <span className="plan-note-text">
-        {benefit} {t('planGate.advancedHint')}
-      </span>
-    </div>
+    <Box xcss={planNoteStyles} role="note">
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        <LockIcon label="" size="small" color="currentColor" />
+        <AdvancedBadge />
+        <Text color="color.text.subtle">
+          {benefit} {t('planGate.advancedHint')}
+        </Text>
+      </Inline>
+    </Box>
   );
 }
+
+const planSampleStyles = xcss({ position: 'relative' });
+const planCaptionStyles = xcss({
+  position: 'absolute',
+  insetBlockStart: 'space.0',
+  insetInlineEnd: 'space.0',
+});
 
 /**
  * Locked panel with a section header: a faded, non-interactive sample of the real panel (made-up
@@ -539,18 +696,21 @@ export function PlanGate({
 }) {
   if (!locked) return <>{children}</>;
   return (
-    <div className="plan-gate">
+    <Stack space="space.100">
       {children ? (
-        <div className="plan-gate-sample">
+        <Box xcss={planSampleStyles}>
+          {/* Layout glue (styles.css): fixed-height, faded, non-interactive preview. */}
           <div className="plan-gate-preview" aria-hidden="true">
             {children}
           </div>
-          <span className="plan-gate-caption" aria-hidden="true">
-            {t('planGate.sample')}
-          </span>
-        </div>
+          <Box as="span" xcss={planCaptionStyles} aria-hidden="true">
+            <Text size="small" color="color.text.subtlest">
+              {t('planGate.sample')}
+            </Text>
+          </Box>
+        </Box>
       ) : null}
       <PlanNote benefit={benefit} />
-    </div>
+    </Stack>
   );
 }

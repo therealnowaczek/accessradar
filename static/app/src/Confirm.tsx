@@ -33,7 +33,7 @@ export function useConfirm(): [ReactNode, (request: ConfirmRequest) => void] {
   const dialog = (
     <ModalTransition>
       {request ? (
-        <ModalDialog width="small" onClose={close} label={request.title}>
+        <ModalDialog width="small" onClose={close}>
           <ModalHeader hasCloseButton>
             <ModalTitle appearance="danger">{request.title}</ModalTitle>
           </ModalHeader>

@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 import { AutoDismissFlag, FlagGroup } from '@atlaskit/flag';
 import ErrorIcon from '@atlaskit/icon/core/status-error';
 import SuccessIcon from '@atlaskit/icon/core/status-success';
+import { token } from '@atlaskit/tokens';
 
 type Toast = { id: number; title: string; description?: string; tone: 'success' | 'error' };
 type Toaster = {
@@ -46,9 +47,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             description={toast.description}
             icon={
               toast.tone === 'success' ? (
-                <SuccessIcon label="Success" color="var(--ds-icon-success)" />
+                <SuccessIcon label="Success" color={token('color.icon.success')} />
               ) : (
-                <ErrorIcon label="Error" color="var(--ds-icon-danger)" />
+                <ErrorIcon label="Error" color={token('color.icon.danger')} />
               )
             }
           />
