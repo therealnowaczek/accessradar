@@ -57,7 +57,7 @@ modules:
       resource: custom-ui
       resolver:
         function: ar-project-resolver
-      title: Access review
+      title: AccessRadar
       icon: resource:icons;accessradar.svg
       layout: blank
   # Read-only Rovo agent (Advanced). No egress / remotes / Connect — keeps Runs on Atlassian.
