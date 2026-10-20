@@ -228,9 +228,12 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
           <DividedList>
             {g.usage.map((u) => (
               <DividedListItem key={u.project.id} loose>
-                <LinkButton onClick={() => go('explore-projects', { projectId: u.project.id })}>
-                  {u.project.key} · {u.project.name}
-                </LinkButton>
+                {/* Inline keeps the link at its own width on the left (a Stack child stretches and centres it). */}
+                <Inline>
+                  <LinkButton onClick={() => go('explore-projects', { projectId: u.project.id })}>
+                    {u.project.key} · {u.project.name}
+                  </LinkButton>
+                </Inline>
                 <ReasonList
                   perms={Object.fromEntries(u.permissions.map((p) => [p.permission, p.reasons]))}
                 />

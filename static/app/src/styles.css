@@ -9,6 +9,17 @@ body {
   background: var(--ds-surface);
 }
 
+/*
+ * App roots get their own stacking context (isolation), so the z-index of the pinned header, the
+ * tab bar, their fades and the mobile nav only orders things inside the page. The ADS drawer
+ * portal (appended to body, z-index unset) then always paints above the whole page and its
+ * blanket dims it uniformly; without this the header fade sat above the blanket as a light band.
+ */
+.split-layout,
+.page-frame {
+  isolation: isolate;
+}
+
 /* Settings shell: navigation on the left, one divider, pinned page header with scrolling content. */
 .split-layout {
   height: 100vh;

@@ -357,9 +357,17 @@ export function Pill({
  * Inline text link that acts on the page (navigate, open a drawer). The new ADS Button has no
  * link appearance, so this uses the standard Button's `link` appearance.
  */
-export function LinkButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+export function LinkButton({
+  onClick,
+  isDisabled = false,
+  children,
+}: {
+  onClick: () => void;
+  isDisabled?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <LinkStyleButton appearance="link" spacing="none" onClick={onClick}>
+    <LinkStyleButton appearance="link" spacing="none" isDisabled={isDisabled} onClick={onClick}>
       {children}
     </LinkStyleButton>
   );

@@ -370,9 +370,7 @@ function ProjectDetail({
                     {
                       key: 'why',
                       content: (
-                        <Button appearance="subtle" onClick={() => why(r.subject, r.perms)}>
-                          Why?
-                        </Button>
+                        <LinkButton onClick={() => why(r.subject, r.perms)}>Why?</LinkButton>
                       ),
                     },
                   ],

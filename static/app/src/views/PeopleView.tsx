@@ -305,9 +305,12 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
           <DividedList>
             {d.projects.map((p) => (
               <DividedListItem key={p.project.id} loose>
-                <LinkButton onClick={() => go('explore-projects', { projectId: p.project.id })}>
-                  {p.project.key} · {p.project.name}
-                </LinkButton>
+                {/* Inline keeps the link at its own width on the left (a Stack child stretches and centres it). */}
+                <Inline>
+                  <LinkButton onClick={() => go('explore-projects', { projectId: p.project.id })}>
+                    {p.project.key} · {p.project.name}
+                  </LinkButton>
+                </Inline>
                 <ReasonList perms={p.perms} keyPermissions={d.keyPermissions} />
               </DividedListItem>
             ))}

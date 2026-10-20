@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Box, Stack, Text } from '@atlaskit/primitives';
-import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import { call, errorText } from '../api';
 import { useCall } from '../data';
@@ -170,13 +169,9 @@ export function AlertsView() {
                 {
                   key: 'act',
                   content: !a.dismissedAt ? (
-                    <Button
-                      appearance="subtle"
-                      isDisabled={busy}
-                      onClick={() => void dismiss([a.id])}
-                    >
+                    <LinkButton isDisabled={busy} onClick={() => void dismiss([a.id])}>
                       Dismiss
-                    </Button>
+                    </LinkButton>
                   ) : (
                     'Dismissed'
                   ),
