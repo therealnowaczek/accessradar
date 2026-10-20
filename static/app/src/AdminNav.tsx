@@ -12,7 +12,7 @@ import { NAV, type ViewId } from './routes';
 
 /** Accessible name of the admin navigation (side panel, overlay and its menu button). */
 export const NAV_LABEL = 'AccessRadar';
-const BRAND_SUBTITLE = 'Jira access reviews';
+const BRAND_SUBTITLE = 'Admin settings';
 
 type NavProps = {
   view: ViewId;
