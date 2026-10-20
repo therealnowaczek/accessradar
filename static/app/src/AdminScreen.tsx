@@ -6,6 +6,7 @@ import {
   Section,
   SideNavigation,
 } from '@atlaskit/side-navigation';
+import Select from '@atlaskit/select';
 import { useStatus } from './data';
 import type { ForgeContext } from './main';
 import { NAV, initialView, type ViewId } from './routes';
@@ -66,9 +67,35 @@ function Shell({ context }: { context: ForgeContext }) {
     [route, status, context.siteUrl],
   );
   const View = VIEWS[route.view];
+  const label = (id: ViewId, text: string) =>
+    id === 'alerts' && (status.data?.alertCount ?? 0) > 0
+      ? `${text} (${status.data!.alertCount})`
+      : text;
+  // Narrow screens: the same navigation as one ADS Select at the top of the page.
+  const navOptions = NAV.map((group) => ({
+    label: group.group,
+    options: group.items.map((item) => ({ value: item.id, label: label(item.id, item.label) })),
+  }));
+  const current = navOptions.flatMap((g) => g.options).find((o) => o.value === route.view);
   return (
     <AppContext.Provider value={app}>
       <SplitLayout
+        mobileNav={
+          <>
+            <BrandHeader subtitle="Jira access reviews" />
+            <Select<{ value: ViewId; label: string }>
+              inputId="ar-mobile-nav"
+              aria-label="Go to page"
+              options={navOptions}
+              value={current ?? null}
+              onChange={(o) => {
+                if (o) app.go(o.value);
+              }}
+              isSearchable={false}
+              spacing="compact"
+            />
+          </>
+        }
         sidebar={
           <SideNavigation label="AccessRadar">
             <NavigationHeader>
@@ -77,22 +104,15 @@ function Shell({ context }: { context: ForgeContext }) {
             <NavigationContent>
               {NAV.map((group) => (
                 <Section key={group.group} title={group.group}>
-                  {group.items.map((item) => {
-                    const badge =
-                      item.id === 'alerts' && (status.data?.alertCount ?? 0) > 0
-                        ? ` (${status.data!.alertCount})`
-                        : '';
-                    return (
-                      <ButtonItem
-                        key={item.id}
-                        isSelected={route.view === item.id}
-                        onClick={() => app.go(item.id)}
-                      >
-                        {item.label}
-                        {badge}
-                      </ButtonItem>
-                    );
-                  })}
+                  {group.items.map((item) => (
+                    <ButtonItem
+                      key={item.id}
+                      isSelected={route.view === item.id}
+                      onClick={() => app.go(item.id)}
+                    >
+                      {label(item.id, item.label)}
+                    </ButtonItem>
+                  ))}
                 </Section>
               ))}
             </NavigationContent>

@@ -50,11 +50,30 @@ body {
 }
 
 .split-sidebar {
+  width: 240px;
   min-width: 0;
   min-height: 0;
+  /* Never scroll sideways; reserve the scrollbar gutter so the nav keeps the same width on every screen. */
+  overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   padding: var(--ds-space-100, 8px);
   border-right: 1px solid var(--ds-border, #dcdfe4);
+}
+
+/*
+ * ADS SideNavigation has min-width: 240px; inside the padded 240px column that overflowed by 16px
+ * and showed a horizontal scrollbar. Let it fill the column instead (higher specificity on purpose).
+ */
+.split-layout > .split-sidebar > * {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Narrow screens only: brand + navigation select above the content (see SplitLayout). */
+.split-mobile-nav {
+  display: none;
 }
 
 .split-main {
@@ -285,10 +304,39 @@ body {
   display: contents;
 }
 
+/* Spinner near the top of the content, so it is visible however tall the Jira iframe is. */
 .loading {
   display: grid;
-  min-height: calc(100vh - 160px);
+  min-height: 240px;
   place-items: center;
+}
+
+/* Loading placeholder shaped like the table that is about to appear. */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-150, 12px);
+}
+
+.skeleton-bar {
+  height: var(--ds-space-200, 16px);
+  border-radius: var(--ds-border-radius, 4px);
+  background: var(--ds-skeleton, #091e420f);
+  animation: skeleton-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.skeleton-bar.is-head {
+  height: var(--ds-space-300, 24px);
+}
+
+.skeleton-bar:nth-child(odd) {
+  width: 92%;
+}
+
+@keyframes skeleton-pulse {
+  to {
+    background: var(--ds-skeleton-subtle, #091e4208);
+  }
 }
 
 .compact-loading {
@@ -301,20 +349,109 @@ code {
 
 @media (max-width: 900px) {
   .metric-grid {
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 700px) {
+/*
+ * Narrow screens (phones, ~768px and below): no fixed-height panes and no nested scroll boxes.
+ * The navigation becomes a select at the top, the header and content flow normally and the page
+ * has one scroll. Tables scroll sideways inside their own full-width container (.table-wrap).
+ */
+@media (max-width: 768px) {
   .split-layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
 
   .split-sidebar {
-    max-height: 40vh;
-    border-right: 0;
+    display: none;
+  }
+
+  .split-mobile-nav {
+    /* Above the page header so the navigation menu is not covered by it. */
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-100, 8px);
+    padding: var(--ds-space-150, 12px) var(--ds-space-200, 16px);
     border-bottom: 1px solid var(--ds-border, #dcdfe4);
+  }
+
+  .split-mobile-nav .brand-header {
+    padding: 0;
+  }
+
+  .split-main {
+    overflow: visible;
+  }
+
+  .page-frame,
+  .split-main .page-frame {
+    height: auto;
+    overflow: visible;
+    padding-inline: var(--ds-space-200, 16px);
+  }
+
+  .page-frame > .page-header::after,
+  .page-tabs-bar::after {
+    content: none;
+  }
+
+  .page-scroll,
+  .page-fixed,
+  .page-tabs,
+  .page-tabs > div,
+  .page-fixed > * {
+    flex: none;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .page-scroll {
+    padding: var(--ds-space-200, 16px) 0;
+  }
+
+  .page-header .actions {
+    width: 100%;
+  }
+
+  .filter-control,
+  .filter-control.is-narrow,
+  .filter-control.is-wide {
+    flex: 1 1 160px;
+    width: auto;
+  }
+
+  /* Tables with several columns keep a readable width and scroll inside .table-wrap. */
+  .table-wrap table:has(th:nth-child(4)) {
+    min-width: 640px;
+  }
+
+  .details {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  }
+
+  .drawer-header {
+    padding: var(--ds-space-150, 12px) var(--ds-space-150, 12px) var(--ds-space-150, 12px)
+      var(--ds-space-200, 16px);
+  }
+
+  .drawer-body {
+    padding: var(--ds-space-200, 16px);
+  }
+
+  .drawer-footer {
+    padding-inline-start: var(--ds-space-200, 16px);
+  }
+}
+
+@media (max-width: 359px) {
+  .metric-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -518,14 +655,35 @@ code {
   gap: var(--ds-space-300, 24px);
 }
 
+/* Drawers without a footer: keep the last line clear of Jira's floating assistant button. */
+.drawer-body:last-child {
+  padding-bottom: var(--ds-space-1000, 80px);
+}
+
+/*
+ * Primary action on the left, Cancel right next to it (DrawerFooter). Generous bottom and right
+ * padding keeps the buttons clear of Jira's floating assistant button in the bottom-right corner.
+ */
 .drawer-footer {
   flex: none;
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
   gap: var(--ds-space-100, 8px);
-  padding: var(--ds-space-200, 16px) var(--ds-space-300, 24px);
+  padding: var(--ds-space-200, 16px) var(--ds-space-1000, 80px)
+    calc(var(--ds-space-300, 24px) + env(safe-area-inset-bottom, 0px)) var(--ds-space-300, 24px);
   border-top: 1px solid var(--ds-border, #dcdfe4);
   background: var(--ds-surface-overlay, #ffffff);
+}
+
+/* Confirm modal: same order as drawers, primary first and Cancel to its right. */
+.modal-footer-actions {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--ds-space-100, 8px);
 }
 
 @keyframes drawer-in {

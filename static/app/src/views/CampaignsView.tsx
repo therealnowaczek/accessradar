@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import { DropdownItem } from '@atlaskit/dropdown-menu';
-import { DatePicker } from '@atlaskit/datetime-picker';
 import { RadioGroup } from '@atlaskit/radio';
 import Select from '@atlaskit/select';
 import Textfield from '@atlaskit/textfield';
@@ -19,6 +18,7 @@ import { navItem } from '../routes';
 import { useApp, useRefresh } from '../shared';
 import { useToast } from '../Toast';
 import {
+  DateField,
   Empty,
   ErrorState,
   FormField,
@@ -479,7 +479,7 @@ function CampaignForm({
           </FormField>
           <FormField label="Start date (UTC)">
             {(id) => (
-              <DatePicker
+              <DateField
                 id={id}
                 value={d.startDate}
                 onChange={(v) => set('startDate', v || d.startDate)}

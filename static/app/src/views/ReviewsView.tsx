@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
 import Checkbox from '@atlaskit/checkbox';
-import { DatePicker } from '@atlaskit/datetime-picker';
 import { DropdownItem } from '@atlaskit/dropdown-menu';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import ProgressBar from '@atlaskit/progress-bar';
 import { RadioGroup } from '@atlaskit/radio';
@@ -43,10 +42,17 @@ import {
 } from '../export/evidencePack';
 import { formatLocal, formatUtc, permissionLabel, plural, timeZone } from '../format';
 import { t } from '../i18n';
+import {
+  deriveRemediation,
+  revokeDecisions,
+  type RemediationRow,
+  type RemediationStatus,
+} from '../remediation';
 import { navItem } from '../routes';
 import { exportContext, logExport, NoSnapshot, useApp, useExporter, useSnapshots } from '../shared';
 import { useToast } from '../Toast';
 import {
+  DateField,
   Details,
   Empty,
   ErrorState,
@@ -60,6 +66,7 @@ import {
   PageHeader,
   Pill,
   PlanGate,
+  PlanNote,
   RadioField,
 } from '../ui';
 
@@ -383,15 +390,7 @@ function CreateReview({
             )}
           </FormField>
           <FormField label="Due date (optional)">
-            {(id) => (
-              <DatePicker
-                id={id}
-                value={due}
-                onChange={(v) => setDue(v)}
-                dateFormat="YYYY-MM-DD"
-                placeholder="YYYY-MM-DD"
-              />
-            )}
+            {(id) => <DateField id={id} value={due} onChange={(v) => setDue(v)} />}
           </FormField>
           <p className="subtle">
             Reviewers are Jira administrators. Key permissions from Settings define which access is
@@ -459,7 +458,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
 
   const decidable = (d?.items ?? []).filter((i) => i.change !== 'removed');
   const decided = decidable.filter((i) => i.decision).length;
-  const flagged = decidable.filter((i) => i.decision === 'revoke').length;
+  const flagged = revokeDecisions(d?.items ?? []).length;
   const pending = decidable.length - decided;
 
   const decide = async (
@@ -1021,13 +1020,7 @@ function ItemDrawer({
                 helper="Date-only · stored as end of that day in your timezone."
               >
                 {(fid) => (
-                  <DatePicker
-                    id={fid}
-                    value={expiresOn}
-                    onChange={(d) => setExpiresOn(d)}
-                    dateFormat="YYYY-MM-DD"
-                    placeholder="YYYY-MM-DD"
-                  />
+                  <DateField id={fid} value={expiresOn} onChange={(d) => setExpiresOn(d)} />
                 )}
               </FormField>
             ) : null}
@@ -1070,18 +1063,8 @@ function ItemDrawer({
 const ATTESTATION =
   'I confirm that I reviewed every access item in this scope and that the decisions recorded here reflect my assessment.';
 
-type RemediationRow = {
-  idx: number;
-  itemKey: string;
-  status: 'pending' | 'verified' | 'still_present' | 'inconclusive' | 'accepted';
-  checkedSeq: number | null;
-  verifiedSeq: number | null;
-  detail: string | null;
-  checkCount: number;
-};
-
 const REMEDIATION_LOZENGE: Record<
-  RemediationRow['status'],
+  RemediationStatus,
   [string, 'neutral' | 'info' | 'success' | 'danger' | 'warning']
 > = {
   pending: ['Pending', 'info'],
@@ -1089,6 +1072,7 @@ const REMEDIATION_LOZENGE: Record<
   still_present: ['Still present', 'danger'],
   inconclusive: ['Inconclusive', 'neutral'],
   accepted: ['Accepted risk', 'warning'],
+  untracked: ['Remove in Jira', 'neutral'],
 };
 
 /** Made-up rows for the locked Remediation panel (never real review data). */
@@ -1129,87 +1113,116 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
     rows: RemediationRow[];
     summary: { verified: number; total: number; open: number };
   }>('listRemediation', { reviewId });
-  if (rem.error && !rem.data) return null;
-  if (!rem.data) return <Loading />;
-  if (rem.data.gated) {
-    return (
-      <Section
-        title="Remediation"
-        description="Whether Revoke decisions disappeared in a later snapshot."
-      >
-        <PlanGate locked benefit={t('planGate.remediation')}>
-          <RemediationSample />
-        </PlanGate>
-      </Section>
-    );
-  }
-  if (!rem.data.rows.length) {
+  // Same source as the "Revoke" summary card: the review's own Revoke decisions. Verification
+  // rows (Advanced) only add a status to each entry.
+  const { entries, closed, total, untracked } = deriveRemediation(items, rem.data?.rows);
+  const gated = rem.data?.gated ?? false;
+  const description = gated
+    ? 'Revoke decisions to carry out manually in Jira.'
+    : 'Revoke decisions to carry out manually in Jira, and whether each access disappeared in a later snapshot.';
+
+  if (!total) {
+    if (gated) {
+      return (
+        <Section
+          title="Remediation"
+          description="Whether Revoke decisions disappeared in a later snapshot."
+        >
+          <PlanGate locked benefit={t('planGate.remediation')}>
+            <RemediationSample />
+          </PlanGate>
+        </Section>
+      );
+    }
     return (
       <Section title="Remediation">
-        <Empty title="No revocations in this review" description="" action={null} />
+        <p className="subtle">
+          No Revoke decisions in this review, so nothing needs to be removed in Jira.
+        </p>
       </Section>
     );
   }
-  const byIdx = new Map(items.map((i) => [i.idx, i]));
-  const { verified, total } = rem.data.summary;
+  if (!rem.data && !rem.error) {
+    return (
+      <Section title="Remediation" description={description}>
+        <Loading compact />
+      </Section>
+    );
+  }
   return (
-    <Section
-      title="Remediation"
-      description="Whether Revoke decisions disappeared in a later snapshot."
-    >
+    <Section title="Remediation" description={description}>
       <div className="section-stack">
-        <ProgressBar value={total ? verified / total : 0} />
-        <span className="subtle">
-          {verified} of {total} closed
-        </span>
+        {!gated && untracked < total ? (
+          <>
+            <ProgressBar value={total ? closed / total : 0} ariaLabel="Remediation progress" />
+            <span className="subtle">
+              {closed} of {plural(total, 'revocation')} closed
+            </span>
+          </>
+        ) : (
+          <span className="subtle">{plural(total, 'revocation')} to remove manually in Jira</span>
+        )}
+        {!gated && untracked ? (
+          <p className="subtle">
+            {untracked === total
+              ? 'These revocations are'
+              : untracked === 1
+                ? '1 revocation is'
+                : `${untracked} revocations are`}{' '}
+            not tracked for verification: remediation verification was off when the review was
+            signed. Remove the access in Jira; after the next snapshot, Changes shows it as revoked.
+          </p>
+        ) : null}
         <DynamicTable
           head={{
             cells: [
               { key: 'who', content: 'Subject' },
+              { key: 'where', content: 'Where' },
               { key: 'access', content: 'Access' },
               { key: 'status', content: 'Status' },
-              { key: 'snap', content: 'Checked in snapshot' },
+              ...(gated ? [] : [{ key: 'snap', content: 'Checked in snapshot' }]),
             ],
           }}
-          rows={rem.data.rows.map((r) => {
-            const item = byIdx.get(r.idx);
-            const [label, tone] = REMEDIATION_LOZENGE[r.status];
+          rows={entries.map((e) => {
+            const [label, tone] = REMEDIATION_LOZENGE[e.status];
             return {
-              key: String(r.idx),
+              key: String(e.item.idx),
               cells: [
+                { key: 'w', content: <SubjectCell subject={e.item.subject} compact /> },
                 {
-                  key: 'w',
-                  content: item ? <SubjectCell subject={item.subject} compact /> : r.itemKey,
+                  key: 'p',
+                  content: e.item.project ? (
+                    <strong>{e.item.project.key}</strong>
+                  ) : (
+                    (e.item.groupName ?? 'Site')
+                  ),
                 },
-                {
-                  key: 'a',
-                  content: item ? item.permissions.map(permissionLabel).join(', ') : '—',
-                },
+                { key: 'a', content: e.item.permissions.map(permissionLabel).join(', ') },
                 {
                   key: 's',
                   content: (
                     <span className="section-stack">
                       <Pill tone={tone}>
-                        {r.status === 'verified' && r.verifiedSeq
-                          ? `Verified #${r.verifiedSeq}`
+                        {e.status === 'verified' && e.verifiedSeq
+                          ? `Verified #${e.verifiedSeq}`
                           : label}
                       </Pill>
-                      {r.detail && r.checkCount >= 3 ? (
-                        <span className="subtle">{r.detail}</span>
+                      {e.detail && e.checkCount >= 3 ? (
+                        <span className="subtle">{e.detail}</span>
                       ) : null}
                     </span>
                   ),
                 },
-                {
-                  key: 'c',
-                  content: r.checkedSeq != null ? `#${r.checkedSeq}` : '—',
-                },
+                ...(gated
+                  ? []
+                  : [{ key: 'c', content: e.checkedSeq != null ? `#${e.checkedSeq}` : '—' }]),
               ],
             };
           })}
           rowsPerPage={25}
           defaultPage={1}
         />
+        {gated ? <PlanNote benefit={t('planGate.remediation')} /> : null}
       </div>
     </Section>
   );

@@ -157,3 +157,53 @@ export const WEEKDAYS = [
   'Saturday',
   'Sunday',
 ];
+
+const PERMISSION_TOKEN = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b|\b(?:ADMINISTER|SYSTEM_ADMIN)\b/g;
+
+/**
+ * Replaces raw Jira permission keys inside free text (alert titles and bodies stored by the
+ * backend, e.g. "Gained ADMINISTER_PROJECTS") with their labels ("Gained Administer projects").
+ * Only keys known to PERMISSION_LABELS are replaced; other upper-case words are left alone.
+ */
+export function humanizePermissionKeys(text: string): string {
+  return text.replace(PERMISSION_TOKEN, (key) => PERMISSION_LABELS[key] ?? key);
+}
+
+/** DatePicker display format (date-fns tokens via ADS): "27 Oct 2026", same as formatLocal. */
+export const DATE_PICKER_FORMAT = 'D MMM YYYY';
+
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+function validDate(y: number, m: number, d: number): Date | null {
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return null;
+  if (y < 1000 || y > 9999 || m < 0 || m > 11 || d < 1) return null;
+  const date = new Date(y, m, d);
+  return date.getFullYear() === y && date.getMonth() === m && date.getDate() === d ? date : null;
+}
+
+/**
+ * Parses what a user types into a date field: "27 Oct 2026", "27 October 2026", "27/10/2026",
+ * "27.10.2026" (day first, as in the app's format) or ISO "2026-10-27". Returns null otherwise.
+ */
+export function parseDateInput(text: string): Date | null {
+  const s = text.trim().toLowerCase();
+  let m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
+  if (m) return validDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/.exec(s);
+  if (m) return validDate(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  m = /^(\d{1,2})\s+([a-z]{3,})\.?,?\s+(\d{4})$/.exec(s);
+  if (m) {
+    const month = MONTHS.indexOf(m[2].slice(0, 3));
+    return month < 0 ? null : validDate(Number(m[3]), month, Number(m[1]));
+  }
+  return null;
+}
+
+/** ISO date (YYYY-MM-DD) in the app's format: "27 Oct 2026". */
+export function formatIsoDate(iso: string | null | undefined): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
+  if (!m) return '—';
+  const month = MONTHS[Number(m[2]) - 1];
+  if (!month) return '—';
+  return `${Number(m[3])} ${month[0].toUpperCase()}${month.slice(1)} ${m[1]}`;
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import Heading from '@atlaskit/heading';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
 import SectionMessage from '@atlaskit/section-message';
@@ -204,7 +204,7 @@ export function OverviewView() {
                 <Metric
                   label="People"
                   value={d.metrics.people}
-                  hint={`${d.metrics.inactivePeople} inactive · ${d.metrics.appAccounts} app accounts`}
+                  hint={`Excl. ${plural(d.metrics.appAccounts, 'app account')} · ${d.metrics.inactivePeople} inactive`}
                 />
                 <Metric
                   label="Groups"

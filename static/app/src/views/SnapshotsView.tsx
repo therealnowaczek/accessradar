@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Button from '@atlaskit/button/new';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
 import type { Coverage, Limitations, Snapshot } from '../api';
 import { CoverageLimitations, ExportMenu, Hash, Section, SnapshotLozenge } from '../components';
@@ -40,7 +40,7 @@ const TRIGGER: Record<string, string> = {
   manual: 'Manual',
   scheduled: 'Scheduled',
   onboarding: 'First snapshot',
-  dev: 'Development',
+  dev: 'Dev self-test',
 };
 
 export function SnapshotsView() {

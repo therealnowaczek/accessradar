@@ -1183,6 +1183,27 @@ export async function activity() {
   const events = await listAudit(200);
   const latest = await latestCommitted();
   const state = latest ? await stateFor(latest.seq) : null;
+  // Names for event targets (review / campaign ids), so the log shows "Q4 2026 access review"
+  // instead of a truncated id. Best effort: a deleted review simply keeps its id.
+  const [reviews, campaigns] = await Promise.all([
+    listReviews().catch(() => []),
+    dbListCampaigns().catch(() => []),
+  ]);
+  const reviewNames = new Map(reviews.map((r) => [r.id, r.name]));
+  const campaignNames = new Map(campaigns.map((c) => [c.id, c.name]));
+  const targetLabel = (e: (typeof events)[number]): string | null => {
+    if (!e.target) return null;
+    if (e.action.startsWith('campaign.run_')) {
+      const id = typeof e.detail?.campaignId === 'string' ? e.detail.campaignId : null;
+      return (id && campaignNames.get(id)) ?? null;
+    }
+    if (e.action.startsWith('campaign.')) {
+      return (
+        campaignNames.get(e.target) ?? (typeof e.detail?.name === 'string' ? e.detail.name : null)
+      );
+    }
+    return reviewNames.get(e.target) ?? null;
+  };
   return {
     events: events.map((e) => ({
       ...e,
@@ -1190,6 +1211,7 @@ export async function activity() {
         e.actor === 'system'
           ? 'AccessRadar'
           : (state?.persons.get(e.actor)?.displayName ?? 'Jira admin'),
+      targetLabel: targetLabel(e),
     })),
   };
 }

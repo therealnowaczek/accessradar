@@ -1,31 +1,10 @@
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import type { ActivityEvent } from '../api';
 import { useCall } from '../data';
+import { activityDetail, activityLabel, activityTarget } from '../activity';
 import { formatLocal, formatUtc } from '../format';
 import { navItem } from '../routes';
 import { Empty, ErrorState, Loading, PageFrame, PageHeader } from '../ui';
-
-const ACTION: Record<string, string> = {
-  'snapshot.started': 'Started a snapshot',
-  'review.created': 'Started a review',
-  'review.decided': 'Recorded decisions',
-  'review.signed': 'Signed a review',
-  'review.deleted': 'Deleted a review',
-  'settings.saved': 'Saved settings',
-  export: 'Exported',
-};
-
-function detailText(e: ActivityEvent): string {
-  const d = e.detail ?? {};
-  if (e.action === 'review.decided') return `${d.count ?? 0} items → ${d.decision ?? 'undecided'}`;
-  if (e.action === 'review.signed') return `hash ${String(d.hash ?? '').slice(0, 16)}…`;
-  if (e.action === 'export') return String(d.kind ?? '');
-  if (e.action === 'review.created') return `${d.items ?? 0} items, scope ${d.scope ?? ''}`;
-  if (e.action === 'settings.saved')
-    return `${d.frequency ?? ''}, retention ${d.retentionDays ?? ''} days`;
-  if (e.action === 'snapshot.started') return String(d.trigger ?? '');
-  return '';
-}
 
 export function ActivityView() {
   const meta = navItem('activity');
@@ -59,10 +38,18 @@ export function ActivityView() {
                 { key: e.at, content: <span title={formatUtc(e.at)}>{formatLocal(e.at)}</span> },
                 { key: e.actorName, content: e.actorName },
                 {
-                  key: e.action,
-                  content: `${ACTION[e.action] ?? e.action}${e.target ? ` · ${e.target.length > 20 ? `${e.target.slice(0, 8)}…` : e.target}` : ''}`,
+                  key: activityLabel(e.action),
+                  content: (() => {
+                    const target = activityTarget(e);
+                    return (
+                      <span className="wrap-anywhere">
+                        {activityLabel(e.action)}
+                        {target ? <span className="subtle"> · {target}</span> : null}
+                      </span>
+                    );
+                  })(),
                 },
-                { key: 'd', content: <span className="subtle">{detailText(e)}</span> },
+                { key: 'd', content: <span className="subtle">{activityDetail(e)}</span> },
               ],
             }))}
             rowsPerPage={50}

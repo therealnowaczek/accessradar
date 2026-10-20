@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import { REQUIRES_ADVANCED } from '../../../../src/domain/edition';
 import { call, errorText, type ReviewItem, type ReviewSummary } from '../api';

@@ -128,8 +128,10 @@ export function DrawerBody({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Pinned footer, right-aligned like the ADS modal footer: Cancel (subtle) comes first and the
- * primary action last. Pass `onCancel` instead of rendering Cancel yourself.
+ * Pinned footer shared by every drawer level (the one footer component): the primary action comes
+ * FIRST on the left, Cancel (subtle) immediately to its right. Pass the primary button as children
+ * and `onCancel` instead of rendering Cancel yourself. Left alignment also keeps the primary
+ * action clear of Jira's floating assistant button in the bottom-right corner.
  */
 export function DrawerFooter({
   children,
@@ -142,12 +144,12 @@ export function DrawerFooter({
 }) {
   return (
     <div className="drawer-footer">
+      {children}
       {onCancel ? (
         <Button appearance="subtle" onClick={onCancel}>
           {cancelLabel}
         </Button>
       ) : null}
-      {children}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
 import type { AccessChange, Changes, FactChange } from '../api';
 import { ExportMenu, SearchField, SnapshotPicker, SubjectCell } from '../components';
@@ -14,13 +14,13 @@ import {
   ErrorState,
   FilterBar,
   FilterSelect,
-  Loading,
   PageFrame,
   PageHeader,
   PageScroll,
   PageTabBar,
   PageTabs,
   Pill,
+  TableSkeleton,
   ToggleField,
 } from '../ui';
 
@@ -143,11 +143,10 @@ export function ChangesView() {
         .includes(query.toLowerCase()));
   const granted = (d?.granted ?? []).filter(match);
   const revoked = (d?.revoked ?? []).filter(match);
+  // Configuration tabs (Groups, Schemes & roles, People) only offer search: the Space, Group
+  // and Permission filters belong to the access tabs and are hidden (and not applied) there.
   const facts = (d?.facts ?? []).filter(
-    (f) =>
-      (!project || f.projectIds.includes(project)) &&
-      (!perm || f.permission === perm) &&
-      (!query || `${f.label} ${f.detail}`.toLowerCase().includes(query.toLowerCase())),
+    (f) => !query || `${f.label} ${f.detail}`.toLowerCase().includes(query.toLowerCase()),
   );
   const filtered: Changes | undefined = d ? { ...d, granted, revoked, facts } : undefined;
 
@@ -207,7 +206,7 @@ export function ChangesView() {
           {r.error && !d ? (
             <ErrorState title="Changes unavailable" message={r.error} retry={r.reload} />
           ) : !d ? (
-            <Loading />
+            <TableSkeleton />
           ) : !d.b ? (
             <NoSnapshot what="what changed" />
           ) : (
@@ -223,15 +222,21 @@ export function ChangesView() {
   }
 
   // Search and filters scroll with each tab's content; the snapshot pickers and tab bar stay pinned.
-  const filters = (
+  const filters = (access: boolean) => (
     <FilterBar>
-      <SearchField value={query} onChange={setQuery} placeholder="Search people, spaces, paths" />
+      <SearchField
+        value={query}
+        onChange={setQuery}
+        placeholder={access ? 'Search people, spaces, paths' : 'Search changes'}
+      />
       {(
-        [
-          ['Space', options.projects, project, setProject],
-          ['Group', options.groups, group, setGroup],
-          ['Permission', options.perms, perm, setPerm],
-        ] as Array<[string, Opt[], string, (v: string) => void]>
+        (access
+          ? [
+              ['Space', options.projects, project, setProject],
+              ['Group', options.groups, group, setGroup],
+              ['Permission', options.perms, perm, setPerm],
+            ]
+          : []) as Array<[string, Opt[], string, (v: string) => void]>
       ).map(([label, opts, value, set]) => (
         <FilterSelect<Opt>
           key={label}
@@ -244,10 +249,10 @@ export function ChangesView() {
       ))}
     </FilterBar>
   );
-  const panel = (content: ReactNode) => (
+  const panel = (content: ReactNode, access = false) => (
     <TabPanel>
       <PageScroll>
-        {filters}
+        {filters(access)}
         {content}
       </PageScroll>
     </TabPanel>
@@ -278,8 +283,8 @@ export function ChangesView() {
               <Tab>People ({peopleFacts.length})</Tab>
             </TabList>
           </PageTabBar>
-          {panel(<AccessTable rows={granted} empty="No access was granted." />)}
-          {panel(<AccessTable rows={revoked} empty="No access was revoked." />)}
+          {panel(<AccessTable rows={granted} empty="No access was granted." />, true)}
+          {panel(<AccessTable rows={revoked} empty="No access was revoked." />, true)}
           {panel(<FactTable rows={groupFacts} />)}
           {panel(<FactTable rows={schemeFacts} />)}
           {panel(<FactTable rows={peopleFacts} />)}

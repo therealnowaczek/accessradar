@@ -10,15 +10,34 @@ import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message'
 import Select from '@atlaskit/select';
 import Spinner from '@atlaskit/spinner';
 import Toggle from '@atlaskit/toggle';
+import { DatePicker } from '@atlaskit/datetime-picker';
+import { DATE_PICKER_FORMAT, parseDateInput } from './format';
 import { t } from './i18n';
 
 // Layout primitives mirror MarginRadar (static/app/src/ui.tsx): blank adminPage layout,
 // sidebar + pinned page header + scrolling content, spacing on design tokens.
 
-export function SplitLayout({ sidebar, children }: { sidebar: ReactNode; children: ReactNode }) {
+/**
+ * App shell. Wide screens: fixed-width sidebar + content pane. Narrow screens (≤768px, CSS):
+ * the sidebar is replaced by `mobileNav` at the top and the whole page scrolls as one.
+ */
+export function SplitLayout({
+  sidebar,
+  mobileNav,
+  children,
+}: {
+  sidebar: ReactNode;
+  mobileNav?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <div className="split-layout">
       <aside className="split-sidebar">{sidebar}</aside>
+      {mobileNav ? (
+        <nav className="split-mobile-nav" aria-label="AccessRadar">
+          {mobileNav}
+        </nav>
+      ) : null}
       <div className="split-main">{children}</div>
     </div>
   );
@@ -223,6 +242,47 @@ export function Loading({ compact = false }: { compact?: boolean }) {
     <div className={`loading ${compact ? 'compact-loading' : ''}`}>
       <Spinner size="large" label="Loading" />
     </div>
+  );
+}
+
+/** Table-shaped loading placeholder for list pages whose data takes a few seconds. */
+export function TableSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <div className="skeleton" role="status" aria-live="polite" aria-label="Loading">
+      <Spinner size="small" label="Loading" />
+      <div className="skeleton-bar is-head" />
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="skeleton-bar" />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The one date input: ADS DatePicker showing the app's date format ("27 Oct 2026") while the
+ * value stays an ISO date (YYYY-MM-DD). Typed input accepts "27 Oct 2026", "27/10/2026" or ISO.
+ */
+export function DateField({
+  id,
+  value,
+  onChange,
+  placeholder = 'e.g. 27 Oct 2026',
+}: {
+  id?: string;
+  value: string;
+  onChange: (iso: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <DatePicker
+      id={id}
+      value={value}
+      onChange={onChange}
+      locale="en-GB"
+      dateFormat={DATE_PICKER_FORMAT}
+      placeholder={placeholder}
+      parseInputValue={(text) => parseDateInput(text) ?? new Date(NaN)}
+    />
   );
 }
 

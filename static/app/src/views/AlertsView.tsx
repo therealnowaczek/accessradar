@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import { call, errorText } from '../api';
 import { useCall } from '../data';
-import { formatLocal } from '../format';
+import { formatLocal, humanizePermissionKeys } from '../format';
 import { t } from '../i18n';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
@@ -142,8 +142,10 @@ export function AlertsView() {
                   key: 'title',
                   content: (
                     <div>
-                      <div>{a.title}</div>
-                      {a.body ? <div className="subtle">{a.body}</div> : null}
+                      <div>{humanizePermissionKeys(a.title)}</div>
+                      {a.body ? (
+                        <div className="subtle">{humanizePermissionKeys(a.body)}</div>
+                      ) : null}
                     </div>
                   ),
                 },

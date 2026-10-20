@@ -10,6 +10,7 @@ import {
   activeSnapshot,
   getSnapshot,
   updateSnapshot,
+  type SnapshotTrigger,
 } from '../db/snapshots';
 import { audit } from '../db/audit';
 import { push, type CollectEvent } from '../lib/queue';
@@ -86,7 +87,7 @@ async function addRate(points: number, calls: number) {
 
 /** Starts a snapshot unless one is already running. Returns the snapshot seq and whether it is new. */
 export async function startSnapshot(
-  trigger: 'manual' | 'scheduled' | 'onboarding',
+  trigger: SnapshotTrigger,
 ): Promise<{ seq: number; created: boolean }> {
   const active = await activeSnapshot();
   if (active) return { seq: active.seq, created: false };

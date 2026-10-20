@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import Button from '@atlaskit/button/new';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import type {
   ProjectAccess,
@@ -21,7 +21,7 @@ import {
 import { useCall } from '../data';
 import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
 import { exportMatrix } from '../export/actions';
-import { permissionLabel } from '../format';
+import { permissionLabel, plural } from '../format';
 import { navItem } from '../routes';
 import {
   exportContext,
@@ -36,10 +36,10 @@ import {
   FilterBar,
   FilterSelect,
   LinkButton,
-  Loading,
   PageFrame,
   PageHeader,
   Pill,
+  TableSkeleton,
   ToggleField,
 } from '../ui';
 
@@ -114,7 +114,7 @@ export function ProjectsView() {
         {list.error && !list.data ? (
           <ErrorState title="Spaces unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
-          <Loading />
+          <TableSkeleton />
         ) : !snapshot ? (
           <NoSnapshot what="who has access to each space" />
         ) : (
@@ -144,7 +144,7 @@ export function ProjectsView() {
                   { key: 'style', content: 'Type', isSortable: true },
                   { key: 'scheme', content: 'Permission scheme', isSortable: true },
                   { key: 'people', content: 'People with access', isSortable: true },
-                  { key: 'admins', content: 'Space admins', isSortable: true },
+                  { key: 'admins', content: 'Space admins (people)', isSortable: true },
                   { key: 'flags', content: 'Flags' },
                 ],
               }}
@@ -176,9 +176,26 @@ export function ProjectsView() {
                   },
                   {
                     key: p.people,
-                    content: `${p.people}${p.appAccounts ? ` (+${p.appAccounts} apps)` : ''}`,
+                    content: (
+                      <span>
+                        {p.people}
+                        {p.appAccounts ? (
+                          <span className="subtle"> · {plural(p.appAccounts, 'app account')}</span>
+                        ) : null}
+                      </span>
+                    ),
                   },
-                  { key: p.admins, content: p.admins },
+                  {
+                    key: p.admins,
+                    content: (
+                      <span>
+                        {p.admins}
+                        {p.appAdmins ? (
+                          <span className="subtle"> · {plural(p.appAdmins, 'app account')}</span>
+                        ) : null}
+                      </span>
+                    ),
+                  },
                   {
                     key: 'flags',
                     content: (
@@ -199,6 +216,11 @@ export function ProjectsView() {
               defaultSortOrder="ASC"
               emptyView={<p className="subtle">No spaces match.</p>}
             />
+            <p className="subtle">
+              People and space admin counts include people only. App accounts (bots and
+              integrations) are shown separately; turn on “Show app accounts” in a space to list
+              them.
+            </p>
           </>
         )}
       </div>
@@ -295,7 +317,7 @@ function ProjectDetail({
         {detail.error && !detail.data ? (
           <ErrorState title="Space unavailable" message={detail.error} retry={detail.reload} />
         ) : !d ? (
-          <Loading />
+          <TableSkeleton />
         ) : (
           <>
             <PartialBanner snapshot={detail.data?.snapshot ?? null} />

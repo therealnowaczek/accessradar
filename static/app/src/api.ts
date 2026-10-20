@@ -125,7 +125,10 @@ export type ProjectRow = ProjectRef & {
   people: number;
   appAccounts: number;
   browse: number;
+  /** People (not app accounts) with Administer projects. */
   admins: number;
+  /** App accounts with Administer projects (older servers omit it). */
+  appAdmins?: number;
   anonymous: boolean;
   unexpanded: number;
   conditional: number;
@@ -359,6 +362,8 @@ export type ActivityEvent = {
   actorName: string;
   action: string;
   target: string | null;
+  /** Name of the review or campaign the event refers to, when known. */
+  targetLabel?: string | null;
   detail: Record<string, unknown> | null;
 };
 

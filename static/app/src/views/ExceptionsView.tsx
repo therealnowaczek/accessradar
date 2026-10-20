@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import { useCall } from '../data';
 import { formatLocal, permissionLabel } from '../format';
 import { navItem } from '../routes';

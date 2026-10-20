@@ -71,9 +71,14 @@ function toRow(r: Record<string, any>, withCoverage = true): SnapshotRow {
 const COLS =
   'seq, status, trigger_kind, collector_mode, engine_version, started_at, updated_at, finished_at, progress_json, stats_json, points, calls, content_hash, error';
 
-export async function createSnapshot(
-  trigger: 'manual' | 'scheduled' | 'onboarding',
-): Promise<number> {
+/**
+ * What started a snapshot. `scheduled` is reserved for the configured schedule (Settings): the
+ * scheduler's "is it due?" check (collector/schedule.ts) reads the last `scheduled` start, so no
+ * other code path may use it. `dev` marks development-only self-test snapshots.
+ */
+export type SnapshotTrigger = 'manual' | 'scheduled' | 'onboarding' | 'dev';
+
+export async function createSnapshot(trigger: SnapshotTrigger): Promise<number> {
   const now = Date.now();
   for (let attempt = 0; attempt < 3; attempt++) {
     try {

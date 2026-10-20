@@ -53,12 +53,18 @@ function localHour(hourUtc: number): string {
   }).format(d);
 }
 
+/**
+ * The schedule as the scheduler applies it: an hourly tick starts the snapshot during the
+ * configured UTC hour (so within that hour, not on the minute). Values are the effective ones
+ * from the server (Standard runs a saved daily schedule weekly).
+ */
 function scheduleText(s: Settings): string {
   if (s.frequency === 'off') return 'Off (manual snapshots only)';
-  const at = `${String(s.hourUtc).padStart(2, '0')}:00 UTC (${localHour(s.hourUtc)} ${timeZone()})`;
+  const hh = (h: number) => `${String(h % 24).padStart(2, '0')}:00`;
+  const at = `between ${hh(s.hourUtc)} and ${hh(s.hourUtc + 1)} UTC (from ${localHour(s.hourUtc)} ${timeZone()})`;
   return s.frequency === 'daily'
-    ? `Daily at ${at}`
-    : `Weekly on ${WEEKDAYS[s.weekday - 1]} at ${at}`;
+    ? `Daily, starting ${at}`
+    : `Weekly on ${WEEKDAYS[s.weekday - 1]}, starting ${at}`;
 }
 
 type Saver = (patch: Partial<Settings>, fallback?: 'me' | 'off') => Promise<void>;
@@ -445,7 +451,11 @@ export function SettingsView() {
           <>
             {!s.saved ? (
               <SectionMessage appearance="information">
-                <p>These are the defaults. Saving any section confirms the schedule.</p>
+                <p>
+                  You have not changed any settings yet, so AccessRadar uses the defaults shown
+                  below. They are already in effect, including the snapshot schedule. Use Edit on a
+                  section to change it.
+                </p>
               </SectionMessage>
             ) : null}
             <EditionSection

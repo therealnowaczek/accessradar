@@ -113,7 +113,17 @@ export function projectsList(state: AccessState, entries: EffectiveAccess[] = re
         isAppAccount(state, (r.subject as { accountId: string }).accountId),
       ).length,
       browse: users.filter((r) => r.perms.has('BROWSE_PROJECTS')).length,
-      admins: users.filter((r) => r.perms.has('ADMINISTER_PROJECTS')).length,
+      // Space admins are people; app accounts with Administer projects are counted separately.
+      admins: users.filter(
+        (r) =>
+          r.perms.has('ADMINISTER_PROJECTS') &&
+          !isAppAccount(state, (r.subject as { accountId: string }).accountId),
+      ).length,
+      appAdmins: users.filter(
+        (r) =>
+          r.perms.has('ADMINISTER_PROJECTS') &&
+          isAppAccount(state, (r.subject as { accountId: string }).accountId),
+      ).length,
       anonymous: rows.some((r) => r.subject.type === 'anonymous'),
       unexpanded: rows.filter((r) => r.subject.type === 'group').length,
       conditional: rows.filter((r) => r.subject.type === 'conditional').length,

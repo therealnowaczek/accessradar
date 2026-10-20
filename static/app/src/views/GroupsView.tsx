@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '../Table';
 import type { GroupDetail, GroupRow, SettingsView, WithSnapshot } from '../api';
 import { ReasonList, SearchField, Section, SnapshotPicker, SubjectCell } from '../components';
 import { useCall } from '../data';

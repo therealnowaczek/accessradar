@@ -205,7 +205,7 @@ export function evaluateAlerts(
           rule: 'new-project-admin',
           severity: 'medium',
           title: `New space admin: ${personLabel(next, accountId)} on ${p?.key ?? projectId}`,
-          body: 'Gained ADMINISTER_PROJECTS',
+          body: 'Gained the Administer projects permission',
           key: `new-project-admin:${accountId}:${projectId}`,
         });
       }

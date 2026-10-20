@@ -98,7 +98,12 @@ export async function devSelfTest(): Promise<void> {
   }
 }
 
-/** Development only: keep one fresh snapshot per day so the collector is exercised. */
+/**
+ * Development only: keep one fresh snapshot per day so the collector is exercised. These runs are
+ * labelled `dev`, never `scheduled`: labelling them `scheduled` made them look like the configured
+ * schedule (QA 2026-10-20: "Scheduled" snapshots almost daily at varying hours while Settings said
+ * weekly) and reset the scheduler's last-run clock, so the real weekly run could be skipped.
+ */
 export async function devAutoSnapshot(): Promise<void> {
   if (!spikeEnabled()) return;
   const [latest, active, recent] = await Promise.all([
@@ -109,6 +114,6 @@ export async function devAutoSnapshot(): Promise<void> {
   if (active) return;
   const last = recent[0]?.startedAt ?? latest?.startedAt ?? 0;
   if (Date.now() - last < 24 * 3600_000) return;
-  const r = await startSnapshot('scheduled');
+  const r = await startSnapshot('dev');
   console.log('[selftest] dev snapshot started', { seq: r.seq });
 }
