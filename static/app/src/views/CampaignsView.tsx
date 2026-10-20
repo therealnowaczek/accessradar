@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { useMemo, useState } from 'react';
 import { Stack, Text, Inline } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
@@ -12,7 +13,7 @@ import { call, errorText } from '../api';
 import { RowMenu } from '../components';
 import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
-import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Drawer';
+import { DrawerBody, DrawerFooter, LevelDrawer, type DrawerLevel } from '../Drawer';
 import { formatLocal } from '../format';
 import { t } from '../i18n';
 import { navItem } from '../routes';
@@ -20,7 +21,6 @@ import { useApp, useRefresh } from '../shared';
 import { useToast } from '../Toast';
 import {
   DateField,
-  Empty,
   ErrorState,
   FormField,
   PageFrame,
@@ -340,10 +340,9 @@ export function CampaignsView() {
           </Text>
         </SectionMessage>
         {!items.length ? (
-          <Empty
-            title="Schedule your first recurring review"
+          <EmptyState
+            header="Schedule your first recurring review"
             description="Campaigns create per-space reviews on a schedule and assign them to space leads."
-            action={null}
           />
         ) : (
           <DynamicTable
@@ -392,7 +391,7 @@ export function CampaignsView() {
         )}
       </Stack>
       {confirmDialog}
-      <StackDrawer
+      <LevelDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
         onClose={() => setDrawer([])}
@@ -584,11 +583,10 @@ function PreviewBody({
             rowsPerPage={50}
             defaultPage={1}
             emptyView={
-              <Empty
-                compact
-                title="No spaces"
+              <EmptyState
+                headingSize="xsmall"
+                header="No spaces"
                 description="Adjust the scope and try again."
-                action={null}
               />
             }
           />

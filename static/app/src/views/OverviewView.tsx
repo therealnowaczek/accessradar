@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { useState } from 'react';
 import { Box, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
@@ -7,7 +8,7 @@ import SectionMessage from '@atlaskit/section-message';
 import type { Overview, Risk } from '../api';
 import { CoverageList, Section, SnapshotLozenge } from '../components';
 import { useCall } from '../data';
-import { StackDrawer, DrawerBody, type DrawerLevel } from '../Drawer';
+import { LevelDrawer, DrawerBody, type DrawerLevel } from '../Drawer';
 import { formatLocal, plural, relative } from '../format';
 import { navItem, type ViewId } from '../routes';
 import {
@@ -20,7 +21,6 @@ import {
   type Params,
 } from '../shared';
 import {
-  Empty,
   ErrorState,
   LinkButton,
   Metric,
@@ -379,11 +379,11 @@ export function OverviewView() {
               ) : null}
             </Stack>
           ) : d.snapshot ? (
-            <Empty
-              compact
-              title="No reviews yet"
+            <EmptyState
+              headingSize="xsmall"
+              header="No reviews yet"
               description="Start a review of the latest snapshot: reviewers mark each access as keep or revoke and sign off."
-              action={
+              primaryAction={
                 <Button onClick={() => go('reviews', { create: '1' })}>Start a review</Button>
               }
             />
@@ -398,7 +398,7 @@ export function OverviewView() {
           {d.budget.toLocaleString()} rate points · {plural(d.usage.calls, 'call')}
         </Text>
       </Stack>
-      <StackDrawer
+      <LevelDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
         onClose={() => setDrawer([])}

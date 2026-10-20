@@ -1,6 +1,5 @@
 import { Component, useId, type ReactNode } from 'react';
 import LinkStyleButton from '@atlaskit/button/standard-button';
-import EmptyState from '@atlaskit/empty-state';
 import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
 import LockIcon from '@atlaskit/icon/core/lock-locked';
@@ -24,23 +23,10 @@ export { BrandHeader, BrandMark } from './brand';
  * App shell. Wide screens: fixed-width sidebar + content pane. Narrow screens (≤768px, CSS):
  * the sidebar is replaced by `mobileNav` at the top and the whole page scrolls as one.
  */
-export function SplitLayout({
-  sidebar,
-  mobileNav,
-  children,
-}: {
-  sidebar: ReactNode;
-  mobileNav?: ReactNode;
-  children: ReactNode;
-}) {
+export function SplitLayout({ sidebar, children }: { sidebar: ReactNode; children: ReactNode }) {
   return (
     <div className="split-layout">
       <aside className="split-sidebar">{sidebar}</aside>
-      {mobileNav ? (
-        <nav className="split-mobile-nav" aria-label="AccessRadar">
-          <Stack space="space.100">{mobileNav}</Stack>
-        </nav>
-      ) : null}
       <div className="split-main">{children}</div>
     </div>
   );
@@ -306,30 +292,6 @@ export function ErrorState({
     >
       <Text as="p">{message}</Text>
     </SectionMessage>
-  );
-}
-
-/** ADS empty state: title, one sentence, at most one CTA. `compact` inside cards, drawers and tables. */
-export function Empty({
-  title,
-  description,
-  action,
-  compact = false,
-}: {
-  title: string;
-  description: string;
-  action: ReactNode;
-  compact?: boolean;
-}) {
-  return (
-    <EmptyState
-      header={title}
-      headingLevel={compact ? 3 : 2}
-      headingSize={compact ? 'xsmall' : 'medium'}
-      width="narrow"
-      description={description}
-      primaryAction={action}
-    />
   );
 }
 

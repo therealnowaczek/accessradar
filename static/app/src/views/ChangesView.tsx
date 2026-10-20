@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
@@ -11,7 +12,6 @@ import { permissionLabel } from '../format';
 import { navItem } from '../routes';
 import { exportContext, logExport, NoSnapshot, useApp, useExporter, useSnapshots } from '../shared';
 import {
-  Empty,
   ErrorState,
   FilterBar,
   FilterSelect,
@@ -265,10 +265,9 @@ export function ChangesView() {
           ) : !d.b ? (
             <NoSnapshot what="what changed" />
           ) : (
-            <Empty
-              title="One snapshot so far"
+            <EmptyState
+              header="One snapshot so far"
               description="Changes compare two snapshots. The next scheduled or manual snapshot will show what changed since this one."
-              action={null}
             />
           )}
         </Stack>

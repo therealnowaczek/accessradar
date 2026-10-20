@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { useState } from 'react';
 import { Box, Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
@@ -6,7 +7,6 @@ import { formatLocal, permissionLabel } from '../format';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
 import {
-  Empty,
   ErrorState,
   FilterBar,
   FilterSelect,
@@ -105,10 +105,9 @@ export function ExceptionsView() {
           />
         </FilterBar>
         {!items.length ? (
-          <Empty
-            title="No exceptions yet"
+          <EmptyState
+            header="No exceptions yet"
             description="Exceptions you grant during a review appear here with their expiry date."
-            action={null}
           />
         ) : (
           <DynamicTable
@@ -155,11 +154,10 @@ export function ExceptionsView() {
             rowsPerPage={50}
             defaultPage={1}
             emptyView={
-              <Empty
-                compact
-                title="No exceptions"
+              <EmptyState
+                headingSize="xsmall"
+                header="No exceptions"
                 description="Nothing matches this filter."
-                action={null}
               />
             }
           />

@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { useState } from 'react';
 import { Box, Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
@@ -9,7 +10,6 @@ import { navItem } from '../routes';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
 import {
-  Empty,
   ErrorState,
   FilterBar,
   FilterSelect,
@@ -117,10 +117,9 @@ export function AlertsView() {
           />
         </FilterBar>
         {!items.length ? (
-          <Empty
-            title="No alerts"
+          <EmptyState
+            header="No alerts"
             description="When a snapshot detects new admins, anonymous access, or inactive accounts with access, alerts appear here. Detection latency follows your snapshot schedule (typically ≤24h on Advanced daily)."
-            action={null}
           />
         ) : (
           <DynamicTable

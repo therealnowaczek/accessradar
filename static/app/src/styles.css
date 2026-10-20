@@ -3,7 +3,7 @@
  * positions them inside the Forge iframe (pinned header, scroll areas, the ≤768px single-scroll
  * layout). Colours and spacing use ADS design tokens only: var(--ds-*) is the CSS form of
  * token() from @atlaskit/tokens (themed by view.theme.enable()). No colour literals here; the
- * test static/app/src/designTokens.test.ts fails on hex, rgb() or hsl() literals.
+ * test static/app/src/designSystem.guard.test.ts fails on hex, rgb() or hsl() literals.
  */
 body {
   background: var(--ds-surface);
@@ -11,9 +11,9 @@ body {
 
 /*
  * App roots get their own stacking context (isolation), so the z-index of the pinned header, the
- * tab bar, their fades and the mobile nav only orders things inside the page. The ADS drawer
- * portal (appended to body, z-index unset) then always paints above the whole page and its
- * blanket dims it uniformly; without this the header fade sat above the blanket as a light band.
+ * tab bar and their fades (1 and the "card" layer 100 only) orders things inside the page.
+ * The ADS drawer (portal, blanket layer 500) then always paints above the whole page and its
+ * blanket dims it uniformly; the header fade never sits above the blanket as a light band.
  */
 .split-layout,
 .page-frame {
@@ -32,30 +32,33 @@ body {
 
 .split-sidebar {
   box-sizing: border-box;
-  width: 240px;
   min-width: 0;
   min-height: 0;
-  /* Never scroll sideways; reserve the scrollbar gutter so the nav keeps the same width on every screen. */
+  /* Never scroll sideways. */
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-gutter: stable;
-  padding: var(--ds-space-100);
+  /* SideNavHeader / SideNavBody add space.150 inline; together the items sit 16px from the edge. */
+  padding: var(--ds-space-100) var(--ds-space-050);
   border-right: var(--ds-border-width) solid var(--ds-border);
 }
 
 /*
- * Navigation (AdminScreen): @atlaskit/navigation-system SideNavHeader/SideNavBody with
- * @atlaskit/side-nav-items. The items fill the 240px column and never scroll sideways.
+ * Navigation (AdminNav.tsx): @atlaskit/navigation-system SideNavHeader/SideNavBody with
+ * @atlaskit/side-nav-items in our own <nav>. The items fill the 240px column.
  */
-.split-layout > .split-sidebar > * {
-  width: 100%;
+.admin-nav-full {
   min-width: 0;
   max-width: 100%;
 }
 
-/* Narrow screens only: brand + navigation select above the content (see SplitLayout). */
-.split-mobile-nav {
+/* Below 64rem (navigation-system's breakpoint) the top bar with the menu button replaces it. */
+.admin-nav-compact {
   display: none;
+}
+
+/* Inside the overlay drawer the navigation keeps its side-panel look. */
+.admin-nav-overlay .admin-nav-full {
+  display: block;
 }
 
 .split-main {
@@ -78,10 +81,10 @@ body {
 }
 
 /* ADS PageHeader, pinned with a divider; content fades out under it instead of being cut off. */
-/* Above the tab bar (z-index 2), matching the shared Radrly pinned-header structure. */
+/* Above the tab bar and the fades (z-index 1): layer "card" (100), Radrly standard table 1.8. */
 .page-header {
   position: relative;
-  z-index: 3;
+  z-index: 100; /* layer "card" */
   flex: none;
   border-bottom: var(--ds-border-width) solid var(--ds-border);
 }
@@ -95,7 +98,7 @@ body {
   margin-top: var(--ds-border-width);
   background: linear-gradient(to bottom, var(--ds-surface), transparent);
   pointer-events: none;
-  z-index: 2;
+  z-index: 1;
 }
 
 .page-header.is-flush {
@@ -154,7 +157,7 @@ body {
 
 .page-tabs [role='tablist'] {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   flex: none;
 }
 
@@ -166,7 +169,35 @@ body {
   height: var(--ds-space-300);
   background: linear-gradient(to bottom, var(--ds-surface), transparent);
   pointer-events: none;
-  z-index: 2;
+  z-index: 1;
+}
+
+/*
+ * Below 64rem (1023px, @atlaskit/navigation-system's breakpoint) the sidebar leaves the layout:
+ * one column with a top bar (menu button + brand) that opens the navigation as an overlay.
+ */
+@media (max-width: 1023px) {
+  .split-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .split-sidebar {
+    overflow: visible;
+    padding: var(--ds-space-100) var(--ds-space-200);
+    border-right: 0;
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+  }
+
+  .split-sidebar .admin-nav-full {
+    display: none;
+  }
+
+  .admin-nav-compact {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+  }
 }
 
 /* KPI tiles (MetricGrid): 4 per row, 2 at ≤900px, 1 at ≤520px. */
@@ -211,15 +242,6 @@ body {
   width: 100%;
 }
 
-/* ADS Drawer enters from the right; dock its panel there too (the panel is placed at the start edge). */
-div[data-testid='ar-drawer'] {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-  /* Shared drawer width (Radrly standard R-7.5); ADS "wide" is 600px. */
-  width: min(560px, 100vw);
-  max-width: 100vw;
-}
-
 /*
  * Drawer header (Drawer.tsx): same pinned-header pattern as the page header. The 1px color.border
  * separator comes from the header's xcss; content scrolling in DrawerContent fades out under it
@@ -227,7 +249,6 @@ div[data-testid='ar-drawer'] {
  */
 div[data-testid='ar-drawer-header'] {
   position: relative;
-  z-index: 3;
 }
 
 div[data-testid='ar-drawer-header']::after {
@@ -239,7 +260,7 @@ div[data-testid='ar-drawer-header']::after {
   margin-top: var(--ds-border-width);
   background: linear-gradient(to bottom, var(--ds-surface-overlay), transparent);
   pointer-events: none;
-  z-index: 2;
+  z-index: 1;
 }
 
 /* Advanced plan sample (PlanGate): fixed-height, faded, non-interactive preview. */
@@ -266,17 +287,6 @@ div[data-testid='ar-drawer-header']::after {
     overflow: visible;
   }
 
-  .split-sidebar {
-    display: none;
-  }
-
-  .split-mobile-nav {
-    /* The navigation Select menu is portalled to <body>, so no z-index is needed here. */
-    display: block;
-    padding: var(--ds-space-150) var(--ds-space-200);
-    border-bottom: var(--ds-border-width) solid var(--ds-border);
-  }
-
   .split-main {
     overflow: visible;
   }
@@ -288,9 +298,14 @@ div[data-testid='ar-drawer-header']::after {
     padding-inline: var(--ds-space-200);
   }
 
+  /* Not pinned at this width (single scroll), so no fade either; the 1px line stays. */
   .page-header::after,
   .page-tabs [role='tablist']::after {
     content: none;
+  }
+
+  .page-tabs [role='tablist'] {
+    overflow-x: auto;
   }
 
   /* ADS PageHeader keeps title and actions on one row; let the actions wrap under the title. */
@@ -328,10 +343,5 @@ div[data-testid='ar-drawer-header']::after {
   /* Tables with several columns keep a readable width and scroll inside .table-wrap. */
   .table-wrap table:has(th:nth-child(4)) {
     min-width: 640px;
-  }
-
-  /* The drawer takes the full phone width. */
-  div[data-testid='ar-drawer'] {
-    width: 100vw;
   }
 }

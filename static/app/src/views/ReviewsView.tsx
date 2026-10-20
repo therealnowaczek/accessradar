@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { useEffect, useMemo, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
@@ -33,7 +34,7 @@ import {
 } from '../components';
 import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
-import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Drawer';
+import { DrawerBody, DrawerFooter, LevelDrawer, type DrawerLevel } from '../Drawer';
 import { downloadCsv, downloadPdf } from '../export/download';
 import { reviewCsv, reviewFileName, reviewPdf } from '../export/evidence';
 import {
@@ -55,7 +56,6 @@ import { useToast } from '../Toast';
 import {
   DateField,
   Details,
-  Empty,
   ErrorState,
   FilterBar,
   FilterSelect,
@@ -167,10 +167,10 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
         ) : !hasSnapshot && !reviews.length ? (
           <NoSnapshot what="and review access" />
         ) : !reviews.length ? (
-          <Empty
-            title="No reviews yet"
+          <EmptyState
+            header="No reviews yet"
             description="A review lists who has key permissions in the chosen scope. Reviewers mark each item keep or revoke, then sign off; the evidence pack is hashed."
-            action={
+            primaryAction={
               <Button appearance="primary" onClick={openCreate}>
                 Start a review
               </Button>
@@ -258,7 +258,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
           />
         )}
       </Stack>
-      <StackDrawer
+      <LevelDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
         onClose={() => setDrawer([])}
@@ -949,7 +949,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         </Section>
       </Stack>
       {confirmDialog}
-      <StackDrawer
+      <LevelDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
         onClose={() => setDrawer([])}

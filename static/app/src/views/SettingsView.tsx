@@ -14,7 +14,7 @@ import {
 } from '../api';
 import { Section } from '../components';
 import { useCall } from '../data';
-import { DrawerBody, DrawerFooter, StackDrawer, type DrawerLevel } from '../Drawer';
+import { DrawerBody, DrawerFooter, LevelDrawer, type DrawerLevel } from '../Drawer';
 import {
   formatLocal,
   permissionLabel,
@@ -782,7 +782,7 @@ export function SettingsView() {
           </>
         )}
       </Stack>
-      <StackDrawer
+      <LevelDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
         onClose={close}

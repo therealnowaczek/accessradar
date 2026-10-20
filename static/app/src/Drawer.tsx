@@ -1,9 +1,8 @@
 import React, { useId, useState } from 'react';
 import Button, { IconButton } from '@atlaskit/button/new';
-import AtlaskitDrawer, { DrawerCloseButton, DrawerContent } from '@atlaskit/drawer';
+import AtlaskitDrawer, { DrawerCloseButton, DrawerContent, DrawerSidebar } from '@atlaskit/drawer';
 import Heading from '@atlaskit/heading';
 import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
-import CrossIcon from '@atlaskit/icon/core/cross';
 import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 
 export type DrawerLevel = {
@@ -13,40 +12,47 @@ export type DrawerLevel = {
   content: React.ReactNode;
 };
 
-/** Test id of the ADS drawer panel; styles.css docks it on the right (layout glue). */
-export const DRAWER_TEST_ID = 'ar-drawer';
 /** Test id of the pinned drawer header; styles.css adds the shared fade under its separator. */
 export const DRAWER_HEADER_TEST_ID = 'ar-drawer-header';
 
-const panelStyles = xcss({
+/*
+ * @atlaskit/drawer lays out DrawerSidebar (close button column) and DrawerContent (24px top
+ * offset). The frame fills DrawerContent so the body scrolls between a pinned header and footer.
+ */
+const frameStyles = xcss({
   display: 'flex',
   flexDirection: 'column',
-  width: '100%',
   height: '100%',
+  minHeight: '0',
   minWidth: '0',
 });
 const headerStyles = xcss({
   flexShrink: 0,
-  paddingBlock: 'space.200',
-  paddingInlineStart: 'space.300',
-  paddingInlineEnd: 'space.200',
+  paddingBlockEnd: 'space.200',
+  paddingInlineEnd: 'space.300',
   borderBlockEndWidth: 'border.width',
   borderBlockEndStyle: 'solid',
   borderBlockEndColor: 'color.border',
 });
 const headingStyles = xcss({ flexGrow: 1, minWidth: '0', paddingBlockStart: 'space.050' });
+const levelStyles = xcss({
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1,
+  minHeight: '0',
+});
 const bodyStyles = xcss({
-  // ADS DrawerContent already adds space.300 above the body.
-  paddingBlockStart: 'space.0',
-  paddingInline: 'space.300',
+  flexGrow: 1,
+  minHeight: '0',
+  overflowY: 'auto',
+  paddingBlockStart: 'space.300',
+  paddingInlineEnd: 'space.300',
   // 40px under the last line keeps it clear of Jira's floating Rovo button (bottom right).
   paddingBlockEnd: 'space.500',
 });
 const footerStyles = xcss({
   flexShrink: 0,
-  paddingBlockStart: 'space.200',
-  paddingBlockEnd: 'space.200',
-  paddingInlineStart: 'space.300',
+  paddingBlock: 'space.200',
   paddingInlineEnd: 'space.300',
   borderBlockStartWidth: 'border.width',
   borderBlockStartStyle: 'solid',
@@ -57,11 +63,13 @@ const footerStyles = xcss({
 const footerRowStyles = xcss({ paddingInlineEnd: 'space.600' });
 
 /**
- * ADS Drawer (@atlaskit/drawer) with a navigation stack. The last level is shown; "back" pops
- * one level, "close" (button, blanket, Escape) dismisses the whole stack. ADS handles focus
- * lock, focus return, Escape, the blanket and the enter/exit motion.
+ * @atlaskit/drawer (width "wide", 600px) whose content steps through levels: the last level is
+ * shown, Back pops one level, and closing (close button, blanket, Escape) dismisses them all.
+ * Nested flows swap content inside this one Drawer instead of stacking panels. ADS owns the
+ * blanket, focus lock, Escape, scroll lock, focus return and the panel motion; the panel keeps
+ * ADS's default placement.
  */
-export function StackDrawer({
+export function LevelDrawer({
   levels,
   onBack,
   onClose,
@@ -83,54 +91,56 @@ export function StackDrawer({
       isOpen={open}
       onClose={() => onClose()}
       onCloseComplete={() => setShown([])}
-      enterFrom="right"
       width="wide"
       titleId={titleId}
-      testId={DRAWER_TEST_ID}
     >
-      {level ? (
-        <Box xcss={panelStyles}>
-          <Box xcss={headerStyles} testId={DRAWER_HEADER_TEST_ID}>
-            <Inline space="space.100" alignBlock="start">
-              {nested ? (
-                <IconButton
-                  icon={ArrowLeftIcon}
-                  label="Back"
-                  appearance="subtle"
-                  onClick={onBack}
-                />
-              ) : null}
-              <Box xcss={headingStyles}>
-                <Stack space="space.050">
-                  <Heading size="medium" id={titleId}>
-                    {level.title}
-                  </Heading>
-                  {level.description ? (
-                    <Text as="p" color="color.text.subtle">
-                      {level.description}
-                    </Text>
-                  ) : null}
-                </Stack>
-              </Box>
-              <DrawerCloseButton icon={CrossIcon} label="Close" />
-            </Inline>
+      <DrawerSidebar>
+        <DrawerCloseButton label="Close" />
+      </DrawerSidebar>
+      <DrawerContent>
+        {level ? (
+          <Box xcss={frameStyles}>
+            <Box xcss={headerStyles} testId={DRAWER_HEADER_TEST_ID}>
+              <Inline space="space.100" alignBlock="start">
+                {nested ? (
+                  <IconButton
+                    icon={ArrowLeftIcon}
+                    label="Back"
+                    appearance="subtle"
+                    onClick={onBack}
+                  />
+                ) : null}
+                <Box xcss={headingStyles}>
+                  <Stack space="space.050">
+                    <Heading size="medium" id={titleId}>
+                      {level.title}
+                    </Heading>
+                    {level.description ? (
+                      <Text as="p" color="color.text.subtle">
+                        {level.description}
+                      </Text>
+                    ) : null}
+                  </Stack>
+                </Box>
+              </Inline>
+            </Box>
+            {/* Key per level: a pushed/popped level starts with fresh state and scroll position. */}
+            <Box key={level.key} xcss={levelStyles}>
+              {level.content}
+            </Box>
           </Box>
-          {/* Key per level: a pushed/popped level starts with fresh state and scroll position. */}
-          <React.Fragment key={level.key}>{level.content}</React.Fragment>
-        </Box>
-      ) : null}
+        ) : null}
+      </DrawerContent>
     </AtlaskitDrawer>
   );
 }
 
-/** Scrolling body shared by every drawer level (ADS DrawerContent). */
+/** Scrolling body shared by every drawer level. */
 export function DrawerBody({ children }: { children: React.ReactNode }) {
   return (
-    <DrawerContent scrollContentLabel="Drawer content">
-      <Box xcss={bodyStyles}>
-        <Stack space="space.300">{children}</Stack>
-      </Box>
-    </DrawerContent>
+    <Box xcss={bodyStyles}>
+      <Stack space="space.300">{children}</Stack>
+    </Box>
   );
 }
 

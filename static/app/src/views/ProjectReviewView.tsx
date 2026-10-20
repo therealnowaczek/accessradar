@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { useMemo, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
@@ -11,7 +12,6 @@ import { formatLocal, permissionLabel, plural } from '../format';
 import { t } from '../i18n';
 import { useToast } from '../Toast';
 import {
-  Empty,
   ErrorState,
   Metric,
   PageFrame,
@@ -162,13 +162,12 @@ export function ProjectReviewView() {
         ))}
 
         {d.limitation || !d.assignment || !d.review ? (
-          <Empty
-            title="No assigned review"
+          <EmptyState
+            header="No assigned review"
             description={
               d.limitation ??
               'When a Jira admin runs a campaign, the assigned space admin reviews access here. Reminders stay in the app — AccessRadar does not send email.'
             }
-            action={null}
           />
         ) : (
           <>

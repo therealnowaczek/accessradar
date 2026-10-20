@@ -86,7 +86,7 @@ function App() {
         description="Review who has key permissions in this space. Decisions stay in AccessRadar until a Jira admin signs."
       />
     ) : (
-      <AdminPhantom title={first.title} description={first.description} />
+      <AdminPhantom view={first.id} title={first.title} description={first.description} />
     );
   return <Suspense fallback={fallback}>{screen}</Suspense>;
 }

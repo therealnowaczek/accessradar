@@ -2,8 +2,9 @@ import type { ReactNode } from 'react';
 import { Box, Grid, Inline, Stack, xcss } from '@atlaskit/primitives';
 import Skeleton from '@atlaskit/skeleton';
 import { token } from '@atlaskit/tokens';
+import { AdminNav } from './AdminNav';
+import type { ViewId } from './routes';
 import {
-  BrandHeader,
   Details,
   FilterBar,
   MetricGrid,
@@ -131,29 +132,6 @@ export function DrawerPhantom() {
   );
 }
 
-const sidebarPhantomStyles = xcss({ paddingInline: 'space.100' });
-
-/** Admin navigation placeholder: real brand header, item-shaped blocks (no chunk download). */
-function SidebarPhantom() {
-  return (
-    <Stack space="space.200">
-      <BrandHeader subtitle="Jira access reviews" />
-      <Box xcss={sidebarPhantomStyles}>
-        <Stack space="space.300">
-          {[1, 3, 6, 2].map((items, g) => (
-            <Stack key={g} space="space.150">
-              <Phantom width="40%" height={10} />
-              {Array.from({ length: items }, (_, i) => (
-                <Phantom key={i} width={`${60 + ((i * 13) % 30)}%`} height={16} />
-              ))}
-            </Stack>
-          ))}
-        </Stack>
-      </Box>
-    </Stack>
-  );
-}
-
 /** Generic page content: a section header, KPI tiles and a table-shaped block. */
 function ContentPhantom() {
   return (
@@ -193,9 +171,17 @@ export function AppPhantom() {
 }
 
 /** Admin page while its screen chunk loads: the real split layout, title and description. */
-export function AdminPhantom({ title, description }: { title: string; description: string }) {
+export function AdminPhantom({
+  view,
+  title,
+  description,
+}: {
+  view: ViewId;
+  title: string;
+  description: string;
+}) {
   return (
-    <SplitLayout sidebar={<SidebarPhantom />}>
+    <SplitLayout sidebar={<AdminNav view={view} onChange={() => undefined} />}>
       <PageFrame header={<PageHeader title={title} description={description} />}>
         <ContentPhantom />
       </PageFrame>

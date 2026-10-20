@@ -4,7 +4,7 @@ import DynamicTable from '../Table';
 import type { GroupDetail, GroupRow, SettingsView, WithSnapshot } from '../api';
 import { ReasonList, SearchField, Section, SnapshotPicker, SubjectCell } from '../components';
 import { useCall } from '../data';
-import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
+import { DrawerBody, LevelDrawer, type DrawerLevel } from '../Drawer';
 import { permissionLabel, plural } from '../format';
 import { navItem } from '../routes';
 import { NoSnapshot, PartialBanner, useApp, useSnapshots } from '../shared';
@@ -186,7 +186,7 @@ export function GroupsView() {
           </>
         )}
       </Stack>
-      <StackDrawer
+      <LevelDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
         onClose={() => setDrawer([])}

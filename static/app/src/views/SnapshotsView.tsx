@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { useEffect, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
@@ -6,7 +7,7 @@ import RefreshIcon from '@atlaskit/icon/core/refresh';
 import type { Coverage, Limitations, Snapshot } from '../api';
 import { CoverageLimitations, ExportMenu, Hash, Section, SnapshotLozenge } from '../components';
 import { useCall } from '../data';
-import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
+import { DrawerBody, LevelDrawer, type DrawerLevel } from '../Drawer';
 import { exportMatrix } from '../export/actions';
 import { downloadCsv } from '../export/download';
 import { coverageOnlyCsv } from '../export/evidence';
@@ -21,7 +22,7 @@ import {
   useSnapshots,
   useTakeSnapshot,
 } from '../shared';
-import { Details, Empty, ErrorState, LinkButton, PageFrame, PageHeader, staleNotice } from '../ui';
+import { Details, ErrorState, LinkButton, PageFrame, PageHeader, staleNotice } from '../ui';
 import { DrawerPhantom, SkeletonRoot } from '../skeletons';
 import { SkeletonTable } from '../skeletonTable';
 
@@ -122,10 +123,10 @@ export function SnapshotsView() {
             />
           </SkeletonRoot>
         ) : !list.length ? (
-          <Empty
-            title="No snapshots yet"
+          <EmptyState
+            header="No snapshots yet"
             description="A snapshot records permission schemes, roles, groups and application access at one point in time."
-            action={
+            primaryAction={
               <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>
                 Take snapshot now
               </Button>
@@ -190,7 +191,7 @@ export function SnapshotsView() {
           />
         )}
       </Stack>
-      <StackDrawer
+      <LevelDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
         onClose={() => setDrawer([])}

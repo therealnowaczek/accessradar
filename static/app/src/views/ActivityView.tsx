@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import Tooltip from '@atlaskit/tooltip';
 import DynamicTable from '../Table';
 import { Stack, Text } from '@atlaskit/primitives';
@@ -6,7 +7,7 @@ import { useCall } from '../data';
 import { activityDetail, activityLabel, activityTarget } from '../activity';
 import { formatLocal, formatUtc } from '../format';
 import { navItem } from '../routes';
-import { Empty, ErrorState, PageFrame, PageHeader, staleNotice, WrapAnywhere } from '../ui';
+import { ErrorState, PageFrame, PageHeader, staleNotice, WrapAnywhere } from '../ui';
 import { SkeletonRoot } from '../skeletons';
 import { SkeletonTable } from '../skeletonTable';
 
@@ -26,10 +27,9 @@ export function ActivityView() {
             <SkeletonTable columns={['When', 'Who', 'What', 'Detail']} rows={8} />
           </SkeletonRoot>
         ) : !r.data.events.length ? (
-          <Empty
-            title="No activity yet"
+          <EmptyState
+            header="No activity yet"
             description="Snapshots, reviews, sign-offs, exports and settings changes appear here."
-            action={null}
           />
         ) : (
           <DynamicTable

@@ -1,3 +1,4 @@
+import EmptyState from '@atlaskit/empty-state';
 import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import Button from '@atlaskit/button/new';
 import { Box, Stack, Text, xcss } from '@atlaskit/primitives';
@@ -9,7 +10,7 @@ import type { ExportContext } from './export/evidence';
 import { relative, timeZone } from './format';
 import type { ViewId } from './routes';
 import { useToast } from './Toast';
-import { Empty, FilterBar } from './ui';
+import { FilterBar } from './ui';
 
 const progressStyles = xcss({ maxWidth: '35rem' });
 
@@ -130,10 +131,10 @@ export function NoSnapshot({ what }: { what: string }) {
   const active = status.data?.active;
   if (active) return <SnapshotProgress active={active} />;
   return (
-    <Empty
-      title="No snapshot yet"
+    <EmptyState
+      header="No snapshot yet"
       description={`Take the first snapshot to see ${what}. It reads permission schemes, roles, groups and application access; nothing in Jira changes.`}
-      action={
+      primaryAction={
         <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>
           Take snapshot now
         </Button>

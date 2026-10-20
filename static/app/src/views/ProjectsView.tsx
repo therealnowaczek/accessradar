@@ -20,7 +20,7 @@ import {
   ViaChips,
 } from '../components';
 import { useCall } from '../data';
-import { DrawerBody, StackDrawer, type DrawerLevel } from '../Drawer';
+import { DrawerBody, LevelDrawer, type DrawerLevel } from '../Drawer';
 import { exportMatrix } from '../export/actions';
 import { permissionLabel, plural } from '../format';
 import { navItem } from '../routes';
@@ -406,7 +406,7 @@ function ProjectDetail({
           </>
         )}
       </Stack>
-      <StackDrawer
+      <LevelDrawer
         levels={drawer}
         onBack={() => setDrawer((l) => l.slice(0, -1))}
         onClose={() => setDrawer([])}
