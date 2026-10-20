@@ -39,25 +39,23 @@ export function useConfirm(): [ReactNode, (request: ConfirmRequest) => void] {
           </ModalHeader>
           <ModalBody>{request.body}</ModalBody>
           <ModalFooter>
-            {/* Primary (danger) action on the left, Cancel immediately to its right. */}
-            <div className="modal-footer-actions">
-              <Button
-                appearance="danger"
-                isLoading={busy}
-                onClick={() => {
-                  setBusy(true);
-                  void Promise.resolve(request.onConfirm()).finally(() => {
-                    setBusy(false);
-                    setRequest(null);
-                  });
-                }}
-              >
-                {request.confirmLabel}
-              </Button>
-              <Button appearance="subtle" isDisabled={busy} onClick={close}>
-                Cancel
-              </Button>
-            </div>
+            {/* Modals follow the Atlaskit default: right-aligned footer, Cancel then the primary. */}
+            <Button appearance="subtle" isDisabled={busy} onClick={close}>
+              Cancel
+            </Button>
+            <Button
+              appearance="danger"
+              isLoading={busy}
+              onClick={() => {
+                setBusy(true);
+                void Promise.resolve(request.onConfirm()).finally(() => {
+                  setBusy(false);
+                  setRequest(null);
+                });
+              }}
+            >
+              {request.confirmLabel}
+            </Button>
           </ModalFooter>
         </ModalDialog>
       ) : null}
