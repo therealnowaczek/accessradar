@@ -23,13 +23,15 @@ import {
   Empty,
   ErrorState,
   FormField,
-  Loading,
   PageFrame,
   PageHeader,
   Pill,
   PlanNote,
   RadioField,
+  staleNotice,
 } from '../ui';
+import { DrawerPhantom, SkeletonRoot } from '../skeletons';
+import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Campaign = {
   id: string;
@@ -258,7 +260,12 @@ export function CampaignsView() {
   if (!list.data)
     return (
       <PageFrame header={header}>
-        <Loading />
+        <SkeletonRoot>
+          <SkeletonTable
+            columns={['Name', 'Frequency', 'Next run', 'Status', <ActionsHeader key="a" />]}
+            rows={4}
+          />
+        </SkeletonRoot>
       </PageFrame>
     );
 
@@ -324,7 +331,7 @@ export function CampaignsView() {
   };
 
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(list)} header={header}>
       <Stack space="space.300">
         <SectionMessage appearance="information">
           <Text as="p">
@@ -346,7 +353,7 @@ export function CampaignsView() {
                 { key: 'freq', content: 'Frequency' },
                 { key: 'next', content: 'Next run' },
                 { key: 'status', content: 'Status' },
-                { key: 'act', content: '' },
+                { key: 'act', content: <ActionsHeader /> },
               ],
             }}
             rows={items.map((c) => ({
@@ -578,6 +585,7 @@ function PreviewBody({
             defaultPage={1}
             emptyView={
               <Empty
+                compact
                 title="No spaces"
                 description="Adjust the scope and try again."
                 action={null}
@@ -637,7 +645,7 @@ function RunDetail({
   if (!r.data)
     return (
       <DrawerBody>
-        <Loading compact />
+        <DrawerPhantom />
       </DrawerBody>
     );
 
@@ -669,7 +677,7 @@ function RunDetail({
                 { key: 'a', content: 'Assignee' },
                 { key: 's', content: 'Status' },
                 { key: 'd', content: 'Due' },
-                { key: 'act', content: '' },
+                { key: 'act', content: <ActionsHeader /> },
               ],
             }}
             rows={assignments.map((a) => ({

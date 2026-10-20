@@ -75,7 +75,30 @@ export function permissionLabel(key: string): string {
   );
 }
 
+let contextTimeZone: string | null = null;
+
+/** Valid IANA zone, or null (Intl throws a RangeError on unknown zones). */
+function validZone(tz: string | null | undefined): string | null {
+  if (!tz) return null;
+  try {
+    new Intl.DateTimeFormat('en-GB', { timeZone: tz });
+    return tz;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Uses the time zone from the user's Jira profile (Forge `context.timezone`) for every displayed
+ * date, instead of the browser zone. Called once when the Forge context arrives.
+ */
+export function setContextTimeZone(tz: string | null | undefined): void {
+  contextTimeZone = validZone(tz);
+}
+
+/** The viewer's zone: Jira profile setting first, then the browser, then UTC. */
 export function timeZone(): string {
+  if (contextTimeZone) return contextTimeZone;
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   } catch {

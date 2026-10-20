@@ -22,14 +22,16 @@ import {
   FilterBar,
   FilterSelect,
   LinkButton,
-  Loading,
   PageFrame,
   PageHeader,
   Pill,
   ToggleField,
   DividedListItem,
   DividedList,
+  staleNotice,
 } from '../ui';
+import { DrawerPhantom, FilterBarPhantom, SkeletonRoot } from '../skeletons';
+import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
@@ -85,12 +87,26 @@ export function PeopleView() {
 
   const snapshot = list.data?.snapshot ?? null;
   return (
-    <PageFrame header={<PageHeader title={meta.title} description={meta.description} />}>
+    <PageFrame
+      notice={staleNotice(list)}
+      header={<PageHeader title={meta.title} description={meta.description} />}
+    >
       <Stack space="space.300">
         {list.error && !list.data ? (
           <ErrorState title="People unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
-          <Loading />
+          <SkeletonRoot>
+            <FilterBarPhantom controls={4} />
+            <SkeletonTable
+              columns={[
+                'Person',
+                'Spaces',
+                'Admin of',
+                'Groups',
+                <ActionsHeader key="f" label="Flags" />,
+              ]}
+            />
+          </SkeletonRoot>
         ) : !snapshot ? (
           <NoSnapshot what="what each person can do" />
         ) : (
@@ -125,7 +141,7 @@ export function PeopleView() {
                   { key: 'projects', content: 'Spaces', isSortable: true },
                   { key: 'admin', content: 'Admin of', isSortable: true },
                   { key: 'groups', content: 'Groups', isSortable: true },
-                  { key: 'flags', content: '' },
+                  { key: 'flags', content: <ActionsHeader label="Flags" /> },
                 ],
               }}
               rows={rows.map((p) => ({
@@ -212,7 +228,7 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
   if (!d)
     return (
       <DrawerBody>
-        <Loading compact />
+        <DrawerPhantom />
       </DrawerBody>
     );
   return (

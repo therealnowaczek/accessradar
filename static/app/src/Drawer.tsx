@@ -39,21 +39,22 @@ const bodyStyles = xcss({
   // ADS DrawerContent already adds space.300 above the body.
   paddingBlockStart: 'space.0',
   paddingInline: 'space.300',
-  // Keeps the last line clear of Jira's floating Rovo button in the bottom-right corner.
-  paddingBlockEnd: 'space.1000',
+  // 40px under the last line keeps it clear of Jira's floating Rovo button (bottom right).
+  paddingBlockEnd: 'space.500',
 });
 const footerStyles = xcss({
   flexShrink: 0,
   paddingBlockStart: 'space.200',
-  paddingBlockEnd: 'space.300',
+  paddingBlockEnd: 'space.200',
   paddingInlineStart: 'space.300',
-  // Wide end padding: the buttons never sit under Jira's Rovo button (bottom right).
-  paddingInlineEnd: 'space.1000',
+  paddingInlineEnd: 'space.300',
   borderBlockStartWidth: 'border.width',
   borderBlockStartStyle: 'solid',
   borderBlockStartColor: 'color.border',
   backgroundColor: 'elevation.surface.overlay',
 });
+
+const footerRowStyles = xcss({ paddingInlineEnd: 'space.600' });
 
 /**
  * ADS Drawer (@atlaskit/drawer) with a navigation stack. The last level is shown; "back" pops
@@ -150,14 +151,17 @@ export function DrawerFooter({
 }) {
   return (
     <Box xcss={footerStyles}>
-      <Inline space="space.100" alignBlock="center" alignInline="start" shouldWrap>
-        {children}
-        {onCancel ? (
-          <Button appearance="subtle" onClick={onCancel}>
-            {cancelLabel}
-          </Button>
-        ) : null}
-      </Inline>
+      {/* 24px + 48px = 72px end padding: the buttons never sit under Jira's Rovo button. */}
+      <Box xcss={footerRowStyles}>
+        <Inline space="space.100" alignBlock="center" alignInline="start" shouldWrap>
+          {children}
+          {onCancel ? (
+            <Button appearance="subtle" onClick={onCancel}>
+              {cancelLabel}
+            </Button>
+          ) : null}
+        </Inline>
+      </Box>
     </Box>
   );
 }

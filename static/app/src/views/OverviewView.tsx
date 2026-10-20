@@ -23,7 +23,6 @@ import {
   Empty,
   ErrorState,
   LinkButton,
-  Loading,
   Metric,
   PageFrame,
   PageHeader,
@@ -32,7 +31,10 @@ import {
   DividedListItem,
   DividedList,
   SectionHeader,
+  staleNotice,
 } from '../ui';
+import { HeadingPhantom, MetricGridPhantom, Phantom, SkeletonRoot } from '../skeletons';
+import { SkeletonTable } from '../skeletonTable';
 
 const SEVERITY_TONE = { high: 'danger', medium: 'warning', low: 'neutral' } as const;
 const SEVERITY_LABEL = { high: 'High', medium: 'Medium', low: 'Low' } as const;
@@ -71,14 +73,17 @@ export function OverviewView() {
       description={meta.description}
       actions={
         <>
-          <Button
-            appearance={ov.data?.snapshot || active ? 'primary' : 'default'}
-            isLoading={take.busy}
-            isDisabled={Boolean(active)}
-            onClick={() => void take.run()}
-          >
-            Take snapshot now
-          </Button>
+          {/* No duplicate CTA: without a snapshot the empty state carries "Take snapshot now". */}
+          {ov.data && !ov.data.snapshot && !active ? null : (
+            <Button
+              appearance="primary"
+              isLoading={take.busy}
+              isDisabled={Boolean(active)}
+              onClick={() => void take.run()}
+            >
+              Take snapshot now
+            </Button>
+          )}
           <Button
             iconBefore={RefreshIcon}
             isLoading={refreshing}
@@ -101,7 +106,31 @@ export function OverviewView() {
   if (!ov.data)
     return (
       <PageFrame header={header}>
-        <Loading />
+        <SkeletonRoot>
+          <HeadingPhantom />
+          <MetricGridPhantom count={5} />
+          <Section
+            title="Risk indicators"
+            description="Signals worth checking in the next review. Select one to see the details."
+          >
+            <SkeletonTable columns={['Severity', 'Indicator', 'Count']} rows={4} />
+          </Section>
+          <Section
+            title="Changes since the previous snapshot"
+            description="Key permissions only. Open Changes for every difference."
+            action={<Phantom width={112} height={32} />}
+          >
+            <MetricGridPhantom count={2} />
+          </Section>
+          <Section
+            title="Access reviews"
+            description="Periodic reviews with sign-off and evidence export."
+            action={<Phantom width={112} height={32} />}
+          >
+            <MetricGridPhantom count={3} />
+          </Section>
+          <Phantom width={320} />
+        </SkeletonRoot>
       </PageFrame>
     );
   const d = ov.data;
@@ -149,7 +178,7 @@ export function OverviewView() {
     ]);
 
   return (
-    <PageFrame header={header}>
+    <PageFrame header={header} notice={staleNotice(ov, 'Overview could not refresh')}>
       <Stack space="space.300">
         {active ? <SnapshotProgress active={active} /> : null}
         {(status.data?.alertCount ?? 0) > 0 ? (
@@ -351,6 +380,7 @@ export function OverviewView() {
             </Stack>
           ) : d.snapshot ? (
             <Empty
+              compact
               title="No reviews yet"
               description="Start a review of the latest snapshot: reviewers mark each access as keep or revoke and sign off."
               action={

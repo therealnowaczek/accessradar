@@ -13,13 +13,15 @@ import {
   FilterBar,
   FilterSelect,
   LinkButton,
-  Loading,
   PageFrame,
   PageHeader,
   Pill,
   DividedListItem,
   DividedList,
+  staleNotice,
 } from '../ui';
+import { DrawerPhantom, FilterBarPhantom, SkeletonRoot } from '../skeletons';
+import { SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
@@ -76,12 +78,20 @@ export function GroupsView() {
 
   const snapshot = list.data?.snapshot ?? null;
   return (
-    <PageFrame header={<PageHeader title={meta.title} description={meta.description} />}>
+    <PageFrame
+      notice={staleNotice(list)}
+      header={<PageHeader title={meta.title} description={meta.description} />}
+    >
       <Stack space="space.300">
         {list.error && !list.data ? (
           <ErrorState title="Groups unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
-          <Loading />
+          <SkeletonRoot>
+            <FilterBarPhantom controls={2} />
+            <SkeletonTable
+              columns={['Group', 'Members', 'Access', 'Spaces reached', 'Direct grants']}
+            />
+          </SkeletonRoot>
         ) : !snapshot ? (
           <NoSnapshot what="where each group reaches" />
         ) : (
@@ -198,7 +208,7 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
   if (!g)
     return (
       <DrawerBody>
-        <Loading compact />
+        <DrawerPhantom />
       </DrawerBody>
     );
   return (

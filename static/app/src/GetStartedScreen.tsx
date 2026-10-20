@@ -13,7 +13,8 @@ import { usePoll, useStatus } from './data';
 import { MODULE_KEYS } from './routes';
 import { useRefresh } from './shared';
 import { ToastProvider } from './Toast';
-import { BrandMark, ErrorState, Loading, PageFrame, PageHeader, Pill } from './ui';
+import { BrandMark, ErrorState, PageFrame, PageHeader, Pill } from './ui';
+import { LinesPhantom, Phantom, SkeletonRoot } from './skeletons';
 
 const contentStyles = xcss({ maxWidth: '35rem' });
 const stepListStyles = xcss({ listStyle: 'none', margin: 'space.0', padding: 'space.0' });
@@ -30,6 +31,8 @@ const stepMarkerStyles = xcss({
   width: '1.75rem',
   paddingBlockStart: 'space.025',
 });
+
+const stepTextStyles = xcss({ flexGrow: 1 });
 
 const openApp = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.main });
 const openConfig = () => void router.navigate({ target: 'module', moduleKey: MODULE_KEYS.config });
@@ -64,11 +67,61 @@ function GetStartedBody() {
   };
   if (status.error)
     return (
-      <PageFrame header={<PageHeader title="Get started with AccessRadar" />}>
+      <PageFrame
+        header={
+          <PageHeader
+            title="Get started with AccessRadar"
+            description="Three steps to your first access review."
+          />
+        }
+      >
         <ErrorState title="Checklist unavailable" message={status.error} retry={status.reload} />
       </PageFrame>
     );
-  if (!status.data) return <Loading />;
+  if (!status.data)
+    return (
+      <PageFrame
+        header={
+          <PageHeader
+            title="Get started with AccessRadar"
+            description="Three steps to your first access review."
+          />
+        }
+      >
+        <Box xcss={contentStyles}>
+          <SkeletonRoot>
+            <Inline space="space.200" alignBlock="center">
+              <BrandMark size={56} />
+              <Stack space="space.050">
+                <Heading size="medium" as="h2">
+                  AccessRadar
+                </Heading>
+                <Text as="p" color="color.text.subtle">
+                  Who has access to what in Jira, why, and what changed. Read-only.
+                </Text>
+              </Stack>
+            </Inline>
+            <Stack space="space.200">
+              <Phantom height={6} radius="full" />
+              <Phantom width={160} />
+            </Stack>
+            <Stack space="space.300">
+              {[1, 2, 3].map((n) => (
+                <Inline key={n} space="space.200" alignBlock="start">
+                  <Phantom width={24} height={24} radius="full" />
+                  <Box xcss={stepTextStyles}>
+                    <Stack space="space.100">
+                      <Phantom width="45%" height={16} />
+                      <LinesPhantom lines={2} />
+                    </Stack>
+                  </Box>
+                </Inline>
+              ))}
+            </Stack>
+          </SkeletonRoot>
+        </Box>
+      </PageFrame>
+    );
   const steps = [
     {
       id: 'install',

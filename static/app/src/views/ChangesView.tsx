@@ -18,14 +18,15 @@ import {
   PageFrame,
   PageHeader,
   PageScroll,
-  PageTabBar,
   PageTabs,
   Pill,
-  TableSkeleton,
   ToggleField,
   WrapAnywhere,
   PagePinned,
+  staleNotice,
 } from '../ui';
+import { FilterBarPhantom, Phantom, SkeletonRoot } from '../skeletons';
+import { SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
 const ALL: Opt = { label: 'All', value: '' };
@@ -130,6 +131,8 @@ export function ChangesView() {
   const exporter = useExporter();
   const d = r.data;
   const tabbed = Boolean(d?.a && d?.b);
+  // While loading, two or more snapshots mean the page will open with tabs: mirror that.
+  const tabbedSkeleton = !d && !r.error && (snaps.data?.snapshots.length ?? 0) >= 2;
 
   const options = useMemo(() => {
     const projects = new Map<string, string>();
@@ -172,7 +175,7 @@ export function ChangesView() {
 
   const header = (
     <PageHeader
-      flush={tabbed}
+      flush={tabbed || tabbedSkeleton}
       title={meta.title}
       description={meta.description}
       actions={
@@ -218,15 +221,47 @@ export function ChangesView() {
     </FilterBar>
   );
 
+  if (tabbedSkeleton) {
+    return (
+      <PageFrame header={header} fixed>
+        <PagePinned>
+          {pickers}
+          <Phantom width={360} />
+        </PagePinned>
+        <PageTabs>
+          <Tabs id="changes-tabs">
+            <TabList>
+              <Tab>Granted</Tab>
+              <Tab>Revoked</Tab>
+              <Tab>Groups</Tab>
+              <Tab>Schemes & roles</Tab>
+              <Tab>People</Tab>
+            </TabList>
+            <TabPanel>
+              <PageScroll>
+                <SkeletonRoot>
+                  <FilterBarPhantom controls={4} />
+                  <SkeletonTable columns={['Space', 'Who', 'Permission', 'Why']} />
+                </SkeletonRoot>
+              </PageScroll>
+            </TabPanel>
+          </Tabs>
+        </PageTabs>
+      </PageFrame>
+    );
+  }
+
   if (!tabbed) {
     return (
-      <PageFrame header={header}>
+      <PageFrame notice={staleNotice(r)} header={header}>
         <Stack space="space.300">
           {pickers}
           {r.error && !d ? (
             <ErrorState title="Changes unavailable" message={r.error} retry={r.reload} />
           ) : !d ? (
-            <TableSkeleton />
+            <SkeletonRoot>
+              <SkeletonTable columns={['Space', 'Who', 'Permission', 'Why']} />
+            </SkeletonRoot>
           ) : !d.b ? (
             <NoSnapshot what="what changed" />
           ) : (
@@ -282,7 +317,7 @@ export function ChangesView() {
   const peopleFacts = facts.filter((f) => f.category === 'people');
 
   return (
-    <PageFrame header={header} fixed>
+    <PageFrame notice={staleNotice(r)} header={header} fixed>
       <PagePinned>
         {pickers}
         <Text as="p" color="color.text.subtle">
@@ -294,15 +329,13 @@ export function ChangesView() {
       </PagePinned>
       <PageTabs>
         <Tabs id="changes-tabs">
-          <PageTabBar>
-            <TabList>
-              <Tab>Granted ({granted.length})</Tab>
-              <Tab>Revoked ({revoked.length})</Tab>
-              <Tab>Groups ({groupFacts.length})</Tab>
-              <Tab>Schemes & roles ({schemeFacts.length})</Tab>
-              <Tab>People ({peopleFacts.length})</Tab>
-            </TabList>
-          </PageTabBar>
+          <TabList>
+            <Tab>Granted ({granted.length})</Tab>
+            <Tab>Revoked ({revoked.length})</Tab>
+            <Tab>Groups ({groupFacts.length})</Tab>
+            <Tab>Schemes & roles ({schemeFacts.length})</Tab>
+            <Tab>People ({peopleFacts.length})</Tab>
+          </TabList>
           {panel(<AccessTable rows={granted} empty="No access was granted." />, true)}
           {panel(<AccessTable rows={revoked} empty="No access was revoked." />, true)}
           {panel(<FactTable rows={groupFacts} />)}

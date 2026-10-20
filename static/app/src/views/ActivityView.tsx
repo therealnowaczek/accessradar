@@ -6,18 +6,25 @@ import { useCall } from '../data';
 import { activityDetail, activityLabel, activityTarget } from '../activity';
 import { formatLocal, formatUtc } from '../format';
 import { navItem } from '../routes';
-import { Empty, ErrorState, Loading, PageFrame, PageHeader, WrapAnywhere } from '../ui';
+import { Empty, ErrorState, PageFrame, PageHeader, staleNotice, WrapAnywhere } from '../ui';
+import { SkeletonRoot } from '../skeletons';
+import { SkeletonTable } from '../skeletonTable';
 
 export function ActivityView() {
   const meta = navItem('activity');
   const r = useCall<{ events: ActivityEvent[] }>('getActivity');
   return (
-    <PageFrame header={<PageHeader title={meta.title} description={meta.description} />}>
+    <PageFrame
+      header={<PageHeader title={meta.title} description={meta.description} />}
+      notice={staleNotice(r, 'Activity could not refresh')}
+    >
       <Stack space="space.300">
         {r.error && !r.data ? (
           <ErrorState title="Activity unavailable" message={r.error} retry={r.reload} />
         ) : !r.data ? (
-          <Loading />
+          <SkeletonRoot>
+            <SkeletonTable columns={['When', 'Who', 'What', 'Detail']} rows={8} />
+          </SkeletonRoot>
         ) : !r.data.events.length ? (
           <Empty
             title="No activity yet"

@@ -21,7 +21,9 @@ import {
   useSnapshots,
   useTakeSnapshot,
 } from '../shared';
-import { Details, Empty, ErrorState, LinkButton, Loading, PageFrame, PageHeader } from '../ui';
+import { Details, Empty, ErrorState, LinkButton, PageFrame, PageHeader, staleNotice } from '../ui';
+import { DrawerPhantom, SkeletonRoot } from '../skeletons';
+import { SkeletonTable } from '../skeletonTable';
 
 const STAT_LABEL: Record<string, string> = {
   project: 'Spaces',
@@ -84,14 +86,17 @@ export function SnapshotsView() {
       description={meta.description}
       actions={
         <>
-          <Button
-            appearance={list.length || active ? 'primary' : 'default'}
-            isLoading={take.busy}
-            isDisabled={Boolean(active)}
-            onClick={() => void take.run()}
-          >
-            Take snapshot now
-          </Button>
+          {/* No duplicate CTA: with no snapshots the empty state carries "Take snapshot now". */}
+          {snaps.data && !list.length && !active ? null : (
+            <Button
+              appearance="primary"
+              isLoading={take.busy}
+              isDisabled={Boolean(active)}
+              onClick={() => void take.run()}
+            >
+              Take snapshot now
+            </Button>
+          )}
           <Button
             iconBefore={RefreshIcon}
             isLoading={refreshing}
@@ -105,13 +110,17 @@ export function SnapshotsView() {
     />
   );
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(snaps)} header={header}>
       <Stack space="space.300">
         {active ? <SnapshotProgress active={active} /> : null}
         {snaps.error && !snaps.data ? (
           <ErrorState title="Snapshots unavailable" message={snaps.error} retry={snaps.reload} />
         ) : !snaps.data ? (
-          <Loading />
+          <SkeletonRoot>
+            <SkeletonTable
+              columns={['Snapshot', 'Status', 'Trigger', 'Duration', 'Contents', 'API cost']}
+            />
+          </SkeletonRoot>
         ) : !list.length ? (
           <Empty
             title="No snapshots yet"
@@ -206,7 +215,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
   if (!s)
     return (
       <DrawerBody>
-        <Loading compact />
+        <DrawerPhantom />
       </DrawerBody>
     );
   const committed = s.status === 'complete' || s.status === 'partial';

@@ -13,14 +13,16 @@ import { useToast } from '../Toast';
 import {
   Empty,
   ErrorState,
-  Loading,
   Metric,
   PageFrame,
   PageHeader,
   Pill,
   PlanNote,
   MetricGrid,
+  staleNotice,
 } from '../ui';
+import { MetricGridPhantom, Phantom, SkeletonRoot } from '../skeletons';
+import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Notice = {
   id: number;
@@ -133,12 +135,16 @@ export function ProjectReviewView() {
   if (!d)
     return (
       <PageFrame header={header}>
-        <Loading />
+        <SkeletonRoot>
+          <Phantom height={72} />
+          <MetricGridPhantom count={4} hints={false} />
+          <SkeletonTable columns={['Who', 'Permissions', 'Decision', <ActionsHeader key="a" />]} />
+        </SkeletonRoot>
       </PageFrame>
     );
 
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(mine)} header={header}>
       <Stack space="space.300">
         {(d.notices ?? []).map((n) => (
           <SectionMessage
@@ -223,7 +229,7 @@ export function ProjectReviewView() {
                   { key: 'who', content: 'Who' },
                   { key: 'perm', content: 'Permissions' },
                   { key: 'decision', content: 'Decision' },
-                  { key: 'actions', content: '' },
+                  { key: 'actions', content: <ActionsHeader /> },
                 ],
               }}
               rows={decidable.map((i) => ({

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Inline, Stack, Text } from '@atlaskit/primitives';
+import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
@@ -31,7 +31,6 @@ import {
   Details,
   ErrorState,
   FormField,
-  Loading,
   PageFrame,
   PageHeader,
   Pill,
@@ -40,7 +39,9 @@ import {
   ToggleField,
   DividedListItem,
   DividedList,
+  staleNotice,
 } from '../ui';
+import { DetailsPhantom, Phantom, SkeletonRoot } from '../skeletons';
 import { SpikePanel } from './SpikePanel';
 
 type Opt<T = string> = { label: string; value: T };
@@ -76,10 +77,13 @@ function EditForm({
   children,
   onSave,
   onCancel,
+  dirty,
 }: {
   children: ReactNode;
   onSave: () => Promise<void>;
   onCancel: () => void;
+  /** Save stays disabled until something changed (R-9.3). */
+  dirty: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -99,6 +103,7 @@ function EditForm({
         <Button
           appearance="primary"
           isLoading={busy}
+          isDisabled={!dirty}
           onClick={async () => {
             setBusy(true);
             setError('');
@@ -172,7 +177,11 @@ function ScheduleForm({
   }));
   const days: Opt<number>[] = WEEKDAYS.map((label, i) => ({ label, value: i + 1 }));
   return (
-    <EditForm onCancel={cancel} onSave={() => save({ frequency, hourUtc, weekday })}>
+    <EditForm
+      dirty={frequency !== s.frequency || hourUtc !== s.hourUtc || weekday !== s.weekday}
+      onCancel={cancel}
+      onSave={() => save({ frequency, hourUtc, weekday })}
+    >
       <RadioField label="Frequency">
         <RadioGroup
           value={frequency}
@@ -232,6 +241,7 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
   );
   return (
     <EditForm
+      dirty={value.map((o) => o.value).join() !== s.keyPermissions.join()}
       onCancel={cancel}
       onSave={() =>
         value.length
@@ -272,7 +282,11 @@ function RetentionForm({
   const [days, setDays] = useState(s.retentionDays);
   const max = advanced ? 3650 : 90;
   return (
-    <EditForm onCancel={cancel} onSave={() => save({ retentionDays: days })}>
+    <EditForm
+      dirty={days !== s.retentionDays}
+      onCancel={cancel}
+      onSave={() => save({ retentionDays: days })}
+    >
       <NumberField
         label="Keep snapshots for (days)"
         value={days}
@@ -293,6 +307,11 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
   const [fallback, setFallback] = useState(v.fallbackEnabled);
   return (
     <EditForm
+      dirty={
+        groupMembers !== s.groupMembers ||
+        budget !== s.hourlyPointBudget ||
+        fallback !== v.fallbackEnabled
+      }
       onCancel={cancel}
       onSave={() =>
         save(
@@ -343,6 +362,11 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
   const [apps, setApps] = useState(s.showAppAccounts);
   return (
     <EditForm
+      dirty={
+        large !== s.largeGroupThreshold ||
+        wide !== s.wideAdminProjects ||
+        apps !== s.showAppAccounts
+      }
       onCancel={cancel}
       onSave={() =>
         save({ largeGroupThreshold: large, wideAdminProjects: wide, showAppAccounts: apps })
@@ -376,7 +400,11 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
 function ReviewsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () => void }) {
   const [requireKeepNote, setRequireKeepNote] = useState(s.requireKeepNote);
   return (
-    <EditForm onCancel={cancel} onSave={() => save({ requireKeepNote })}>
+    <EditForm
+      dirty={requireKeepNote !== s.requireKeepNote}
+      onCancel={cancel}
+      onSave={() => save({ requireKeepNote })}
+    >
       <ToggleField
         label="Require justification when keeping access"
         isChecked={requireKeepNote}
@@ -405,7 +433,11 @@ function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () 
   };
   const [alerts, setAlerts] = useState(base);
   return (
-    <EditForm onCancel={cancel} onSave={() => save({ alerts })}>
+    <EditForm
+      dirty={JSON.stringify(alerts) !== JSON.stringify(base)}
+      onCancel={cancel}
+      onSave={() => save({ alerts })}
+    >
       <Text as="p" color="color.text.subtle">
         Alerts are evaluated when a snapshot commits (Advanced). Delivery is in-app only — no email.
       </Text>
@@ -420,6 +452,32 @@ function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () 
     </EditForm>
   );
 }
+
+/** Section titles and terms of the Settings page, shared by the page and its skeleton. */
+const SETTINGS_SECTIONS: Array<[string, string, string[]]> = [
+  [
+    'Snapshot schedule',
+    'How often AccessRadar records the access picture of this site.',
+    ['Schedule'],
+  ],
+  ['Key permissions', 'Permissions highlighted in reviews, change reports and exports.', []],
+  ['Retention', 'How long snapshots are kept.', ['Snapshots', 'Signed reviews']],
+  [
+    'Collection',
+    'What the collector reads and how much API quota it may use.',
+    ['Group members', 'API budget', 'Admin fallback'],
+  ],
+  [
+    'Risk indicators',
+    'Thresholds for the Overview signals.',
+    ['Large group', 'Admin of many spaces', 'App accounts'],
+  ],
+  [
+    'Reviews',
+    'Justification rules for access decisions.',
+    ['Keep justification', 'Revoke / exception'],
+  ],
+];
 
 export function SettingsView() {
   const { status } = useApp();
@@ -444,12 +502,37 @@ export function SettingsView() {
   const s = v?.settings;
 
   return (
-    <PageFrame header={<PageHeader title={meta.title} description={meta.description} />}>
+    <PageFrame
+      header={<PageHeader title={meta.title} description={meta.description} />}
+      notice={staleNotice(r, 'Settings could not refresh')}
+    >
       <Stack space="space.300">
         {r.error && !v ? (
           <ErrorState title="Settings unavailable" message={r.error} retry={r.reload} />
         ) : !v || !s ? (
-          <Loading />
+          <SkeletonRoot>
+            <Section title="Edition" description="Which AccessRadar features this site can use.">
+              <DetailsPhantom terms={['Edition', 'Advanced']} />
+            </Section>
+            {SETTINGS_SECTIONS.map(([title, description, terms]) => (
+              <Section
+                key={title}
+                title={title}
+                description={description}
+                action={<Phantom width={48} height={32} />}
+              >
+                {terms.length ? (
+                  <DetailsPhantom terms={terms} />
+                ) : (
+                  <Inline space="space.050" shouldWrap>
+                    {[96, 120, 88, 140].map((w) => (
+                      <Phantom key={w} width={w} height={16} />
+                    ))}
+                  </Inline>
+                )}
+              </Section>
+            ))}
+          </SkeletonRoot>
         ) : (
           <>
             {!s.saved ? (
@@ -741,6 +824,9 @@ const SOURCE_TEXT: Record<EditionView['source'], string> = {
   development: 'Development site (no license): Advanced',
 };
 
+/** Control inside a Details row (R-9.6): at most 280px wide. */
+const detailsControlStyles = xcss({ maxWidth: '17.5rem' });
+
 function EditionSection({ edition, onChanged }: { edition: EditionView; onChanged: () => void }) {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
@@ -775,15 +861,19 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
   if (edition.canOverride === true) {
     rows.push([
       'Override',
-      <Select
-        menuPosition="fixed"
-        key="o"
-        inputId="edition-override"
-        isDisabled={busy || edition.envOverride}
-        options={options}
-        value={options.find((o) => o.value === (edition.override ?? '')) ?? options[0]}
-        onChange={(o) => void change((o as Opt<string> | null)?.value ?? '')}
-      />,
+      // Development and staging only (canOverride); stored in KVS by setEditionOverride.
+      <Box key="o" xcss={detailsControlStyles}>
+        <Select
+          menuPosition="fixed"
+          inputId="edition-override"
+          aria-label="Edition override"
+          isSearchable={false}
+          isDisabled={busy || edition.envOverride}
+          options={options}
+          value={options.find((o) => o.value === (edition.override ?? '')) ?? options[0]}
+          onChange={(o) => void change((o as Opt<string> | null)?.value ?? '')}
+        />
+      </Box>,
     ]);
   }
   rows.push([

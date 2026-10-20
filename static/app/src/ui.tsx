@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { Component, useId, type ReactNode } from 'react';
 import LinkStyleButton from '@atlaskit/button/standard-button';
 import EmptyState from '@atlaskit/empty-state';
 import { HelperMessage, Label } from '@atlaskit/form';
@@ -6,14 +6,11 @@ import Heading from '@atlaskit/heading';
 import LockIcon from '@atlaskit/icon/core/lock-locked';
 import Lozenge from '@atlaskit/lozenge';
 import AtlaskitPageHeader from '@atlaskit/page-header';
-import { Box, Grid, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
+import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
-import Skeleton from '@atlaskit/skeleton';
-import Spinner from '@atlaskit/spinner';
 import Toggle from '@atlaskit/toggle';
 import { DatePicker } from '@atlaskit/datetime-picker';
-import { token } from '@atlaskit/tokens';
 import { DATE_PICKER_FORMAT, parseDateInput } from './format';
 import { t } from './i18n';
 
@@ -56,41 +53,80 @@ export function SplitLayout({
  */
 export function PageFrame({
   header,
+  notice,
   children,
   fixed = false,
 }: {
   header: ReactNode;
+  /** Pinned under the header (e.g. a refresh error while the old data stays on screen). */
+  notice?: ReactNode;
   children: ReactNode;
   fixed?: boolean;
 }) {
   return (
     <div className="page-frame">
       {header}
+      {notice ? <div className="page-notice">{notice}</div> : null}
       <main className={fixed ? 'page-fixed' : 'page-scroll'}>{children}</main>
     </div>
   );
 }
 
-/** Scrolling area for one tab panel. Always wrap panel content in this (ADS TabPanel is a flex row). */
+/** Refresh failed but data from the last load is still shown: a pinned notice with retry (R-10.13). */
+export function staleNotice(
+  load: { data?: unknown; error?: string; reload: () => unknown },
+  title = 'Could not refresh',
+) {
+  return load.error && load.data ? (
+    <ErrorState title={title} message={load.error} retry={() => void load.reload()} />
+  ) : undefined;
+}
+
+/** Keeps a failing tab panel from blanking the whole page: the error and a retry, inside the panel. */
+export class PanelErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: string | null }
+> {
+  state = { error: null as string | null };
+
+  static getDerivedStateFromError(error: unknown) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+
+  render() {
+    if (this.state.error === null) return this.props.children;
+    return (
+      <ErrorState
+        title="This tab could not be shown"
+        message={this.state.error}
+        retry={() => this.setState({ error: null })}
+      />
+    );
+  }
+}
+
+/**
+ * Scrolling area for one tab panel, with its own error boundary. Always wrap panel content in
+ * this (ADS TabPanel is a flex row).
+ */
 export function PageScroll({ children }: { children: ReactNode }) {
   return (
     <div className="page-scroll">
-      <Stack space="space.300">{children}</Stack>
+      <PanelErrorBoundary>
+        <Stack space="space.300">{children}</Stack>
+      </PanelErrorBoundary>
     </div>
   );
 }
 
 /**
  * Page with tabs (use inside `PageFrame fixed` with `PageHeader flush`):
- * `<PageTabs><Tabs><PageTabBar><TabList>…</TabList></PageTabBar><TabPanel><PageScroll>…</PageScroll></TabPanel></Tabs></PageTabs>`.
+ * `<PageTabs><Tabs><TabList>…</TabList><TabPanel><PageScroll>…</PageScroll></TabPanel></Tabs></PageTabs>`.
+ * TabList is the first direct child of Tabs (Atlaskit contract); styles.css pins it and adds the
+ * fade under its line.
  */
 export function PageTabs({ children }: { children: ReactNode }) {
   return <div className="page-tabs">{children}</div>;
-}
-
-/** Pinned tab bar. It replaces the header separator and fades the content out underneath. */
-export function PageTabBar({ children }: { children: ReactNode }) {
-  return <div className="page-tabs-bar">{children}</div>;
 }
 
 /** Content pinned between the page header and the tab bar (pickers, a summary line). */
@@ -183,13 +219,9 @@ export function SectionHeader({
   );
 }
 
-/** KPI tiles: equal height, as many per row as fit (ADS Grid). */
+/** KPI tiles: 4 per row, 2 at ≤900px, 1 at ≤520px (layout glue in styles.css, R-8.1). */
 export function MetricGrid({ children }: { children: ReactNode }) {
-  return (
-    <Grid gap="space.150" templateColumns="repeat(auto-fit, minmax(10rem, 1fr))">
-      {children}
-    </Grid>
-  );
+  return <div className="metric-grid">{children}</div>;
 }
 
 const metricStyles = xcss({
@@ -203,10 +235,15 @@ const metricStyles = xcss({
   overflowWrap: 'anywhere',
 });
 
+/** The KPI tile surface (shared by Metric and its skeleton). */
+export function MetricTile({ children }: { children: ReactNode }) {
+  return <Box xcss={metricStyles}>{children}</Box>;
+}
+
 /** One KPI tile: ADS Box on the raised surface with label, value (Heading) and hint. */
 export function Metric({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
-    <Box xcss={metricStyles}>
+    <MetricTile>
       <Stack space="space.050">
         <Text size="small" color="color.text.subtle">
           {label}
@@ -220,47 +257,7 @@ export function Metric({ label, value, hint }: { label: string; value: ReactNode
           </Text>
         ) : null}
       </Stack>
-    </Box>
-  );
-}
-
-const loadingStyles = xcss({
-  display: 'grid',
-  placeItems: 'center',
-  minHeight: '15rem',
-});
-const compactLoadingStyles = xcss({ minHeight: '10rem' });
-
-export function Loading({ compact = false }: { compact?: boolean }) {
-  return (
-    <Box xcss={[loadingStyles, compact && compactLoadingStyles]}>
-      <Spinner size="large" label="Loading" />
-    </Box>
-  );
-}
-
-/** Table-shaped loading placeholder (ADS Skeleton rows) for list pages whose data takes a few seconds. */
-export function TableSkeleton({ rows = 6 }: { rows?: number }) {
-  return (
-    <Box role="status" aria-live="polite" aria-label="Loading">
-      <Stack space="space.150">
-        <Skeleton
-          width="100%"
-          height={token('space.300')}
-          borderRadius={token('radius.small')}
-          isShimmering
-        />
-        {Array.from({ length: rows }, (_, i) => (
-          <Skeleton
-            key={i}
-            width={i % 2 ? '100%' : '92%'}
-            height={token('space.200')}
-            borderRadius={token('radius.small')}
-            isShimmering
-          />
-        ))}
-      </Stack>
-    </Box>
+    </MetricTile>
   );
 }
 
@@ -312,18 +309,27 @@ export function ErrorState({
   );
 }
 
-/** ADS empty state; always offers a next step. */
+/** ADS empty state: title, one sentence, at most one CTA. `compact` inside cards, drawers and tables. */
 export function Empty({
   title,
   description,
   action,
+  compact = false,
 }: {
   title: string;
   description: string;
   action: ReactNode;
+  compact?: boolean;
 }) {
   return (
-    <EmptyState header={title} headingLevel={2} description={description} primaryAction={action} />
+    <EmptyState
+      header={title}
+      headingLevel={compact ? 3 : 2}
+      headingSize={compact ? 'xsmall' : 'medium'}
+      width="narrow"
+      description={description}
+      primaryAction={action}
+    />
   );
 }
 

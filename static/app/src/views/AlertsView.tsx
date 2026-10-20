@@ -14,13 +14,15 @@ import {
   FilterBar,
   FilterSelect,
   LinkButton,
-  Loading,
   PageFrame,
   PageHeader,
   Pill,
   PlanNote,
   NoWrap,
+  staleNotice,
 } from '../ui';
+import { FilterBarPhantom, SkeletonRoot } from '../skeletons';
+import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type AlertRow = {
   id: number;
@@ -78,7 +80,12 @@ export function AlertsView() {
   if (!list.data)
     return (
       <PageFrame header={header}>
-        <Loading />
+        <SkeletonRoot>
+          <FilterBarPhantom controls={1} />
+          <SkeletonTable
+            columns={['Severity', 'Rule', 'Alert', 'When', 'Snapshot', <ActionsHeader key="a" />]}
+          />
+        </SkeletonRoot>
       </PageFrame>
     );
 
@@ -98,7 +105,7 @@ export function AlertsView() {
   };
 
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(list)} header={header}>
       <Stack space="space.300">
         <FilterBar>
           <FilterSelect
@@ -124,7 +131,7 @@ export function AlertsView() {
                 { key: 'title', content: 'Alert' },
                 { key: 'when', content: 'When' },
                 { key: 'snap', content: 'Snapshot' },
-                { key: 'act', content: '' },
+                { key: 'act', content: <ActionsHeader /> },
               ],
             }}
             rows={items.map((a) => ({

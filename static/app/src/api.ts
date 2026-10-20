@@ -11,8 +11,16 @@ export async function call<T>(key: string, payload: Record<string, unknown> = {}
   return r.data;
 }
 
-export const errorText = (e: unknown) =>
+const rawErrorText = (e: unknown) =>
   e instanceof Error ? e.message : typeof e === 'string' ? e : 'Something went wrong.';
+
+/** User-facing error text; the generic Forge payload message is never shown as-is (R-9.5). */
+export const errorText = (e: unknown) => {
+  const text = rawErrorText(e);
+  return /request payload is not valid/i.test(text)
+    ? 'Some values are not valid. Check the fields and try again.'
+    : text;
+};
 
 // ---------- shared types (mirror src/api) ----------
 export type SnapshotStatus = 'queued' | 'running' | 'complete' | 'partial' | 'failed';

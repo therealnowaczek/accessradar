@@ -61,7 +61,6 @@ import {
   FilterSelect,
   FormField,
   LinkButton,
-  Loading,
   Metric,
   PageFrame,
   PageHeader,
@@ -72,7 +71,17 @@ import {
   WrapAnywhere,
   MetricGrid,
   PathList,
+  staleNotice,
 } from '../ui';
+import {
+  DetailsPhantom,
+  FilterBarPhantom,
+  LinesPhantom,
+  MetricGridPhantom,
+  Phantom,
+  SkeletonRoot,
+} from '../skeletons';
+import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 const STATUS: Record<ReviewSummary['status'], [string, 'neutral' | 'info' | 'success']> = {
   draft: ['Draft', 'neutral'],
@@ -129,9 +138,12 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
       description={meta.description}
       actions={
         <>
-          <Button appearance="primary" isDisabled={!hasSnapshot} onClick={openCreate}>
-            Start a review
-          </Button>
+          {/* No duplicate CTA: an empty list carries "Start a review" in its empty state. */}
+          {list.data && !reviews.length ? null : (
+            <Button appearance="primary" isDisabled={!hasSnapshot} onClick={openCreate}>
+              Start a review
+            </Button>
+          )}
           {hasChained ? (
             <Button appearance="subtle" onClick={openVerifyChain}>
               Verify chain
@@ -142,12 +154,16 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
     />
   );
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(list)} header={header}>
       <Stack space="space.300">
         {list.error && !list.data ? (
           <ErrorState title="Reviews unavailable" message={list.error} retry={list.reload} />
         ) : !list.data || (status.loading && !status.data) ? (
-          <Loading />
+          <SkeletonRoot>
+            <SkeletonTable
+              columns={['Review', 'Status', 'Chain #', 'Decided', 'Revoke', 'Due', 'Signed']}
+            />
+          </SkeletonRoot>
         ) : !hasSnapshot && !reviews.length ? (
           <NoSnapshot what="and review access" />
         ) : !reviews.length ? (
@@ -684,12 +700,18 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   if (!d)
     return (
       <PageFrame header={header}>
-        <Loading />
+        <SkeletonRoot>
+          <MetricGridPhantom count={4} />
+          <FilterBarPhantom controls={3} />
+          <SkeletonTable
+            columns={['Who', 'Where', 'Access', 'Why', 'Decision', <ActionsHeader key="a" />]}
+          />
+        </SkeletonRoot>
       </PageFrame>
     );
   const filteredOpen = items.filter((i) => i.change !== 'removed').map((i) => i.idx);
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(r)} header={header}>
       <Stack space="space.300">
         {signed ? (
           <SectionMessage
@@ -803,7 +825,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               { key: 'access', content: 'Access' },
               { key: 'why', content: 'Why' },
               { key: 'decision', content: 'Decision', isSortable: true },
-              { key: 'actions', content: '' },
+              { key: 'actions', content: <ActionsHeader /> },
             ],
           }}
           rows={items.map((i) => ({
@@ -1162,7 +1184,10 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
   if (!rem.data && !rem.error) {
     return (
       <Section title="Remediation" description={description}>
-        <Loading compact />
+        <SkeletonRoot>
+          <Phantom height={8} radius="full" />
+          <SkeletonTable columns={['Subject', 'Where', 'Access', 'Status']} rows={3} />
+        </SkeletonRoot>
       </Section>
     );
   }
@@ -1286,7 +1311,10 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
             <Text as="p">{error}</Text>
           </SectionMessage>
         ) : busy || !result ? (
-          <Loading />
+          <SkeletonRoot>
+            <Phantom width={120} height={16} />
+            <LinesPhantom lines={3} />
+          </SkeletonRoot>
         ) : (
           <Stack space="space.200">
             <Pill tone={result.ok ? 'success' : 'danger'}>
@@ -1438,7 +1466,10 @@ function VerifyDrawer({
               <Text as="p">{sigError}</Text>
             </SectionMessage>
           ) : !sig ? (
-            <Loading />
+            <SkeletonRoot>
+              <Phantom width={80} height={16} />
+              <DetailsPhantom terms={['Signature version', 'Stored hash', 'Recomputed']} />
+            </SkeletonRoot>
           ) : (
             <Stack space="space.200">
               <Pill tone={sig.ok ? 'success' : 'danger'}>{sig.ok ? 'Verified' : 'Mismatch'}</Pill>

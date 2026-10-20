@@ -40,10 +40,12 @@ import {
   PageFrame,
   PageHeader,
   Pill,
-  TableSkeleton,
   ToggleField,
   NoWrap,
+  staleNotice,
 } from '../ui';
+import { FilterBarPhantom, SkeletonRoot } from '../skeletons';
+import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
@@ -111,12 +113,24 @@ export function ProjectsView() {
     />
   );
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(list)} header={header}>
       <Stack space="space.300">
         {list.error && !list.data ? (
           <ErrorState title="Spaces unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
-          <TableSkeleton />
+          <SkeletonRoot>
+            <FilterBarPhantom controls={3} />
+            <SkeletonTable
+              columns={[
+                'Space',
+                'Type',
+                'Permission scheme',
+                'People with access',
+                'Space admins (people)',
+                'Flags',
+              ]}
+            />
+          </SkeletonRoot>
         ) : !snapshot ? (
           <NoSnapshot what="who has access to each space" />
         ) : (
@@ -324,12 +338,17 @@ function ProjectDetail({
     />
   );
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(detail)} header={header}>
       <Stack space="space.300">
         {detail.error && !detail.data ? (
           <ErrorState title="Space unavailable" message={detail.error} retry={detail.reload} />
         ) : !d ? (
-          <TableSkeleton />
+          <SkeletonRoot>
+            <FilterBarPhantom controls={2} />
+            <SkeletonTable
+              columns={['Who', 'All permissions', 'Through', <ActionsHeader key="w" label="Why" />]}
+            />
+          </SkeletonRoot>
         ) : (
           <>
             <PartialBanner snapshot={detail.data?.snapshot ?? null} />
@@ -348,7 +367,7 @@ function ProjectDetail({
                   ...keyPerms.map((perm) => ({ key: perm, content: permissionLabel(perm) })),
                   { key: 'all', content: 'All permissions', isSortable: true },
                   { key: 'via', content: 'Through' },
-                  { key: 'why', content: '' },
+                  { key: 'why', content: <ActionsHeader label="Why" /> },
                 ],
               }}
               rows={rows.map((r) => {

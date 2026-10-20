@@ -11,12 +11,14 @@ import {
   FilterBar,
   FilterSelect,
   LinkButton,
-  Loading,
   PageFrame,
   PageHeader,
   Pill,
   NoWrap,
+  staleNotice,
 } from '../ui';
+import { FilterBarPhantom, SkeletonRoot } from '../skeletons';
+import { SkeletonTable } from '../skeletonTable';
 
 type ExceptionRow = {
   id: string;
@@ -72,13 +74,26 @@ export function ExceptionsView() {
   if (!list.data)
     return (
       <PageFrame header={header}>
-        <Loading />
+        <SkeletonRoot>
+          <FilterBarPhantom controls={1} />
+          <SkeletonTable
+            columns={[
+              'Subject',
+              'Space/Group',
+              'Permissions',
+              'Justification',
+              'Expires',
+              'Granted by',
+              'Review',
+            ]}
+          />
+        </SkeletonRoot>
       </PageFrame>
     );
 
   const items = list.data.items;
   return (
-    <PageFrame header={header}>
+    <PageFrame notice={staleNotice(list)} header={header}>
       <Stack space="space.300">
         <FilterBar>
           <FilterSelect
@@ -141,6 +156,7 @@ export function ExceptionsView() {
             defaultPage={1}
             emptyView={
               <Empty
+                compact
                 title="No exceptions"
                 description="Nothing matches this filter."
                 action={null}
