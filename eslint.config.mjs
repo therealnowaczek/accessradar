@@ -18,6 +18,26 @@ export default tseslint.config(
     plugins: { 'react-hooks': reactHooks },
     languageOptions: { globals: { ...globals.browser } },
     rules: {
+      // Radrly layout standard R-0.3 / R-2.2: no @atlaskit/css (cssMap breaks in Vite without the
+      // Compiled plugin) and no deprecated @atlaskit/side-navigation.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: '@atlaskit/css', message: 'Use xcss from @atlaskit/primitives.' },
+            {
+              name: '@atlaskit/side-navigation',
+              message: 'Use @atlaskit/navigation-system + @atlaskit/side-nav-items.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['@atlaskit/side-navigation/*'],
+              message: 'Use @atlaskit/navigation-system + @atlaskit/side-nav-items.',
+            },
+          ],
+        },
+      ],
       ...reactHooks.configs.recommended.rules,
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/exhaustive-deps': 'off',
@@ -49,9 +69,14 @@ export default tseslint.config(
       '@atlaskit/design-system/no-html-image': 'error',
       '@atlaskit/design-system/no-html-range': 'error',
       '@atlaskit/design-system/use-primitives-text': 'error',
-      // @atlaskit/side-navigation is still an ADS package but flagged for the Nav 4 migration
-      // (@atlaskit/navigation-system); keep it visible as a warning until that migration.
-      '@atlaskit/design-system/no-deprecated-imports': 'warn',
+      // Blocks deprecated ADS packages, e.g. @atlaskit/side-navigation (the sidebar is built on
+      // @atlaskit/navigation-system + @atlaskit/side-nav-items, Radrly layout standard R-2.2).
+      '@atlaskit/design-system/no-deprecated-imports': 'error',
+      '@atlaskit/design-system/no-deprecated-design-token-usage': 'error',
+      '@atlaskit/design-system/use-visually-hidden': 'error',
+      '@atlaskit/design-system/use-heading': 'error',
+      '@atlaskit/design-system/icon-label': 'error',
+      '@atlaskit/design-system/prefer-primitives': 'error',
     },
   },
   prettier,
