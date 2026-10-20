@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react';
-import {
-  ButtonItem,
-  NavigationContent,
-  NavigationHeader,
-  Section,
-  SideNavigation,
-} from '@atlaskit/side-navigation';
+import { SideNavBody, SideNavHeader } from '@atlaskit/navigation-system/layout/side-nav';
+import { ButtonMenuItem, COLLAPSE_ELEM_BEFORE } from '@atlaskit/side-nav-items/button-menu-item';
+import { MenuList } from '@atlaskit/side-nav-items/menu-list';
+import { MenuSection, MenuSectionHeading } from '@atlaskit/side-nav-items/menu-section';
+import { Stack } from '@atlaskit/primitives';
 import Select from '@atlaskit/select';
 import { useStatus } from './data';
 import type { ForgeContext } from './main';
@@ -93,30 +91,38 @@ function Shell({ context }: { context: ForgeContext }) {
               }}
               isSearchable={false}
               spacing="compact"
+              menuPortalTarget={document.body}
             />
           </>
         }
         sidebar={
-          <SideNavigation label="AccessRadar">
-            <NavigationHeader>
+          <nav aria-label="AccessRadar" className="side-nav">
+            <SideNavHeader>
               <BrandHeader subtitle="Jira access reviews" />
-            </NavigationHeader>
-            <NavigationContent>
-              {NAV.map((group) => (
-                <Section key={group.group} title={group.group}>
-                  {group.items.map((item) => (
-                    <ButtonItem
-                      key={item.id}
-                      isSelected={route.view === item.id}
-                      onClick={() => app.go(item.id)}
-                    >
-                      {label(item.id, item.label)}
-                    </ButtonItem>
-                  ))}
-                </Section>
-              ))}
-            </NavigationContent>
-          </SideNavigation>
+            </SideNavHeader>
+            <SideNavBody>
+              <Stack space="space.150">
+                {NAV.map((group) => (
+                  <MenuSection key={group.group} ariaLabel={group.group}>
+                    <MenuSectionHeading>{group.group}</MenuSectionHeading>
+                    <MenuList>
+                      {group.items.map((item) => (
+                        <ButtonMenuItem
+                          key={item.id}
+                          elemBefore={COLLAPSE_ELEM_BEFORE}
+                          isSelected={route.view === item.id}
+                          aria-current={route.view === item.id ? 'page' : undefined}
+                          onClick={() => app.go(item.id)}
+                        >
+                          {label(item.id, item.label)}
+                        </ButtonMenuItem>
+                      ))}
+                    </MenuList>
+                  </MenuSection>
+                ))}
+              </Stack>
+            </SideNavBody>
+          </nav>
         }
       >
         <View key={`${route.view}-${route.n}`} />
