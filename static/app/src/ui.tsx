@@ -1,10 +1,10 @@
-import { Component, useId, type ReactNode } from 'react';
+import { Component, useEffect, useId, useState, type ReactNode } from 'react';
 import LinkStyleButton from '@atlaskit/button/standard-button';
 import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
 import LockIcon from '@atlaskit/icon/core/lock-locked';
 import Lozenge from '@atlaskit/lozenge';
-import AtlaskitPageHeader from '@atlaskit/page-header';
+import AdsPageHeader from '@atlaskit/page-header';
 import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
@@ -18,6 +18,21 @@ export { BrandHeader, BrandMark } from './brand';
 // Every widget here is an Atlassian Design System component or primitive (Box, Stack, Inline,
 // Grid, Text) styled with ADS tokens. styles.css only holds layout glue for the Forge iframe
 // (pinned header, scroll areas, the ≤768px single-scroll layout).
+
+/** True while the viewport is at most `px` wide. */
+export function useMaxWidth(px: number): boolean {
+  const query = `(max-width: ${px}px)`;
+  const [match, setMatch] = useState(() => window.matchMedia?.(query).matches ?? false);
+  useEffect(() => {
+    const list = window.matchMedia?.(query);
+    if (!list) return;
+    const update = () => setMatch(list.matches);
+    update();
+    list.addEventListener('change', update);
+    return () => list.removeEventListener('change', update);
+  }, [query]);
+  return match;
+}
 
 /**
  * App shell. Wide screens: fixed-width sidebar + content pane. Narrow screens (≤768px, CSS):
@@ -125,9 +140,18 @@ export function PagePinned({ children }: { children: ReactNode }) {
 }
 
 /**
+ * Pull full-width meta up under the title row: cancel ADS title/actions end (space.100) and outer
+ * end (space.200), leaving Stack space.100 between title and description.
+ */
+const pageHeaderTightenStyles = xcss({ marginBlockEnd: 'space.negative.300' });
+/** Restore the AdsPageHeader outer end margin after the tighten pull. */
+const pageHeaderWithMetaStyles = xcss({ paddingBlockEnd: 'space.200' });
+
+/**
  * ADS PageHeader. Put the primary action FIRST in `actions`: ADS PageHeader always places its
  * actions slot at the end of the title row (right-aligned on wide screens), so "primary first"
- * is the reading order inside that group. Description and status sit under the title.
+ * is the reading order inside that group. Status/description are full width under the title row
+ * (not in ADS bottomBar). Below 768px actions move under the meta.
  */
 export function PageHeader({
   title,
@@ -143,27 +167,39 @@ export function PageHeader({
   /** Pages with tabs: the tab bar replaces the separator under the header. */
   flush?: boolean;
 }) {
+  const wide = !useMaxWidth(768);
+  const actionRow = actions ? (
+    <Inline space="space.100" alignBlock="center" shouldWrap>
+      {actions}
+    </Inline>
+  ) : null;
+  const meta =
+    status || description ? (
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        {status}
+        {description ? <Text color="color.text.subtle">{description}</Text> : null}
+      </Inline>
+    ) : null;
+  const header = (
+    <AdsPageHeader actions={wide && actionRow ? actionRow : undefined} disableTitleStyles>
+      <Heading size="large" as="h1">
+        {title}
+      </Heading>
+    </AdsPageHeader>
+  );
   return (
     <header className={flush ? 'page-header is-flush' : 'page-header'}>
-      <AtlaskitPageHeader
-        actions={
-          actions ? (
-            <Inline space="space.100" alignBlock="center" shouldWrap>
-              {actions}
-            </Inline>
-          ) : undefined
-        }
-        bottomBar={
-          description || status ? (
-            <Inline space="space.100" alignBlock="center" shouldWrap>
-              {status}
-              {description ? <Text color="color.text.subtle">{description}</Text> : null}
-            </Inline>
-          ) : undefined
-        }
-      >
-        {title}
-      </AtlaskitPageHeader>
+      {!meta && wide ? (
+        header
+      ) : (
+        <Box xcss={meta ? pageHeaderWithMetaStyles : undefined}>
+          <Stack space="space.100">
+            {meta ? <Box xcss={pageHeaderTightenStyles}>{header}</Box> : header}
+            {meta}
+            {!wide ? actionRow : null}
+          </Stack>
+        </Box>
+      )}
     </header>
   );
 }

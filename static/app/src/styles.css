@@ -308,17 +308,6 @@ div[data-testid='ar-drawer-header']::after {
     overflow-x: auto;
   }
 
-  /* ADS PageHeader keeps title and actions on one row; let the actions wrap under the title. */
-  .page-header > div > div:first-child {
-    flex-wrap: wrap;
-  }
-
-  .page-header > div > div:first-child > div + div {
-    margin-inline-start: 0;
-    padding-inline-start: 0;
-    white-space: normal;
-  }
-
   .page-scroll,
   .page-fixed,
   .page-tabs,
