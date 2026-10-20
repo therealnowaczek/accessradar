@@ -35,7 +35,7 @@ export function AdminNavFull({ view, onChange, label = (_id, text) => text }: Na
           <BrandHeader subtitle={BRAND_SUBTITLE} />
         </SideNavHeader>
         <SideNavBody>
-          <Stack space="space.150">
+          <Stack space="space.200">
             {NAV.map((group) => (
               <MenuSection key={group.group} ariaLabel={group.group}>
                 <MenuSectionHeading>{group.group}</MenuSectionHeading>
