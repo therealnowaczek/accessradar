@@ -36,11 +36,20 @@ const en = {
 
 export type MessageKey = keyof typeof en;
 
-const catalog: Record<MessageKey, string> = en;
+/** Active catalog; English until locales return (i18n is on hold). */
+let catalog: Partial<Record<MessageKey, string>> = en;
 
-/** Looks up a message; `{name}` placeholders are replaced from `vars`. */
+/** Swaps the active catalog (used by tests; a future locale may omit keys). */
+export function setCatalog(next: Partial<Record<MessageKey, string>>): void {
+  catalog = next;
+}
+
+/**
+ * Looks up a message; `{name}` placeholders are replaced from `vars`. A key missing from the active
+ * catalog falls back to the English text, never to the key itself (Radrly standard R-6.4).
+ */
 export function t(key: MessageKey, vars?: Record<string, string | number>): string {
-  const text = catalog[key];
+  const text = catalog[key] ?? en[key] ?? key;
   if (!vars) return text;
   return text.replace(/\{(\w+)\}/g, (match, name: string) =>
     name in vars ? String(vars[name]) : match,

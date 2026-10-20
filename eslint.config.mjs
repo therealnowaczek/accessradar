@@ -46,9 +46,9 @@ export default tseslint.config(
   {
     // Atlassian Design System everywhere in the Custom UI: ADS components instead of native
     // controls, design tokens instead of literal colours/spacing/typography.
-    files: ['static/app/src/**/*.tsx'],
+    files: ['static/app/src/**/*.{ts,tsx}'],
     // SpikePanel is development-only and replaced by an empty stub in deployed builds.
-    ignores: ['static/app/src/views/SpikePanel.tsx'],
+    ignores: ['static/app/src/**/*.test.{ts,tsx}', 'static/app/src/views/SpikePanel.tsx'],
     plugins: { '@atlaskit/design-system': designSystem },
     rules: {
       ...designSystem.configs['recommended/flat'].rules,
@@ -77,6 +77,11 @@ export default tseslint.config(
       '@atlaskit/design-system/use-heading': 'error',
       '@atlaskit/design-system/icon-label': 'error',
       '@atlaskit/design-system/prefer-primitives': 'error',
+      // Radrly layout standard 12.2 (v1.1): the remaining rules of the shared list of 14.
+      '@atlaskit/design-system/no-deprecated-apis': 'error',
+      '@atlaskit/design-system/no-empty-icon-button-label': 'error',
+      '@atlaskit/design-system/use-drawer-label': 'error',
+      '@atlaskit/design-system/use-modal-title': 'error',
     },
   },
   prettier,

@@ -13,8 +13,14 @@ import { describe, expect, it } from 'vitest';
  *  6. stale allowlist entries (the lists may only shrink);
  *  7. @atlaskit/side-navigation (deprecated; use @atlaskit/navigation-system + side-nav-items);
  *  8. a language picker anywhere (the language follows the user's Jira settings);
- *  9. a full-page spinner (<Loading /> without compact, Spinner size="large") or a Spinner
- *     without a label; first loads are skeletons.
+ *  9. a full-page spinner (<Loading /> without compact, Spinner size="large" outside ui.tsx,
+ *     `100vh - 160px`) or a Spinner without a label; first loads are skeletons.
+ * AccessRadar extras for the v1.1 layout rules:
+ * 10. z-index other than 1 or the ADS "card" layer (100) in CSS / xcss (table 1.8);
+ * 11. media-query breakpoints other than 1023 / 900 / 860 / 768 / 600 / 520 (table 1.7);
+ * 12. own empty-state components or drawer panels (only @atlaskit/empty-state and
+ *     @atlaskit/drawer, width "wide"; "narrow" only for the navigation overlay).
+ * Rules 7-9 have exported detectors and a self-test, so the guard cannot pass by mistake.
  * Allowlists are counted per file and every entry says why.
  */
 const ROOT = __dirname;
@@ -59,13 +65,96 @@ const HIDDEN_CLASS =
   /className=["'{`][^"'}`]*\b(?:sr-only|visually-hidden)\b|\.(?:sr-only|visually-hidden)\b/;
 const SIDE_NAVIGATION_IMPORT = /['"]@atlaskit\/side-navigation(?:\/[^'"]*)?['"]/;
 const LANGUAGE_PICKER = [
+  /\b(?:Language|Locale)(?:Picker|Select|Switcher|Menu)\b/,
   /\b(?:language|locale)[-_ ]?(?:picker|switch(?:er)?|select(?:or)?|menu|dropdown)\b/i,
   /\b(?:aria-)?label=["'{`]\s*['"`]?(?:language|locale)\b/i,
   /\{\s*(?:label|value):\s*['"`](?:en|pl|de|fr|es|it|pt|ja)(?:[-_][A-Za-z]{2})?['"`]/,
+  /['"`](?:[\w-]+\.)*(?:language|languagePicker|localePicker)['"`]/,
   /\bsetLocale\s*\(|\bchangeLanguage\s*\(/,
 ];
+const SUPPORTED_LOCALES = /\bSUPPORTED_LOCALES\b/;
 const FULL_PAGE_LOADING = /<Loading\b(?![^>]*\bcompact\b)[^>]*>/g;
 const SPINNER = /<Spinner\b[^>]*>/g;
+const FULL_PAGE_HEIGHT = /100vh\s*-\s*160px/;
+
+type Source = { path: string; text: string };
+const lines = (s: Source, pattern: RegExp) =>
+  s.text
+    .split('\n')
+    .filter((line) => pattern.test(line))
+    .map((line) => `${s.path}: ${line.trim()}`);
+
+/** Rule 7: imports of the deprecated @atlaskit/side-navigation (including subpaths). */
+export function findSideNavigationImports(list: Source[]): string[] {
+  return list
+    .filter((s) => /\.tsx?$/.test(s.path))
+    .flatMap((s) => lines(s, SIDE_NAVIGATION_IMPORT));
+}
+
+/** Rule 8: anything that lets the user pick a language (it follows the Jira settings). */
+export function findLanguagePicker(list: Source[]): string[] {
+  return list
+    .filter((s) => /\.tsx?$/.test(s.path))
+    .flatMap((s) => [
+      ...LANGUAGE_PICKER.flatMap((pattern) => lines(s, pattern)),
+      ...(s.path.startsWith('i18n/') ? [] : lines(s, SUPPORTED_LOCALES)),
+    ]);
+}
+
+/** Rule 9: full-page spinners and unlabelled spinners. */
+export function findFullPageSpinners(list: Source[]): string[] {
+  return list.flatMap((s) => {
+    const found = lines(s, FULL_PAGE_HEIGHT);
+    if (!s.path.endsWith('.tsx')) return found;
+    found.push(...(s.text.match(FULL_PAGE_LOADING) ?? []).map((m) => `${s.path}: ${m}`));
+    found.push(
+      ...(s.text.match(SPINNER) ?? [])
+        .filter((m) => !/\blabel=/.test(m) || (/size=["']large["']/.test(m) && s.path !== 'ui.tsx'))
+        .map((m) => `${s.path}: ${m}`),
+    );
+    return found;
+  });
+}
+
+const CSS_Z_INDEX = /z-index:\s*([^;]+);/g;
+const XCSS_Z_INDEX = /zIndex:\s*['"]?([^'",}\s]+)/g;
+const ALLOWED_Z = new Set(['1', '100', 'card']);
+const MEDIA_WIDTH = /@media[^{]*\((?:max|min)-width:\s*(\d+)px\)/g;
+const ALLOWED_BREAKPOINTS = new Set(['1023', '900', '860', '768', '600', '520']);
+const OWN_EMPTY = /\bfunction\s+Empty\b|className=["'][^"']*\bempty-state\b|\.empty-state\b/;
+const OWN_DRAWER =
+  /role=["']dialog["']|aria-modal=|className=["'][^"']*\bdrawer-(?:panel|scrim|root)\b/;
+const DRAWER_WIDTH = /<(?:Atlaskit)?Drawer\b[^>]*\bwidth=["']([^"']+)["']/g;
+
+/** Rule 10: z-index values outside table 1.8 (1 and the ADS "card" layer). */
+export function findZIndex(list: Source[]): string[] {
+  return list.flatMap((s) =>
+    [...s.text.matchAll(s.path.endsWith('.css') ? CSS_Z_INDEX : XCSS_Z_INDEX)]
+      .map((m) => m[1].replace(/\/\*.*$/, '').trim())
+      .filter((v) => !ALLOWED_Z.has(v))
+      .map((v) => `${s.path}: z-index ${v}`),
+  );
+}
+
+/** Rule 11: breakpoints outside table 1.7. */
+export function findBreakpoints(list: Source[]): string[] {
+  return list.flatMap((s) =>
+    [...s.text.matchAll(MEDIA_WIDTH)]
+      .filter((m) => !ALLOWED_BREAKPOINTS.has(m[1]))
+      .map((m) => `${s.path}: ${m[0]}`),
+  );
+}
+
+/** Rule 12: own empty states / drawer panels, or an ADS Drawer width other than the shared ones. */
+export function findOwnSurfaces(list: Source[]): string[] {
+  return list.flatMap((s) => [
+    ...lines(s, OWN_EMPTY),
+    ...lines(s, OWN_DRAWER),
+    ...[...s.text.matchAll(DRAWER_WIDTH)]
+      .filter((m) => m[1] !== 'wide' && !(m[1] === 'narrow' && s.path === 'AdminNav.tsx'))
+      .map((m) => `${s.path}: Drawer width="${m[1]}"`),
+  ]);
+}
 
 const count = (text: string, pattern: RegExp) => (text.match(pattern) ?? []).length;
 
@@ -146,26 +235,28 @@ describe('design system guard (Radrly layout standard)', () => {
   });
 
   it('7. never imports the deprecated @atlaskit/side-navigation', () => {
-    expect(hits(isScript, SIDE_NAVIGATION_IMPORT)).toEqual([]);
+    expect(findSideNavigationImports(sources)).toEqual([]);
     expect(PACKAGE_JSON).not.toMatch(/"@atlaskit\/side-navigation"\s*:/);
   });
 
   it('8. has no language picker (language follows the Jira user settings, English fallback)', () => {
-    expect(LANGUAGE_PICKER.flatMap((pattern) => hits(isScript, pattern))).toEqual([]);
+    expect(findLanguagePicker(sources)).toEqual([]);
   });
 
   it('9. never shows a full-page spinner; every Spinner has a label', () => {
-    const fullPage = sources
-      .filter(isTsxSource)
-      .flatMap((s) => (s.text.match(FULL_PAGE_LOADING) ?? []).map((m) => `${s.path}: ${m}`));
-    const spinners = sources
-      .filter(isTsxSource)
-      .flatMap((s) =>
-        (s.text.match(SPINNER) ?? [])
-          .filter((m) => !/\blabel=/.test(m) || /size=["']large["']/.test(m))
-          .map((m) => `${s.path}: ${m}`),
-      );
-    expect([...fullPage, ...spinners]).toEqual([]);
+    expect(findFullPageSpinners(sources)).toEqual([]);
+  });
+
+  it('10. uses only z-index 1 and the ADS card layer (100)', () => {
+    expect(findZIndex(sources)).toEqual([]);
+  });
+
+  it('11. uses only the shared breakpoints 1023/900/860/768/600/520', () => {
+    expect(findBreakpoints(sources)).toEqual([]);
+  });
+
+  it('12. has no own empty states or drawer panels; drawers are ADS "wide"', () => {
+    expect(findOwnSurfaces(sources)).toEqual([]);
   });
 
   it('detects violations (self-check)', () => {
@@ -185,6 +276,36 @@ describe('design system guard (Radrly layout standard)', () => {
     expect(LANGUAGE_PICKER.some((p) => p.test('locale="en-GB"'))).toBe(false);
     expect(one(FULL_PAGE_LOADING, '<Loading />')).toBe(true);
     expect(one(FULL_PAGE_LOADING, '<Loading compact />')).toBe(false);
+  });
+
+  it('detects the patterns it guards against (rules 7-12)', () => {
+    const src = (path: string, text: string) => [{ path, text }];
+    expect(
+      findSideNavigationImports(src('a.tsx', "import x from '@atlaskit/side-navigation/section';")),
+    ).toHaveLength(1);
+    expect(findLanguagePicker(src('a.tsx', '<LanguageSelect />'))).not.toHaveLength(0);
+    expect(findLanguagePicker(src('a.tsx', "t('settings.languagePicker')"))).not.toHaveLength(0);
+    expect(findLanguagePicker(src('a.tsx', 'SUPPORTED_LOCALES.map(x)'))).not.toHaveLength(0);
+    expect(findLanguagePicker(src('i18n/x.ts', 'SUPPORTED_LOCALES.map(x)'))).toHaveLength(0);
+    expect(findFullPageSpinners(src('a.tsx', '<Loading />'))).not.toHaveLength(0);
+    expect(findFullPageSpinners(src('a.tsx', '<Spinner size="large" label="x" />'))).toHaveLength(
+      1,
+    );
+    expect(findFullPageSpinners(src('a.css', 'min-height: calc(100vh - 160px);'))).not.toHaveLength(
+      0,
+    );
+    expect(
+      findFullPageSpinners(src('a.tsx', '<Spinner size="small" label="Saving" />')),
+    ).toHaveLength(0);
+    expect(findZIndex(src('a.css', 'z-index: 3;'))).not.toHaveLength(0);
+    expect(findZIndex(src('a.css', 'z-index: 100; /* layer card */'))).toHaveLength(0);
+    expect(findZIndex(src('a.tsx', "xcss({ zIndex: '200' })"))).not.toHaveLength(0);
+    expect(findBreakpoints(src('a.css', '@media (max-width: 700px) {'))).not.toHaveLength(0);
+    expect(findBreakpoints(src('a.css', '@media (max-width: 1023px) {'))).toHaveLength(0);
+    expect(findOwnSurfaces(src('a.tsx', 'export function Empty() {'))).not.toHaveLength(0);
+    expect(findOwnSurfaces(src('a.tsx', '<div role="dialog">'))).not.toHaveLength(0);
+    expect(findOwnSurfaces(src('a.tsx', '<Drawer isOpen width="medium">'))).not.toHaveLength(0);
+    expect(findOwnSurfaces(src('a.tsx', '<AtlaskitDrawer isOpen width="wide">'))).toHaveLength(0);
   });
 });
 
