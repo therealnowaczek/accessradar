@@ -77,9 +77,10 @@ body {
 }
 
 /* ADS PageHeader, pinned with a divider; content fades out under it instead of being cut off. */
+/* Above the tab bar (z-index 2), matching the shared Radrly pinned-header structure. */
 .page-header {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   flex: none;
   border-bottom: var(--ds-border-width) solid var(--ds-border);
 }
@@ -93,6 +94,7 @@ body {
   margin-top: var(--ds-border-width);
   background: linear-gradient(to bottom, var(--ds-surface), transparent);
   pointer-events: none;
+  z-index: 2;
 }
 
 .page-header.is-flush {
@@ -157,6 +159,7 @@ body {
   height: var(--ds-space-300);
   background: linear-gradient(to bottom, var(--ds-surface), transparent);
   pointer-events: none;
+  z-index: 2;
 }
 
 /* Wide tables scroll sideways inside their own full-width container (Table.tsx). */
@@ -187,6 +190,28 @@ div[data-testid='ar-drawer'] {
   inset-inline-start: auto;
   inset-inline-end: 0;
   max-width: 100vw;
+}
+
+/*
+ * Drawer header (Drawer.tsx): same pinned-header pattern as the page header. The 1px color.border
+ * separator comes from the header's xcss; content scrolling in DrawerContent fades out under it
+ * (24px, from the overlay surface the drawer paints on). Line and fade always; no shadow.
+ */
+div[data-testid='ar-drawer-header'] {
+  position: relative;
+  z-index: 3;
+}
+
+div[data-testid='ar-drawer-header']::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: var(--ds-space-300);
+  margin-top: var(--ds-border-width);
+  background: linear-gradient(to bottom, var(--ds-surface-overlay), transparent);
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* Advanced plan sample (PlanGate): fixed-height, faded, non-interactive preview. */

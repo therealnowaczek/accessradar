@@ -15,6 +15,8 @@ export type DrawerLevel = {
 
 /** Test id of the ADS drawer panel; styles.css docks it on the right (layout glue). */
 export const DRAWER_TEST_ID = 'ar-drawer';
+/** Test id of the pinned drawer header; styles.css adds the shared fade under its separator. */
+export const DRAWER_HEADER_TEST_ID = 'ar-drawer-header';
 
 const panelStyles = xcss({
   display: 'flex',
@@ -87,7 +89,7 @@ export function StackDrawer({
     >
       {level ? (
         <Box xcss={panelStyles}>
-          <Box xcss={headerStyles}>
+          <Box xcss={headerStyles} testId={DRAWER_HEADER_TEST_ID}>
             <Inline space="space.100" alignBlock="start">
               {nested ? (
                 <IconButton
