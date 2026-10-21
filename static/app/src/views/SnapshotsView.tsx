@@ -1,7 +1,7 @@
 import EmptyState from '@atlaskit/empty-state';
 import { useEffect, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
-import Button from '@atlaskit/button/new';
+import Button, { IconButton } from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import RefreshIcon from '@atlaskit/icon/core/refresh';
 import type { Coverage, Limitations, Snapshot } from '../api';
@@ -87,6 +87,12 @@ export function SnapshotsView() {
       description={meta.description}
       actions={
         <>
+          <IconButton
+            icon={RefreshIcon}
+            label="Refresh"
+            isLoading={refreshing}
+            onClick={() => void refresh()}
+          />
           {/* No duplicate CTA: with no snapshots the empty state carries "Take snapshot now". */}
           {snaps.data && !list.length && !active ? null : (
             <Button
@@ -98,14 +104,6 @@ export function SnapshotsView() {
               Take snapshot now
             </Button>
           )}
-          <Button
-            iconBefore={RefreshIcon}
-            isLoading={refreshing}
-            isDisabled={refreshing}
-            onClick={() => void refresh()}
-          >
-            Refresh
-          </Button>
         </>
       }
     />

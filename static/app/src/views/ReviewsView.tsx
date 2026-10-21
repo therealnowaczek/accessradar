@@ -138,17 +138,17 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
       description={meta.description}
       actions={
         <>
+          {hasChained ? (
+            <Button appearance="subtle" onClick={openVerifyChain}>
+              Verify chain
+            </Button>
+          ) : null}
           {/* No duplicate CTA: an empty list carries "Start a review" in its empty state. */}
           {list.data && !reviews.length ? null : (
             <Button appearance="primary" isDisabled={!hasSnapshot} onClick={openCreate}>
               Start a review
             </Button>
           )}
-          {hasChained ? (
-            <Button appearance="subtle" onClick={openVerifyChain}>
-              Verify chain
-            </Button>
-          ) : null}
         </>
       }
     />
@@ -622,47 +622,10 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
       }
       actions={
         <>
-          {/* Primary first (left of the group): ADS PageHeader right-aligns its actions slot. */}
-          {signed ? (
-            <>
-              <Button
-                appearance="primary"
-                onClick={() =>
-                  void exporter('Evidence pack', async () => {
-                    const allItems: EvidencePackPayload['items'] = [];
-                    let page = 1;
-                    let first: EvidencePackPayload | null = null;
-                    for (;;) {
-                      const pack = await call<EvidencePackPayload>('getEvidencePack', {
-                        id,
-                        page,
-                        pageSize: 500,
-                      });
-                      if (!first) first = pack;
-                      allItems.push(...pack.items);
-                      if (!pack.nextPage) break;
-                      page = pack.nextPage;
-                    }
-                    if (!first) throw new Error('Empty evidence pack');
-                    downloadPdf(
-                      evidencePackFileName(d!.review.name, id),
-                      await evidencePackPdf(first, allItems, exportContext(siteUrl)),
-                    );
-                    logExport('evidence-pack', id, d!.limitations?.version);
-                  })
-                }
-              >
-                Download evidence pack
-              </Button>
-              <Button onClick={openVerify}>Verify signature & chain</Button>
-            </>
-          ) : (
-            <>
-              <Button appearance="primary" isDisabled={!d || pending > 0} onClick={openSign}>
-                Sign off
-              </Button>
-            </>
-          )}
+          {/* Controls → secondaries → primary last (family header CTA order). */}
+          <Button iconBefore={ArrowLeftIcon} onClick={onBack}>
+            All reviews
+          </Button>
           <ExportMenu
             isDisabled={!d}
             onCsv={() =>
@@ -678,14 +641,47 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               })
             }
           />
+          {signed ? <Button onClick={openVerify}>Verify signature & chain</Button> : null}
           {!signed ? (
             <Button appearance="subtle" onClick={openDelete} isDisabled={!d}>
               Delete
             </Button>
           ) : null}
-          <Button iconBefore={ArrowLeftIcon} onClick={onBack}>
-            All reviews
-          </Button>
+          {signed ? (
+            <Button
+              appearance="primary"
+              onClick={() =>
+                void exporter('Evidence pack', async () => {
+                  const allItems: EvidencePackPayload['items'] = [];
+                  let page = 1;
+                  let first: EvidencePackPayload | null = null;
+                  for (;;) {
+                    const pack = await call<EvidencePackPayload>('getEvidencePack', {
+                      id,
+                      page,
+                      pageSize: 500,
+                    });
+                    if (!first) first = pack;
+                    allItems.push(...pack.items);
+                    if (!pack.nextPage) break;
+                    page = pack.nextPage;
+                  }
+                  if (!first) throw new Error('Empty evidence pack');
+                  downloadPdf(
+                    evidencePackFileName(d!.review.name, id),
+                    await evidencePackPdf(first, allItems, exportContext(siteUrl)),
+                  );
+                  logExport('evidence-pack', id, d!.limitations?.version);
+                })
+              }
+            >
+              Download evidence pack
+            </Button>
+          ) : (
+            <Button appearance="primary" isDisabled={!d || pending > 0} onClick={openSign}>
+              Sign off
+            </Button>
+          )}
         </>
       }
     />
