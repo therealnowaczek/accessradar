@@ -1,15 +1,21 @@
 import { call, type Coverage, type Overview, type Snapshot, type SettingsView } from '../api';
-import { downloadCsv, downloadPdf } from './download';
-import { matrixCsv, matrixFileName, matrixPdf, type ExportContext } from './evidence';
+import { downloadCsv, downloadMarkdown, downloadPdf } from './download';
+import {
+  matrixCsv,
+  matrixFileName,
+  matrixMarkdown,
+  matrixPdf,
+  type ExportContext,
+} from './evidence';
 
 type Matrix = { snapshot: Snapshot | null; data: Array<Record<string, string>> | null };
 
 /**
- * Access matrix export. CSV carries every permission (complete record for auditors);
+ * Access matrix export. CSV and Markdown carry every permission (complete record for auditors);
  * PDF carries key permissions so it stays readable.
  */
 export async function exportMatrix(
-  format: 'csv' | 'pdf',
+  format: 'csv' | 'pdf' | 'md',
   seq: number | null,
   ctx: ExportContext,
   projectKey?: string,
@@ -18,7 +24,7 @@ export async function exportMatrix(
     format === 'pdf' ? (await call<SettingsView>('getSettings')).settings.keyPermissions : [];
   const m = await call<Matrix>('accessMatrix', {
     seq,
-    allPermissions: format === 'csv',
+    allPermissions: format !== 'pdf',
     keyPermissions,
   });
   if (!m.snapshot || !m.data) throw new Error('No snapshot to export');
@@ -32,6 +38,19 @@ export async function exportMatrix(
     downloadCsv(
       matrixFileName(m.snapshot, 'csv').replace('.csv', `${suffix}.csv`),
       matrixCsv(
+        m.snapshot,
+        rows,
+        ctx,
+        overview?.risks ?? [],
+        detail.coverage ?? [],
+        detail.limitations,
+      ),
+    );
+  } else if (format === 'md') {
+    const overview = await call<Overview>('getOverview', {}).catch(() => null);
+    downloadMarkdown(
+      matrixFileName(m.snapshot, 'md').replace('.md', `${suffix}.md`),
+      matrixMarkdown(
         m.snapshot,
         rows,
         ctx,

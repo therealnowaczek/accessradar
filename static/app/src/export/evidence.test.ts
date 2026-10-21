@@ -3,10 +3,13 @@ import type { Changes, ReviewDetail, Snapshot } from '../api';
 import { parseCsv } from './csv';
 import {
   changesCsv,
+  changesMarkdown,
   matrixCsv,
+  matrixMarkdown,
   MATRIX_COLUMNS,
   REVIEW_COLUMNS,
   reviewCsv,
+  reviewMarkdown,
   reviewPdf,
 } from './evidence';
 
@@ -81,6 +84,49 @@ describe('evidence exports', () => {
     expect(text).toContain('# Section: Risks');
     expect(text).toContain('anonymous');
     expect(text).toContain('Anonymous access');
+  });
+
+  it('matrix Markdown is GFM with the same columns and an optional Risks section', () => {
+    const text = matrixMarkdown(
+      snap,
+      [
+        {
+          project_key: 'OPS',
+          display_name: 'Ann',
+          permission: 'BROWSE_PROJECTS',
+          path: 'role “Users”',
+        },
+      ],
+      ctx,
+      [{ id: 'anonymous', severity: 'high', title: 'Anonymous access', count: 2 }],
+    );
+    expect(text).toContain('# Access matrix, snapshot #7\n');
+    expect(text).toContain(`| ${MATRIX_COLUMNS.join(' | ')} |`);
+    expect(text).toContain('| OPS |');
+    expect(text).toContain('## Risks\n');
+    expect(text).toContain('| anonymous |');
+  });
+
+  it('changes Markdown reuses CSV columns', () => {
+    const c: Changes = {
+      a: { ...snap, seq: 6 },
+      b: snap,
+      keyPermissions: ['BROWSE_PROJECTS'],
+      granted: [
+        {
+          subject: { key: 'u:1', type: 'user', id: '1', name: 'Ann' },
+          project,
+          permission: 'BROWSE_PROJECTS',
+          reasons: ['direct'],
+          codes: ['user:1'],
+        },
+      ],
+      revoked: [],
+      facts: [],
+    };
+    const text = changesMarkdown(c, ctx);
+    expect(text).toContain('| granted |');
+    expect(text).toContain('Ann');
   });
 
   it('changes CSV lists granted, revoked and configuration changes', () => {
@@ -180,6 +226,12 @@ describe('evidence exports', () => {
         },
       ],
     };
+    const md = reviewMarkdown(d, ctx);
+    expect(md).toContain('# Q4 review\n');
+    expect(md).toContain(`| ${REVIEW_COLUMNS.join(' | ')} |`);
+    expect(md).toContain('revoke (to do in Jira)');
+    expect(md).toContain('Józef');
+
     const rows = parseCsv(reviewCsv(d, ctx));
     expect(rows.some((r) => r[0] === `# Evidence hash (SHA-256): ${'e'.repeat(64)}`)).toBe(true);
     expect(rows.some((r) => r[0].includes('accountId a1'))).toBe(true);

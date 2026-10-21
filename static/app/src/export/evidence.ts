@@ -1,6 +1,7 @@
 import type { Changes, Coverage, Limitations, ReviewDetail, Snapshot } from '../api';
 import { formatLocalExport, formatUtc, permissionLabel, slug, timeZone } from '../format';
 import { csvCell, toCsv } from './csv';
+import { appendMarkdownTable, toMarkdown } from './markdown';
 import { PdfDoc } from './pdf';
 
 export const APP_VERSION = '1.0.0';
@@ -34,6 +35,22 @@ const METHODOLOGY = [
 
 function coverageRows(coverage: Coverage[]) {
   return coverage.map((c) => [c.status, c.area.replace(/-/g, ' '), c.target, c.reason]);
+}
+
+/** Limitation statements + coverage lines as Markdown summary bullets. */
+function coverageLimitationsSummary(
+  coverage: Coverage[],
+  limitations?: Limitations | null,
+): string[] {
+  const lines: string[] = [];
+  if (limitations) {
+    lines.push(`Limitations version ${limitations.version} (${limitations.label})`);
+    for (const s of limitations.statements) lines.push(s);
+  }
+  for (const c of coverage) {
+    lines.push(`[${c.status}] ${c.area.replace(/-/g, ' ')} · ${c.target}: ${c.reason}`);
+  }
+  return lines;
 }
 
 /** Shared preamble for CSV exports (UI/PDF/CSV use the same limitations text). */
@@ -211,6 +228,52 @@ export async function matrixPdf(
 export const matrixFileName = (s: Snapshot, ext: string) =>
   `accessradar_access_matrix_snapshot-${s.seq}.${ext}`;
 
+export function matrixMarkdown(
+  snapshot: Snapshot,
+  rows: Array<Record<string, string>>,
+  ctx: ExportContext = {},
+  risks: Array<{
+    id: string;
+    severity: string;
+    title: string;
+    count: number;
+    partial?: boolean;
+  }> = [],
+  coverage: Coverage[] = [],
+  limitations?: Limitations | null,
+) {
+  const enriched = rows.map((r) => ({
+    ...r,
+    snapshot_id: snapshot.seq,
+    captured_at_utc: formatUtc(snapshot.startedAt),
+  }));
+  let out = toMarkdown(MATRIX_COLUMNS, enriched, {
+    title: `Access matrix, snapshot #${snapshot.seq}`,
+    meta: baseMeta(ctx, [
+      ['Snapshot', `#${snapshot.seq} (${snapshot.status})`],
+      ['Captured at', both(snapshot.startedAt, ctx.tz ?? timeZone())],
+      ['Engine version', snapshot.engineVersion],
+      ['Snapshot content hash (SHA-256)', snapshot.contentHash ?? ''],
+    ]),
+    summary: coverageLimitationsSummary(coverage, limitations),
+  });
+  if (risks.length) {
+    out = appendMarkdownTable(
+      out,
+      'Risks',
+      ['risk_id', 'severity', 'title', 'count', 'partial'],
+      risks.map((r) => ({
+        risk_id: r.id,
+        severity: r.severity,
+        title: r.title,
+        count: r.count,
+        partial: r.partial ? 'yes' : 'no',
+      })),
+    );
+  }
+  return out;
+}
+
 // ---------- changes between snapshots ----------
 export const CHANGES_COLUMNS = [
   'change',
@@ -349,6 +412,27 @@ export async function changesPdf(c: Changes, ctx: ExportContext = {}) {
 
 export const changesFileName = (c: Changes, ext: string) =>
   `accessradar_changes_${c.a?.seq ?? 'x'}_${c.b?.seq ?? 'y'}.${ext}`;
+
+export function changesMarkdown(c: Changes, ctx: ExportContext = {}) {
+  const tz = ctx.tz ?? timeZone();
+  return toMarkdown(CHANGES_COLUMNS, changesRows(c), {
+    title: `Access changes, snapshot #${c.a?.seq ?? '?'} to #${c.b?.seq ?? '?'}`,
+    meta: baseMeta(ctx, [
+      [
+        'Snapshot A',
+        c.a ? `#${c.a.seq} ${both(c.a.startedAt, tz)} hash ${c.a.contentHash ?? ''}` : '',
+      ],
+      [
+        'Snapshot B',
+        c.b ? `#${c.b.seq} ${both(c.b.startedAt, tz)} hash ${c.b.contentHash ?? ''}` : '',
+      ],
+      [
+        'Summary',
+        `${c.granted.length} granted, ${c.revoked.length} revoked, ${c.facts.length} configuration changes`,
+      ],
+    ]),
+  });
+}
 
 // ---------- review decisions + evidence pack ----------
 export const REVIEW_COLUMNS = [
@@ -527,3 +611,12 @@ export async function reviewPdf(d: ReviewDetail, ctx: ExportContext = {}) {
 
 export const reviewFileName = (d: ReviewDetail, ext: string) =>
   `accessradar_review_${slug(d.review.name)}_${d.review.id.slice(0, 8)}.${ext}`;
+
+export function reviewMarkdown(d: ReviewDetail, ctx: ExportContext = {}) {
+  const tz = d.review.signerTz ?? ctx.tz ?? timeZone();
+  return toMarkdown(REVIEW_COLUMNS, reviewRows(d, tz), {
+    title: d.review.name,
+    meta: reviewMeta(d, ctx),
+    summary: coverageLimitationsSummary(d.coverage, d.limitations),
+  });
+}

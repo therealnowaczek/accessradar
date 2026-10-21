@@ -35,8 +35,8 @@ import {
 import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
 import { DrawerBody, DrawerFooter, LevelDrawer, type DrawerLevel } from '../Drawer';
-import { downloadCsv, downloadPdf } from '../export/download';
-import { reviewCsv, reviewFileName, reviewPdf } from '../export/evidence';
+import { downloadCsv, downloadMarkdown, downloadPdf } from '../export/download';
+import { reviewCsv, reviewFileName, reviewMarkdown, reviewPdf } from '../export/evidence';
 import {
   evidencePackFileName,
   evidencePackPdf,
@@ -638,6 +638,15 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               void exporter('Review PDF', async () => {
                 downloadPdf(reviewFileName(d!, 'pdf'), await reviewPdf(d!, exportContext(siteUrl)));
                 logExport('review-pdf', id, d!.limitations?.version);
+              })
+            }
+            onMarkdown={() =>
+              void exporter('Review Markdown', () => {
+                downloadMarkdown(
+                  reviewFileName(d!, 'md'),
+                  reviewMarkdown(d!, exportContext(siteUrl)),
+                );
+                logExport('review-md', id, d!.limitations?.version);
               })
             }
           />

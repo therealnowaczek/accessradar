@@ -36,6 +36,7 @@
     "@atlaskit/form": "^18.2.0",
     "@atlaskit/heading": "^8.0.0",
     "@atlaskit/icon": "^38.0.2",
+    "@atlaskit/icon-file-type": "^8.3.4",
     "@atlaskit/lozenge": "^17.0.5",
     "@atlaskit/menu": "^11.0.4",
     "@atlaskit/modal-dialog": "^17.0.2",

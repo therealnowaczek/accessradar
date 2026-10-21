@@ -108,6 +108,11 @@ export function ProjectsView() {
               exportMatrix('pdf', snapshot?.seq ?? null, exportContext(siteUrl)),
             )
           }
+          onMarkdown={() =>
+            void exporter('Access matrix Markdown', () =>
+              exportMatrix('md', snapshot?.seq ?? null, exportContext(siteUrl)),
+            )
+          }
         />
       }
     />
@@ -326,6 +331,16 @@ function ProjectDetail({
               void exporter('Space access PDF', () =>
                 exportMatrix(
                   'pdf',
+                  detail.data?.snapshot?.seq ?? null,
+                  exportContext(siteUrl),
+                  d?.project.key,
+                ),
+              )
+            }
+            onMarkdown={() =>
+              void exporter('Space access Markdown', () =>
+                exportMatrix(
+                  'md',
                   detail.data?.snapshot?.seq ?? null,
                   exportContext(siteUrl),
                   d?.project.key,
