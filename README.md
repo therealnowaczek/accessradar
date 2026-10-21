@@ -43,10 +43,6 @@ modules share the `custom-ui` resource with `layout: blank` (the app owns its pa
 
 The developer spike panel appears in Settings only when `ACCESSRADAR_SPIKE=1` is set for the environment.
 
-## CI/CD
+## Deploy
 
-- `ci.yml`: format check, lint, typecheck, tests, UI build, `npm audit`, `forge lint`.
-- `deploy-dev.yml`: push to `main` deploys to development (`--approve MAJOR_VERSION_RULE`; `--confirm-scopes` exists only on `forge install`).
-  `forge install --upgrade` only via manual dispatch when scopes change.
-- `deploy-prod.yml`: push (fast-forward) to `release/production` deploys to production. Deploy only.
-- Secrets: `FORGE_EMAIL`, `FORGE_API_TOKEN` (GitHub Actions secrets only).
+No GitHub Actions. Run `npm run check` locally, then Mac-only `forge deploy` (development and/or production). Use `forge install --upgrade` only when scopes/egress change.
