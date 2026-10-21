@@ -13,14 +13,14 @@ modules:
       resolver:
         function: ar-resolver
       title: AccessRadar
-      icon: resource:icons;accessradar-apps-nav.png
+      icon: resource:icons;accessradar-apps-nav-tight.png
       layout: blank
     - key: accessradar-config
       resource: custom-ui
       resolver:
         function: ar-resolver
       title: AccessRadar configuration
-      icon: resource:icons;accessradar-apps-nav.png
+      icon: resource:icons;accessradar-apps-nav-tight.png
       useAsConfig: true
       layout: blank
     - key: accessradar-get-started
@@ -28,7 +28,7 @@ modules:
       resolver:
         function: ar-resolver
       title: Get started with AccessRadar
-      icon: resource:icons;accessradar-apps-nav.png
+      icon: resource:icons;accessradar-apps-nav-tight.png
       useAsGetStarted: true
       layout: blank
   scheduledTrigger:
@@ -58,25 +58,50 @@ modules:
       resolver:
         function: ar-project-resolver
       title: AccessRadar
-      icon: resource:icons;accessradar-apps-nav.png
+      icon: resource:icons;accessradar-apps-nav-tight.png
       layout: blank
   # Read-only Rovo agent (Advanced). No egress / remotes / Connect — keeps Runs on Atlassian.
   rovo:agent:
-    - key: accessradar-agent-nav
+    - key: accessradar-agent-tight
       name: AccessRadar
       description: Answers who has access to what in Jira, why, and what changed — from AccessRadar snapshots. Read-only.
-      icon: resource:icons;accessradar-apps-nav.png
+      icon: resource:icons;accessradar-apps-nav-tight.png
       prompt: resource:rovo-prompt;agent.md
       conversationStarters:
         - Who can administer space PAY?
         - What changed since the last snapshot?
         - Which access reviews are overdue?
+      skills:
+        - who-has-access
+        - access-delta
+        - review-status
       actions:
         - ar-who-can-access
         - ar-why
         - ar-changes-since
         - ar-review-status
         - ar-person-access
+  rovo:skill:
+    - key: who-has-access
+      source:
+        dir: skills/who-has-access
+      dependencies:
+        tools:
+          - ar-who-can-access
+          - ar-why
+          - ar-person-access
+    - key: access-delta
+      source:
+        dir: skills/access-delta
+      dependencies:
+        tools:
+          - ar-changes-since
+    - key: review-status
+      source:
+        dir: skills/review-status
+      dependencies:
+        tools:
+          - ar-review-status
   action:
     - key: ar-who-can-access
       name: Who can access a space
