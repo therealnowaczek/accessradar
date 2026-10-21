@@ -6,7 +6,7 @@ import Heading from '@atlaskit/heading';
 // the AccessRadar brand mark is a fixed brand asset, not themed UI, so it cannot use ADS tokens.
 
 /**
- * AccessRadar logo, Radrly icon family v3 (resources/icons/accessradar-brand.svg, brand/accessradar-logo.svg):
+ * AccessRadar logo, Radrly icon family v3 (resources/icons/accessradar-rovo-v2.svg, brand/accessradar-logo.svg):
  * white padlock with a radar sweep on the v3 gradient #8D6FDC → #8646CD (60%) → #7A36A9. Brand colours appear only here; the rest of the UI uses ADS tokens.
  */
 const AR_SWEEP: Array<[string, number]> = [
