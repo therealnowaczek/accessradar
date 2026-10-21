@@ -6,8 +6,8 @@ import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
 import type { AccessChange, Changes, FactChange } from '../api';
 import { ExportMenu, SearchField, SnapshotPicker, SubjectCell } from '../components';
 import { useCall } from '../data';
-import { downloadCsv, downloadPdf } from '../export/download';
-import { changesCsv, changesFileName, changesPdf } from '../export/evidence';
+import { downloadCsv, downloadMarkdown, downloadPdf } from '../export/download';
+import { changesCsv, changesFileName, changesMarkdown, changesPdf } from '../export/evidence';
 import { permissionLabel } from '../format';
 import { navItem } from '../routes';
 import { exportContext, logExport, NoSnapshot, useApp, useExporter, useSnapshots } from '../shared';
@@ -197,6 +197,15 @@ export function ChangesView() {
                 await changesPdf(filtered!, exportContext(siteUrl)),
               );
               logExport('changes-pdf', `#${d!.a!.seq}-#${d!.b!.seq}`);
+            })
+          }
+          onMarkdown={() =>
+            void exporter('Changes Markdown', () => {
+              downloadMarkdown(
+                changesFileName(filtered!, 'md'),
+                changesMarkdown(filtered!, exportContext(siteUrl)),
+              );
+              logExport('changes-md', `#${d!.a!.seq}-#${d!.b!.seq}`);
             })
           }
         />

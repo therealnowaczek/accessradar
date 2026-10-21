@@ -18,3 +18,6 @@ export const downloadCsv = (filename: string, csv: string) =>
 
 export const downloadPdf = (filename: string, bytes: Uint8Array) =>
   download(filename, bytes, 'application/pdf');
+
+export const downloadMarkdown = (filename: string, markdown: string) =>
+  download(filename, markdown, 'text/markdown;charset=utf-8');

@@ -10,6 +10,9 @@ import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
 import QuestionCircleIcon from '@atlaskit/icon/core/question-circle';
 import SearchIcon from '@atlaskit/icon/core/search';
 import ShowMoreIcon from '@atlaskit/icon/core/show-more-horizontal';
+import DocumentIcon from '@atlaskit/icon-file-type/glyph/document/16';
+import PdfDocumentIcon from '@atlaskit/icon-file-type/glyph/pdf-document/16';
+import SpreadsheetIcon from '@atlaskit/icon-file-type/glyph/spreadsheet/16';
 import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import SectionMessage from '@atlaskit/section-message';
 import Textfield from '@atlaskit/textfield';
@@ -239,11 +242,13 @@ export function SearchField({
 export function ExportMenu({
   onCsv,
   onPdf,
+  onMarkdown,
   isDisabled,
   label = 'Export',
 }: {
   onCsv: () => void;
   onPdf?: () => void;
+  onMarkdown?: () => void;
   isDisabled?: boolean;
   label?: string;
 }) {
@@ -257,12 +262,29 @@ export function ExportMenu({
       )}
     >
       <DropdownItemGroup>
-        <DropdownItem description="Spreadsheet, UTF-8" onClick={onCsv}>
+        <DropdownItem
+          elemBefore={<SpreadsheetIcon label="" />}
+          description="Spreadsheet, UTF-8"
+          onClick={onCsv}
+        >
           CSV
         </DropdownItem>
         {onPdf ? (
-          <DropdownItem description="Evidence pack for auditors" onClick={onPdf}>
+          <DropdownItem
+            elemBefore={<PdfDocumentIcon label="" />}
+            description="Evidence pack for auditors"
+            onClick={onPdf}
+          >
             PDF
+          </DropdownItem>
+        ) : null}
+        {onMarkdown ? (
+          <DropdownItem
+            elemBefore={<DocumentIcon label="" />}
+            description="Markdown table for docs and chat"
+            onClick={onMarkdown}
+          >
+            Markdown
           </DropdownItem>
         ) : null}
       </DropdownItemGroup>

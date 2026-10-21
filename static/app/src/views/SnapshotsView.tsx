@@ -269,6 +269,11 @@ function SnapshotDrawer({ seq }: { seq: number }) {
                   exportMatrix('pdf', s.seq, exportContext(siteUrl)),
                 )
               }
+              onMarkdown={() =>
+                void exporter('Access matrix Markdown', () =>
+                  exportMatrix('md', s.seq, exportContext(siteUrl)),
+                )
+              }
             />
             <Button
               onClick={() =>
