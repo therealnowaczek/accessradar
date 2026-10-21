@@ -148,10 +148,11 @@ const pageHeaderTightenStyles = xcss({ marginBlockEnd: 'space.negative.300' });
 const pageHeaderWithMetaStyles = xcss({ paddingBlockEnd: 'space.200' });
 
 /**
- * ADS PageHeader. Put the primary action FIRST in `actions`: ADS PageHeader always places its
- * actions slot at the end of the title row (right-aligned on wide screens), so "primary first"
- * is the reading order inside that group. Status/description are full width under the title row
- * (not in ADS bottomBar). Below 768px actions move under the meta.
+ * ADS PageHeader. Put the primary action LAST in `actions` (left → right: controls, icon
+ * secondaries such as Refresh, text secondaries/menus, then primary). ADS places the actions
+ * slot at the end of the title row (right-aligned on wide screens), so primary is the rightmost
+ * commitment. Status/description are full width under the title row (not in ADS bottomBar).
+ * Below 768px actions move under the meta.
  */
 export function PageHeader({
   title,

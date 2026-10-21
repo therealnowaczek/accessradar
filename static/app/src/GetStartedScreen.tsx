@@ -1,8 +1,9 @@
 import { router } from '@forge/bridge';
 import Badge from '@atlaskit/badge';
-import Button from '@atlaskit/button/new';
+import Button, { IconButton } from '@atlaskit/button/new';
 import Heading from '@atlaskit/heading';
 import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
+import RefreshIcon from '@atlaskit/icon/core/refresh';
 import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import ProgressBar from '@atlaskit/progress-bar';
 import { useState } from 'react';
@@ -157,9 +158,12 @@ function GetStartedBody() {
           title="Get started with AccessRadar"
           description="Three steps to your first access review."
           actions={
-            <Button isLoading={refreshing} isDisabled={refreshing} onClick={() => void refresh()}>
-              Refresh
-            </Button>
+            <IconButton
+              icon={RefreshIcon}
+              label="Refresh"
+              isLoading={refreshing}
+              onClick={() => void refresh()}
+            />
           }
         />
       }
