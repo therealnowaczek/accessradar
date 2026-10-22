@@ -220,12 +220,12 @@ Extra-screenshot caption counts (verified by the script): S4 126 · S5 124 · S6
 |---|---|---|
 | Website / app home | https://accessradar.radrly.com | Landing page with the long-form copy (§4) |
 | **Documentation URL** (required for Paid via Atlassian) | https://accessradar.radrly.com/docs | Include: in-scope data residency data list, completeness and limits (§4), how to recompute the evidence hash from CSV, why the app user is in admin groups |
-| **Support** | https://accessradar.radrly.com/support · marcin@radrly.com | One contact everywhere (checklist §2). State hours and response time [TO CONFIRM], e.g. Mon–Fri 09:00–17:00 CET/CEST, first response within 1 business day; EN + PL |
+| **Support** | https://accessradar.radrly.com/support · support@radrly.com | One contact everywhere (checklist §2). State hours and response time [TO CONFIRM], e.g. Mon–Fri 09:00–17:00 CET/CEST, first response within 1 business day; EN + PL |
 | Support ticket system | https://accessradar.radrly.com/support | `developerLinks.supportTicketSystem` |
 | **Privacy policy** | https://accessradar.radrly.com/privacy | Must match the code: accountId, display name cache, active flag, account type; no emails |
 | **End User Terms / EULA** | https://accessradar.radrly.com/terms | Or Atlassian's standard customizable customer agreement |
 | **DPA** | https://accessradar.radrly.com/dpa | Final version, no "draft" label (checklist §2) |
-| **Security** | https://accessradar.radrly.com/security | Sections Incident response + Secure development (checklist §2); scopes with reasons; impersonation; app user admin groups; no egress; data lifecycle. Security contact marcin@radrly.com |
+| **Security** | https://accessradar.radrly.com/security | Sections Incident response + Secure development (checklist §2); scopes with reasons; impersonation; app user admin groups; no egress; data lifecycle. Security contact support@radrly.com |
 | App status page (optional) | https://developer.status.atlassian.com | Runs entirely on Forge |
 | Forums | Enable the Atlassian Community tag | Checkbox in the version form |
 
@@ -323,7 +323,7 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 | Transfers EEA data outside the EEA? | **No** [TO CONFIRM] | Hosting follows the customer's Atlassian residency |
 | Accesses PATs, passwords or shared secrets? | **No** | — |
 | **User impersonation** | **Yes, declared**: `allowImpersonation: true` on the read scopes | Used only as a fallback collector identity when an admin turns it on (week1-findings §4). Decide before the first prod deploy whether to keep it (removing later = major + admin consent) |
-| Security contact | marcin@radrly.com | — |
+| Security contact | support@radrly.com | — |
 | Security policy link | https://accessradar.radrly.com/security | — |
 | Compliance certifications? | **No** | Atlassian's platform certifications cover Forge hosting; do not claim them as Radrly's |
 | CAIQ Lite | **No** (for now) | — |

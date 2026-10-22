@@ -14,7 +14,7 @@
 
 ## 2. Strona accessradar.radrly.com
 - [ ] /privacy /terms /dpa (bez dopisku „draft”) /security (sekcje Incident response + Secure development) /support /docs
-- [ ] Jeden kontakt wszędzie: marcin@radrly.com
+- [ ] Jeden kontakt wszędzie: support@radrly.com
 - [ ] Treść privacy zgodna z kodem (accountId, ewentualny cache display names)
 
 ## 3. Listing (Partner console > Create app > Forge app)
