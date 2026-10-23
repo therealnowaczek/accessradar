@@ -35,6 +35,7 @@ import {
 import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
 import { DrawerBody, DrawerFooter, LevelDrawer, type DrawerLevel } from '../Drawer';
+import { canStartReview, isDecisionChangeValid } from '../formRules';
 import { downloadCsv, downloadMarkdown, downloadPdf } from '../export/download';
 import { reviewCsv, reviewFileName, reviewMarkdown, reviewPdf } from '../export/evidence';
 import {
@@ -304,6 +305,8 @@ function CreateReview({
   );
   const baseSeq = base ?? committed[0]?.seq ?? 0;
   const older = committed.filter((s) => s.seq < baseSeq);
+  // R-9.3: Start review stays disabled until the form is valid (name, and a scope selection).
+  const canStart = canStartReview({ name, scope, selected: ids.length });
   const submit = async () => {
     setError('');
     if (!name.trim()) return setError('Give the review a name.');
@@ -428,7 +431,12 @@ function CreateReview({
         </Stack>
       </DrawerBody>
       <DrawerFooter onCancel={onCancel}>
-        <Button appearance="primary" isLoading={busy} onClick={() => void submit()}>
+        <Button
+          appearance="primary"
+          isDisabled={!canStart || busy}
+          isLoading={busy}
+          onClick={() => void submit()}
+        >
           Start review
         </Button>
       </DrawerFooter>
@@ -986,6 +994,8 @@ function ItemDrawer({
   const needsJustification = value === 'revoke' || value === 'exception';
   const primaryLabel =
     value === 'exception' ? 'Grant exception' : value === 'revoke' ? 'Revoke' : 'Save';
+  // R-9.3: the primary stays disabled until there is a valid change to the decision or note.
+  const canSave = isDecisionChangeValid(item, { value, note, expiresOn });
   return (
     <>
       <DrawerBody>
@@ -1073,6 +1083,7 @@ function ItemDrawer({
         <DrawerFooter onCancel={onCancel}>
           <Button
             appearance="primary"
+            isDisabled={!canSave || busy}
             isLoading={busy}
             onClick={async () => {
               setError('');

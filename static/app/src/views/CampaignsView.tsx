@@ -14,6 +14,7 @@ import { RowMenu } from '../components';
 import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
 import { DrawerBody, DrawerFooter, LevelDrawer, type DrawerLevel } from '../Drawer';
+import { isCampaignDraftValid } from '../formRules';
 import { formatLocal } from '../format';
 import { t } from '../i18n';
 import { navItem } from '../routes';
@@ -526,7 +527,7 @@ function CampaignForm({
       <DrawerFooter onCancel={onCancel}>
         <Button
           appearance="primary"
-          isDisabled={!d.name.trim() || busy}
+          isDisabled={!isCampaignDraftValid(d) || busy}
           isLoading={busy}
           onClick={() => {
             setBusy(true);
