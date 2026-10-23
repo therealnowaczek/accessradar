@@ -38,6 +38,19 @@ describe('resolveEdition', () => {
     );
   });
 
+  it('accepts the lowercase capability values from the Forge license context', () => {
+    expect(
+      resolveEdition({ license: { active: true, capabilitySet: 'capabilityadvanced' } }),
+    ).toEqual({ edition: 'advanced', source: 'license' });
+    expect(
+      resolveEdition({ license: { active: true, capabilitySet: 'capabilitystandard ' } }),
+    ).toEqual({ edition: 'standard', source: 'license' });
+    expect(
+      resolveEdition({ license: { active: true, capabilitySet: 'capabilitySomethingElse' } })
+        .edition,
+    ).toBe('standard');
+  });
+
   it('lets env beat a stored override and the license', () => {
     expect(
       resolveEdition({

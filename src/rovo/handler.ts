@@ -1,8 +1,8 @@
-import { __getRuntime } from '@forge/api';
+import { __getRuntime, getAppContext } from '@forge/api';
 import { decideForInvocation } from '../api/edition';
 import { BadRequest } from '../api/service';
 import { ensureMigrated } from '../db/migrations';
-import { REQUIRES_ADVANCED, type EditionLicense } from '../domain/edition';
+import type { EditionLicense } from '../domain/edition';
 import { isLicensed, UNLICENSED_MESSAGE } from '../domain/license';
 import { assertJiraAdmin, ForbiddenError } from '../lib/auth';
 import { errInfo } from '../lib/errors';
@@ -12,7 +12,21 @@ type RovoContext = {
   principal?: { accountId?: string };
   accountId?: string;
   license?: EditionLicense | null;
+  environmentType?: string;
 };
+
+/** Message for Standard sites: the Rovo agent is an Advanced feature. */
+export const ROVO_REQUIRES_ADVANCED =
+  'The AccessRadar Rovo agent requires the Advanced edition of AccessRadar. A Jira admin can upgrade the app in Manage apps; everything else in AccessRadar keeps working on Standard.';
+
+function appContextSafe(): { license?: EditionLicense | null; environmentType?: string } {
+  try {
+    const ctx = getAppContext();
+    return { license: ctx?.license ?? null, environmentType: ctx?.environmentType };
+  } catch {
+    return {};
+  }
+}
 
 /**
  * Single Forge function for all AccessRadar Rovo GET actions.
@@ -24,13 +38,18 @@ export async function rovoHandler(
 ) {
   const started = Date.now();
   try {
-    const license = context.license ?? null;
+    // Action payloads may not carry the license; the Forge runtime app context does.
+    const app = appContextSafe();
+    const license = context.license ?? app.license ?? null;
+    const environmentType = context.environmentType ?? app.environmentType;
     if (!isLicensed({ license })) return { error: UNLICENSED_MESSAGE };
     const accountId = context.principal?.accountId ?? context.accountId ?? '';
     await assertJiraAdmin(accountId);
     await ensureMigrated();
-    const edition = await decideForInvocation(license);
-    if (!edition.features.rovo) return { error: REQUIRES_ADVANCED };
+    // Same server-side edition gate as the resolvers (license capabilitySet; dev/staging
+    // honour the edition override). Standard sites get a clear message and no data.
+    const edition = await decideForInvocation(license, environmentType);
+    if (!edition.features.rovo) return { error: ROVO_REQUIRES_ADVANCED };
 
     const runtimeKey = (() => {
       try {

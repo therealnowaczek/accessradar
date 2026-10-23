@@ -4,6 +4,7 @@ app:
     name: nodejs24.x
   licensing:
     enabled: true
+    editionsEnabled: true
 modules:
   # One Jira admin menu entry; in-app navigation (side navigation) lives inside the Custom UI.
   # Mirrors MarginRadar: three adminPage modules on one resource, layout blank (the app owns its padding).

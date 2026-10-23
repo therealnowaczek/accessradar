@@ -1,7 +1,8 @@
 /**
  * Marketplace editions (Radar family pattern — same as MarginRadar / ConfigRadar).
  *
- * `license.capabilitySet` is `capabilityAdvanced` or `capabilityStandard`.
+ * `license.capabilitySet` is `capabilityAdvanced` or `capabilityStandard` (Atlassian docs and
+ * the runtime also use the lowercase `capabilityadvanced`, so the match ignores case).
  * An active license with a missing capability set is Standard: Atlassian leaves
  * it null until the customer changes edition.
  * Development and staging omit `license`. Those sites are Advanced unless
@@ -79,6 +80,11 @@ export function normalizeEdition(value: string | null | undefined): Edition | nu
   return null;
 }
 
+/** `capabilityAdvanced` in any letter case. Anything else (Standard, null, unknown) is not Advanced. */
+export function isAdvancedCapability(capabilitySet: string | null | undefined): boolean {
+  return (capabilitySet ?? '').trim().toLowerCase() === 'capabilityadvanced';
+}
+
 export function resolveEdition(input: {
   license?: EditionLicense | null;
   env?: string | null;
@@ -96,7 +102,7 @@ export function resolveEdition(input: {
   if (!license || license.active !== true) {
     return { edition: 'advanced', source: 'development' };
   }
-  if (license.capabilitySet === 'capabilityAdvanced') {
+  if (isAdvancedCapability(license.capabilitySet)) {
     return { edition: 'advanced', source: 'license' };
   }
   return { edition: 'standard', source: 'license' };
