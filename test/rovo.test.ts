@@ -32,3 +32,38 @@ describe('rovo helpers', () => {
     expect(_test.findAccountId(state, 'Unknown')).toBeNull();
   });
 });
+
+describe('ar-review-status campaign filter', () => {
+  const campaign = (id: string, name: string) =>
+    ({ id, name, status: 'active' }) as unknown as import('../src/db/campaigns').CampaignRow;
+  const campaigns = [
+    campaign('c1', 'Quarterly admins'),
+    campaign('c2', 'Q4 payments'),
+    campaign('c3', 'Quarterly admins EU'),
+  ];
+
+  it('prefers an exact (case-insensitive) name match', () => {
+    expect(_test.matchCampaigns(campaigns, ' quarterly ADMINS ').map((c) => c.id)).toEqual(['c1']);
+  });
+
+  it('falls back to a substring match and returns all campaigns for an empty filter', () => {
+    expect(_test.matchCampaigns(campaigns, 'quarterly').map((c) => c.id)).toEqual(['c1', 'c3']);
+    expect(_test.matchCampaigns(campaigns, 'nope')).toEqual([]);
+    expect(_test.matchCampaigns(campaigns, '  ')).toHaveLength(3);
+  });
+
+  it('keeps only reviews created by runs of the matched campaigns', () => {
+    const reviews = [
+      { id: 'r1', campaignRunId: 'run-1' },
+      { id: 'r2', campaignRunId: 'run-2' },
+      { id: 'r3', campaignRunId: null },
+      { id: 'r4', campaignRunId: 'run-unknown' },
+    ];
+    const runs = new Map([
+      ['run-1', 'c1'],
+      ['run-2', 'c2'],
+    ]);
+    const out = _test.reviewsForCampaigns(reviews, [campaigns[0]], runs);
+    expect(out.map((x) => [x.review.id, x.campaign])).toEqual([['r1', 'Quarterly admins']]);
+  });
+});

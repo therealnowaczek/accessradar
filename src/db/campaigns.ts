@@ -323,6 +323,14 @@ export async function getCampaignRun(id: string): Promise<CampaignRunRow | null>
   return rows[0] ? toRun(rows[0]) : null;
 }
 
+/** Run id → campaign id for every run (Rovo `ar-review-status` campaign filter). */
+export async function campaignIdByRun(): Promise<Map<string, string>> {
+  const rows = await q<{ id: string; campaign_id: string }>(
+    'SELECT id, campaign_id FROM campaign_run',
+  );
+  return new Map(rows.map((r) => [String(r.id), String(r.campaign_id)]));
+}
+
 export async function patchCampaignRun(
   id: string,
   patch: Partial<{

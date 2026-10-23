@@ -1,6 +1,6 @@
 import { audit } from '../db/audit';
-import { listCampaigns } from '../db/campaigns';
-import { listReviews } from '../db/reviews';
+import { campaignIdByRun, listCampaigns, type CampaignRow } from '../db/campaigns';
+import { listReviews, type ReviewRow } from '../db/reviews';
 import { latestCommitted, listSnapshots, previousCommitted } from '../db/snapshots';
 import { getSettings } from '../db/settings';
 import type { AccessState } from '../engine/state';
@@ -190,24 +190,82 @@ export async function changesSince(p: {
   };
 }
 
-export async function reviewStatus(): Promise<RovoResult> {
-  const reviews = await listReviews();
-  const now = Date.now();
-  const rows: RovoResult['rows'] = reviews.map((r) => ({
+/**
+ * Campaigns matching the optional `campaign` input: exact name (case-insensitive) wins,
+ * otherwise every campaign whose name contains the text. Deleted campaigns are never listed.
+ */
+function matchCampaigns(campaigns: CampaignRow[], filter: string): CampaignRow[] {
+  const want = filter.trim().toLowerCase();
+  if (!want) return campaigns;
+  const exact = campaigns.filter((c) => c.name.trim().toLowerCase() === want);
+  if (exact.length) return exact;
+  return campaigns.filter((c) => c.name.toLowerCase().includes(want));
+}
+
+/** Reviews created by runs of the matched campaigns, plus the campaign name for each review. */
+function reviewsForCampaigns<R extends Pick<ReviewRow, 'campaignRunId'>>(
+  reviews: R[],
+  campaigns: CampaignRow[],
+  runToCampaign: Map<string, string>,
+): Array<{ review: R; campaign: string }> {
+  const names = new Map(campaigns.map((c) => [c.id, c.name]));
+  const out: Array<{ review: R; campaign: string }> = [];
+  for (const review of reviews) {
+    const campaignId = review.campaignRunId ? runToCampaign.get(review.campaignRunId) : undefined;
+    const name = campaignId ? names.get(campaignId) : undefined;
+    if (name !== undefined) out.push({ review, campaign: name });
+  }
+  return out;
+}
+
+function reviewRow(r: ReviewRow & { decided?: number }, now: number, campaign: string | null) {
+  return {
     name: r.name,
+    campaign,
     status: r.status,
     due: r.dueAt ? new Date(r.dueAt).toISOString() : null,
     overdue: r.status !== 'signed' && r.dueAt != null && r.dueAt < now ? 'yes' : 'no',
     decided: `${r.decided ?? 0}/${r.itemCount}`,
     chain: r.chainSeq != null ? String(r.chainSeq) : r.status === 'signed' ? 'pre-chain' : null,
-  }));
+  };
+}
+
+export async function reviewStatus(p: { campaign?: unknown } = {}): Promise<RovoResult> {
+  const filter = typeof p.campaign === 'string' ? p.campaign.trim() : '';
+  const reviews = await listReviews();
+  const now = Date.now();
+  let rows: RovoResult['rows'];
   let note: string | undefined;
-  try {
+  if (filter) {
     const campaigns = await listCampaigns();
-    const active = campaigns.filter((c) => c.status === 'active' || c.status === 'paused');
-    if (active.length) note = `${active.length} campaign(s) configured (see Campaigns).`;
-  } catch {
-    /* campaigns unavailable */
+    const matched = matchCampaigns(campaigns, filter);
+    if (!matched.length) {
+      const known = campaigns.map((c) => c.name).slice(0, 10);
+      throw new BadRequest(
+        known.length
+          ? `No campaign matches "${filter}". Campaigns: ${known.join(', ')}.`
+          : `No campaign matches "${filter}". No review campaigns are configured.`,
+      );
+    }
+    const found = reviewsForCampaigns(reviews, matched, await campaignIdByRun());
+    rows = found.map(({ review, campaign }) => reviewRow(review, now, campaign));
+    note = `Campaign: ${matched.map((c) => c.name).join(', ')} (${found.length} review(s)).`;
+  } else {
+    let runToCampaign = new Map<string, string>();
+    let names = new Map<string, string>();
+    try {
+      const campaigns = await listCampaigns();
+      names = new Map(campaigns.map((c) => [c.id, c.name]));
+      const active = campaigns.filter((c) => c.status === 'active' || c.status === 'paused');
+      if (active.length) note = `${active.length} campaign(s) configured (see Campaigns).`;
+      if (reviews.some((r) => r.campaignRunId)) runToCampaign = await campaignIdByRun();
+    } catch {
+      /* campaigns unavailable */
+    }
+    rows = reviews.map((r) => {
+      const campaignId = r.campaignRunId ? runToCampaign.get(r.campaignRunId) : undefined;
+      return reviewRow(r, now, (campaignId && names.get(campaignId)) || null);
+    });
   }
   const t = truncate(rows);
   const snap = await latestCommitted();
@@ -275,7 +333,7 @@ export async function runRovoAction(
       result = await changesSince(payload);
       break;
     case 'ar-review-status':
-      result = await reviewStatus();
+      result = await reviewStatus(payload);
       break;
     case 'ar-person-access':
       result = await personAccessAction(payload);
@@ -288,4 +346,11 @@ export async function runRovoAction(
 }
 
 /** Pure helpers exported for unit tests. */
-export const _test = { truncate, findProjectId, findAccountId, MAX_ROWS };
+export const _test = {
+  truncate,
+  findProjectId,
+  findAccountId,
+  matchCampaigns,
+  reviewsForCampaigns,
+  MAX_ROWS,
+};
