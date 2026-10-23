@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  activeHumansFromStats,
+  applyFreeTierFrequency,
   clearGateMemo,
   computeGate,
+  FREE_TIER_SCHEDULE_COPY,
+  FREE_TIER_USER_CAP,
+  isFreeTier,
   MAX_FAST_PATH_MS,
   nextDueTimestamp,
   readGateMemo,
@@ -10,6 +15,7 @@ import {
   writeGateMemo,
 } from '../src/collector/gate';
 import { isDue } from '../src/collector/schedule';
+import { t } from '../static/app/src/i18n';
 
 describe('computeGate / nextDueTimestamp', () => {
   const at = (d: number, h: number, m = 0) => Date.UTC(2026, 9, d, h, m);
@@ -44,13 +50,18 @@ describe('computeGate / nextDueTimestamp', () => {
     expect(g.nextDueAt! - now).toBeLessThanOrEqual(MAX_FAST_PATH_MS);
   });
 
-  it('free biweekly-shaped gap: after a run, next window respects isDue minGap', () => {
-    // Not biweekly yet (R1-09); weekly already requires ~7d gap.
+  it('free biweekly: after a run, the next window is two weeks later on the same weekday', () => {
     const now = at(9, 2, 10);
     const last = at(9, 2);
-    expect(isDue({ frequency: 'weekly', hourUtc: 2, weekday: 5 }, last, now)).toBe(false);
-    const next = nextDueTimestamp({ frequency: 'weekly', hourUtc: 2, weekday: 5 }, last, now);
-    expect(next).toBe(at(16, 2));
+    expect(isDue({ frequency: 'biweekly', hourUtc: 2, weekday: 5 }, last, now)).toBe(false);
+    expect(isDue({ frequency: 'biweekly', hourUtc: 2, weekday: 5 }, last, at(16, 2, 10))).toBe(
+      false,
+    );
+    expect(isDue({ frequency: 'biweekly', hourUtc: 2, weekday: 5 }, last, at(23, 2, 10))).toBe(
+      true,
+    );
+    const next = nextDueTimestamp({ frequency: 'biweekly', hourUtc: 2, weekday: 5 }, last, now);
+    expect(next).toBe(at(23, 2));
   });
 
   it('running snapshot sets staleCheckAfter to updatedAt+2h', () => {
@@ -90,6 +101,38 @@ describe('computeGate / nextDueTimestamp', () => {
       nextReminderAt: now + 500,
     });
     expect(soonestDue(g)).toBe(now + 500);
+  });
+});
+
+describe('free tier schedule', () => {
+  const base = { frequency: 'weekly' as const, hourUtc: 2, weekday: 5, retentionDays: 90 };
+
+  it('uses an internal biweekly schedule for Standard at or under 10 active humans', () => {
+    expect(FREE_TIER_USER_CAP).toBe(10);
+    expect(isFreeTier('standard', 0)).toBe(true);
+    expect(isFreeTier('standard', 10)).toBe(true);
+    expect(applyFreeTierFrequency(base, 'standard', 10).frequency).toBe('biweekly');
+    expect(FREE_TIER_SCHEDULE_COPY).toBe(t('schedule.freeTier'));
+    expect(t('schedule.freeTier')).toBe('Free plan: every two weeks; manual snapshots any time');
+  });
+
+  it('keeps weekly on Standard above 10, and never overrides Advanced or Off', () => {
+    expect(isFreeTier('standard', 11)).toBe(false);
+    expect(isFreeTier('standard', null)).toBe(false);
+    expect(isFreeTier('advanced', 3)).toBe(false);
+    expect(applyFreeTierFrequency(base, 'standard', 11).frequency).toBe('weekly');
+    expect(applyFreeTierFrequency({ ...base, frequency: 'daily' }, 'advanced', 3).frequency).toBe(
+      'daily',
+    );
+    expect(applyFreeTierFrequency({ ...base, frequency: 'off' }, 'standard', 2).frequency).toBe(
+      'off',
+    );
+  });
+
+  it('reads activeHumans from snapshot stats and ignores older snapshots', () => {
+    expect(activeHumansFromStats({ activeHumans: 4, person: 9 })).toBe(4);
+    expect(activeHumansFromStats({ person: 9 })).toBeNull();
+    expect(activeHumansFromStats(null)).toBeNull();
   });
 });
 
