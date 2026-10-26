@@ -333,6 +333,7 @@ export type EditionFeatures = {
   changeAlerts: boolean;
   evidencePack: boolean;
   rovo: boolean;
+  signatureChain: boolean;
 };
 
 /** Resolved on the server (env > saved override > license); the UI only shows or hides promos. */

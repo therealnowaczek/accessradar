@@ -19,6 +19,10 @@ const en = {
     'Schedule recurring access reviews and delegate them to space owners with reminders.',
   'planGate.remediation':
     'See whether each revoked access really disappeared in the next snapshot.',
+  'planGate.signing':
+    'Sign off reviews with a SHA-256 evidence hash linked into a tamper-evident chain you can verify.',
+  'planGate.verify':
+    'Verify the signature, snapshot hash and chain of signed reviews to prove nothing changed.',
   'planGate.projectReview':
     'Let space owners review access to their own space, with in-app reminders.',
   'schedule.freeTier': 'Free plan: every two weeks; manual snapshots any time',

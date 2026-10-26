@@ -124,6 +124,9 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
   }, [autoCreate, hasSnapshot]);
   const reviews = list.data?.reviews ?? [];
   const hasChained = reviews.some((r) => r.status === 'signed' && r.chainSeq != null);
+  // Signing, the hash chain and Verify are Advanced; the server refuses them on Standard too.
+  const chainLocked =
+    Boolean(status.data) && status.data?.edition?.features?.signatureChain === false;
   const openVerifyChain = () =>
     setDrawer([
       {
@@ -139,7 +142,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
       description={meta.description}
       actions={
         <>
-          {hasChained ? (
+          {hasChained && !chainLocked ? (
             <Button appearance="subtle" onClick={openVerifyChain}>
               Verify chain
             </Button>
@@ -157,6 +160,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
   return (
     <PageFrame notice={staleNotice(list)} header={header}>
       <Stack space="space.300">
+        {chainLocked && list.data ? <PlanNote benefit={t('planGate.signing')} /> : null}
         {list.error && !list.data ? (
           <ErrorState title="Reviews unavailable" message={list.error} retry={list.reload} />
         ) : !list.data || (status.loading && !status.data) ? (
@@ -459,9 +463,12 @@ const CHANGES: Opt[] = [
 ];
 
 function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
-  const { siteUrl } = useApp();
+  const { siteUrl, status } = useApp();
   const toast = useToast();
   const r = useCall<ReviewDetail>('getReview', { id });
+  // Advanced only: sign-off, hash chain and Verify. Signed reviews stay readable on Standard.
+  const chainLocked =
+    Boolean(status.data) && status.data?.edition?.features?.signatureChain === false;
   const [drawer, setDrawer] = useState<DrawerLevel[]>([]);
   const [confirmDialog, confirm] = useConfirm();
   const [query, setQuery] = useState('');
@@ -658,7 +665,9 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               })
             }
           />
-          {signed ? <Button onClick={openVerify}>Verify signature & chain</Button> : null}
+          {signed && !chainLocked ? (
+            <Button onClick={openVerify}>Verify signature & chain</Button>
+          ) : null}
           {!signed ? (
             <Button appearance="subtle" onClick={openDelete} isDisabled={!d}>
               Delete
@@ -695,7 +704,11 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               Download evidence pack
             </Button>
           ) : (
-            <Button appearance="primary" isDisabled={!d || pending > 0} onClick={openSign}>
+            <Button
+              appearance="primary"
+              isDisabled={!d || pending > 0 || chainLocked}
+              onClick={openSign}
+            >
               Sign off
             </Button>
           )}
@@ -726,6 +739,9 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   return (
     <PageFrame notice={staleNotice(r)} header={header}>
       <Stack space="space.300">
+        {chainLocked ? (
+          <PlanNote benefit={t(signed ? 'planGate.verify' : 'planGate.signing')} />
+        ) : null}
         {signed ? (
           <SectionMessage
             appearance="success"

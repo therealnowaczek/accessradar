@@ -625,7 +625,17 @@ export async function decideItems(p: any, accountId: string) {
 
 const TZ = /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+){0,2}$|^UTC$/;
 
+/**
+ * Signing, the hash chain and Verify are Advanced (family rule 2026-10-26). Checked before any
+ * read or write so Standard never adds a chain link, starts a verify job or recomputes a hash.
+ * Viewing reviews signed earlier (getReview, exports) stays open on every edition.
+ */
+export function assertSignatureChain(edition: Pick<EditionDecision, 'features'>) {
+  if (!edition.features.signatureChain) throw new BadRequest(REQUIRES_ADVANCED);
+}
+
 export async function signReview(p: any, accountId: string, edition: EditionDecision) {
+  assertSignatureChain(edition);
   const review = await loadReview(p.id);
   if (review.status === 'signed') throw new BadRequest('This review is already signed');
   if (p.attest !== true) throw new BadRequest('Confirm the attestation to sign');
@@ -916,7 +926,8 @@ export async function runRemediationCheck(seq: number): Promise<void> {
 }
 
 /** Recomputes the evidence hash from stored records; any edit after sign-off shows up as a mismatch. */
-export async function verifyReview(p: any, accountId: string) {
+export async function verifyReview(p: any, accountId: string, edition: EditionDecision) {
+  assertSignatureChain(edition);
   const review = await loadReview(p.id);
   if (review.status !== 'signed' || !review.signedBy || !review.signedAt)
     throw new BadRequest('Only signed reviews can be verified');
@@ -960,7 +971,8 @@ export async function verifyReview(p: any, accountId: string) {
 }
 
 /** Walk the site-wide signature chain; reports the first structural or hash break. */
-export async function verifyChain(accountId: string) {
+export async function verifyChain(accountId: string, edition: EditionDecision) {
+  assertSignatureChain(edition);
   const links = await listChainLinks();
   const structural = walkChain(links);
   if (!structural.ok) {
@@ -1044,7 +1056,8 @@ export async function verifyChain(accountId: string) {
   return out;
 }
 
-export async function startSnapshotVerify(p: any, accountId: string) {
+export async function startSnapshotVerify(p: any, accountId: string, edition: EditionDecision) {
+  assertSignatureChain(edition);
   const review = await loadReview(p.reviewId ?? p.id);
   if (review.status !== 'signed') throw new BadRequest('Only signed reviews can be verified');
   const base = await getSnapshot(review.baseSeq, false);
@@ -1056,7 +1069,8 @@ export async function startSnapshotVerify(p: any, accountId: string) {
   return { jobId, expectedHash: expected, seq: review.baseSeq };
 }
 
-export async function verifyJobStatus(p: any) {
+export async function verifyJobStatus(p: any, edition: EditionDecision) {
+  assertSignatureChain(edition);
   const id = v.id(p.jobId, 'job', /^[0-9a-f-]{36}$/);
   const job = await getVerifyJob(id);
   if (!job) throw new BadRequest('Verify job not found');
@@ -1068,6 +1082,17 @@ export async function runVerifySnapshotJob(jobId: string): Promise<void> {
   const job = await getVerifyJob(jobId);
   if (!job) return;
   if (job.status === 'ok' || job.status === 'mismatch' || job.status === 'purged') return;
+  // A job queued on Advanced does not keep running after a downgrade to Standard.
+  if (!(await backgroundEdition()).features.signatureChain) {
+    await patchVerifyJob(jobId, {
+      status: 'error',
+      finishedAt: Date.now(),
+      cursorKind: null,
+      cursorFkey: null,
+      error: REQUIRES_ADVANCED,
+    });
+    return;
+  }
   await patchVerifyJob(jobId, { status: 'running', error: null });
 
   const snap = await getSnapshot(job.seq, false);

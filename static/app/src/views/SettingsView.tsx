@@ -829,6 +829,10 @@ const ADVANCED_FEATURES: Array<{
     key: 'evidencePack',
     label: 'Audit evidence pack PDF (methodology and decision trail)',
   },
+  {
+    key: 'signatureChain',
+    label: 'Signed reviews (SHA-256), hash chain and Verify',
+  },
   { key: 'rovo', label: 'Rovo agent (read-only answers from your snapshots)' },
 ];
 

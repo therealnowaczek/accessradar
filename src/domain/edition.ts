@@ -43,6 +43,12 @@ export interface FeatureFlags {
   evidencePack: boolean;
   /** Advanced: read-only Rovo agent (rovo:agent + GET actions, Runs on Atlassian). */
   rovo: boolean;
+  /**
+   * Advanced: signed reviews (SHA-256 evidence hash), the site-wide hash chain and Verify
+   * (quick, deep snapshot and chain). Family rule (2026-10-26): signing, hash chain and Verify
+   * are always Advanced. Reviews signed earlier stay readable on Standard.
+   */
+  signatureChain: boolean;
 }
 
 /** Feature keys released (no longer “coming soon” in Settings promo). */
@@ -55,6 +61,7 @@ export const RELEASED_FEATURES = [
   'reviewCampaigns',
   'delegatedReviews',
   'rovo',
+  'signatureChain',
 ] as const satisfies ReadonlyArray<keyof FeatureFlags>;
 
 export type ReleasedFeature = (typeof RELEASED_FEATURES)[number];
@@ -119,6 +126,7 @@ export function featureFlags(edition: Edition): FeatureFlags {
     changeAlerts: advanced,
     evidencePack: advanced,
     rovo: advanced,
+    signatureChain: advanced,
   };
 }
 
