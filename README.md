@@ -47,10 +47,10 @@ The developer spike panel appears in Settings only when `ACCESSRADAR_SPIKE=1` is
 
 The edition is decided on the server for every resolver call (`src/api/edition.ts`): Marketplace license `capabilitySet` (case-insensitive), plus `AR_EDITION_OVERRIDE` and the `edition:override` KVS on development and staging only. Flags live in `src/domain/edition.ts`; resolvers refuse with `REQUIRES_ADVANCED` and the UI shows the Advanced `PlanNote`.
 
-- **Standard:** manual and weekly snapshots, 90-day history, Explore with the why path, snapshot diff, reviews with Keep / Revoke / Exception decisions, CSV / PDF / Markdown export, risk indicators, exception register. Reviews signed earlier stay readable (signer, hashes, chain number).
-- **Advanced:** everything in Standard plus daily and custom schedules, unlimited history, remediation verification, delegated reviews, recurring campaigns, change alerts, audit evidence pack, Rovo agent, and (since 2026-10-26, family rule) signed reviews, the site-wide hash chain and Verify (`signatureChain`: `signReview`, `verifyReview`, `verifyChain`, `startSnapshotVerify`, `getVerifyJob`).
+- **Standard:** manual and weekly snapshots, 90-day history, Explore with the why path, snapshot diff, reviews with Keep / Revoke / Exception decisions, CSV / PDF / Markdown export, risk indicators, exception register, weekly digest (one in-app summary of the access changes from the last 7 days, built by the `accessradar-digest-weekly` scheduled trigger; `getWeeklyDigest`, `refreshWeeklyDigest`). Reviews signed earlier stay readable (signer, hashes, chain number).
+- **Advanced:** everything in Standard plus daily and custom schedules, unlimited history, remediation verification, delegated reviews, recurring campaigns, real-time alerts after every snapshot with configurable alert rules (`changeAlerts`), audit evidence pack, Rovo agent, and (since 2026-10-26, family rule) signed reviews, the site-wide hash chain and Verify (`signatureChain`: `signReview`, `verifyReview`, `verifyChain`, `startSnapshotVerify`, `getVerifyJob`).
 
-Details: `docs/PRD-R1-R2.md` §5 and §5.1, `docs/LISTING.md` §8.
+Details: `docs/PRD-R1-R2.md` §5, §5.1 and §5.2, `docs/LISTING.md` §8.
 
 ## Deploy
 

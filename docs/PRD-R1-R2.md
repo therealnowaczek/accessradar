@@ -591,7 +591,8 @@ Concurrency: sign assigns `chain_seq = MAX+1` with unique index; on duplicate ke
 | evidencePack | R1 | ❌ | ✅ | `getEvidencePack` |
 | reviewCampaigns | R2 | ❌ | ✅ | campaign resolvers, `CAMPAIGN_*` steps |
 | delegatedReviews | R2 | ❌ | ✅ | `ar-project-resolver` |
-| changeAlerts | R2 | ❌ | ✅ | `ALERTS` step, alert resolvers |
+| changeAlerts (real-time alerts) | R2 | ❌ | ✅ | `ALERTS` step, alert resolvers, alert rule settings |
+| weekly digest (no flag, 2026-10-26) | R2 | ✅ | ✅ | `DIGEST` step, `getWeeklyDigest`, `refreshWeeklyDigest` (no gate) |
 | rovo | R2 | ❌ | ✅ | `ar-rovo` |
 | signatureChain (2026-10-26) | R2 | ❌ | ✅ | `signReview`, `verifyReview`, `verifyChain`, `startSnapshotVerify`, `getVerifyJob`, `VERIFY_SNAPSHOT` step |
 
@@ -610,6 +611,24 @@ Family rule for all Radrly apps: signing, the hash chain and Verify are always A
 **Side effects on Standard.** Exceptions are written to the register and remediation rows are created at sign-off, so on Standard new reviews stay drafts: decisions are saved and exportable, but no new exceptions are registered from them.
 
 **Tests.** `test/signatureGate.test.ts` (each resolver refuses Standard before touching data, Advanced passes, consumer closes a job after a downgrade) and `test/editionChainOverride.test.ts` (capabilitySet in any letter case, KVS override on development only).
+
+### 5.2 Edition decision 2026-10-26: weekly digest on Standard, real-time alerts stay Advanced
+
+| Standard | Advanced |
+|---|---|
+| Weekly digest | Real-time alerts (after every snapshot, configurable alert rules) plus the weekly digest |
+
+**What it is.** One in-app summary of the access changes from the last 7 days, with the same change types the Advanced change alerts detect: new admins, new public (anonymous) grants, inactive accounts that still have access, new space admins and app accounts with admin access. All rules are always on; alert rule settings stay Advanced.
+
+**How it is built.** Scheduled trigger `accessradar-digest-weekly` (interval `week`, function `ar-digest`) pushes queue step `DIGEST`. The consumer takes the newest committed snapshot (head) and the newest committed snapshot taken at or before the start of the 7 day window (base) and diffs them with `evaluateAlerts` (`src/engine/digest.ts`, `buildWeeklyDigest`). When no snapshot is that old yet, the oldest committed one is used and the digest says it covers a shorter period. With fewer than two committed snapshots the digest says so instead. The result (counts per change type for every change, up to 50 listed items, high severity first) is stored in the `kv` table under `digest:weekly`, replacing the previous week. Audit: `digest.built` (system), `digest.requested` (admin).
+
+**Resolvers.** `getWeeklyDigest` returns the stored digest; `refreshWeeklyDigest` queues a rebuild now. Neither is gated: the digest is Standard and Advanced.
+
+**UI.** "Weekly digest" card on Overview (both editions) and on the Alerts page on Standard, under the Advanced note for real-time alerts. Metric per change type, a table of the changes, and a **Refresh now** button. On Standard the card ends with the Advanced `PlanNote` for real-time alerts.
+
+**Limits.** The digest compares two snapshots, so an access change added and removed again inside the same week does not appear (real-time alerts catch it on Advanced). Delivery is in-app only: a Jira notification or email would need new scopes or egress, so it is not built. No new scopes, no egress; the only manifest change is the scheduled trigger and its function.
+
+**Tests.** `test/digest.test.ts` (snapshot choice, counts, cap, sort, partial week, empty states) and `test/digestService.test.ts` (stored in `kv`, no-snapshot and no-baseline states, refresh queues `DIGEST`).
 
 ---
 

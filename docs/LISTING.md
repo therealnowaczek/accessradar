@@ -120,7 +120,7 @@ In Jira Cloud, effective access comes from several layers at once: the permissio
 
 **Campaigns and change alerts (Advanced)**
 - Recurring review campaigns by site, spaces or space category; preview assignees, then run, pause or delete from the Campaigns admin page.
-- After each snapshot, in-app change alerts for new admins, public grants and inactive users who still have access.
+- After each snapshot, real-time in-app alerts for new admins, public grants and inactive users who still have access (Advanced). Standard gets a weekly digest of the same changes.
 - Reminders and alerts stay **in the app** (no email, Slack or webhooks). Admins tell space owners through their usual channels. Delegates review their assigned spaces on the space settings page. Advanced also includes a read-only Rovo agent that answers from the latest snapshot (Jira admins only; Rovo must be enabled on the site).
 
 **Evidence export**
@@ -285,16 +285,16 @@ Advanced (same method):
 | Manual and weekly snapshots | Daily and custom snapshot schedules |
 | 90-day history | Unlimited history |
 | Explore spaces, groups and people, with the why path | Recurring review campaigns (admin: create, preview, run, pause) |
-| Snapshot diff; coverage & limitations in exports | Change alerts: new admin, public grant, inactive user (in-app) |
+| Snapshot diff; coverage & limitations in exports | Real-time alerts after every snapshot: new admin, public grant, inactive user (in-app, configurable rules) |
 | Reviews: Keep / Revoke / Exception (expiry) decisions | In-app reminders for campaign runs (no email) |
 | CSV/PDF export; risk indicators (11 rules); exception register | Reviews delegated to space owners (space settings page) |
-| View reviews signed earlier (read-only) | Remediation verification (confirm Revokes in later snapshots) |
-| | Signed reviews: SHA-256 sign-off v2 |
+| Weekly digest: one in-app summary of access changes from the last 7 days | Remediation verification (confirm Revokes in later snapshots) |
+| View reviews signed earlier (read-only) | Signed reviews: SHA-256 sign-off v2 |
 | | Site-wide hash chain; Verify signature, snapshot and chain |
 | | Audit evidence pack PDF with SOC 2 / ISO control mapping |
 | | Rovo agent (read-only) |
 
-Edition decision 2026-10-26 (Radrly family rule): signing, the hash chain and Verify are always Advanced. Reviews signed earlier stay readable on Standard (PRD §5.1).
+Edition decision 2026-10-26 (Radrly family rule): signing, the hash chain and Verify are always Advanced. Reviews signed earlier stay readable on Standard (PRD §5.1). Edition decision 2026-10-26: Standard gets the weekly digest, real-time alerts stay Advanced (PRD §5.2).
 
 *(PL) Punkty odniesienia konkurencji (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2) zostają historyczne. Finalna cena AccessRadar (2026-10-14): Standard 100 u. = $490/rok, Advanced 100 u. = $990/rok. Wchodzi na listing po akceptacji Marketplace.*
 
