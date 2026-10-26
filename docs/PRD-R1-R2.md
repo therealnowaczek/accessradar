@@ -99,7 +99,7 @@ Conventions to keep (MarginRadar): Custom UI + Atlaskit/ADS tokens, single admin
 - Decisions: `keep` | `revoke` | `exception` | null.
 - `revoke` requires note ≥ 10 chars (trimmed). `exception` requires note ≥ 10 chars AND `expiresAt` in (now+1 day … now+366 days], date-only, stored as 23:59:59.999 in signer's TZ converted to UTC epoch ms. `keep` note optional (setting `requireKeepNote`, default false).
 - Bulk decide applies one note/expiry to all selected items (existing bulk UX).
-- On **sign**, every `exception` item is upserted into `access_exception` (status `active`).
+- When the decision is **saved** (`decideItems`), every `exception` item is registered in `access_exception` (status `active`), on every edition and without sign-off (edition decision 2026-10-26, §5.3). Sign-off (Advanced) runs the same sync again for drafts decided before that change.
 - On **createReview**, any `access_exception` for the same `item_key` that is `active` and not expired is shown as pre-filled `exception` (decision copied, `decidedBy` = original, badge "Exception until …") — admin can override. Expired ones are marked `expired` and the item gets `risk = max(risk, 65)` and badge "Exception expired".
 - Daily `ar-privacy` job (already daily) also runs `expireExceptions(now)` — one UPDATE.
 
@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS access_exception (
 
 **Resolvers / functions.**
 - `decideItems({ id, idxs: number[], decision: 'keep'|'revoke'|'exception'|null, note?: string, expiresAt?: number }) → { changed }` — server enforces rules above (`BadRequest` texts fixed in tests).
-- `signReview` — additionally upserts exceptions; previous active exception for same `item_key` → `superseded`; an item decided `revoke` closes an active exception (`revoked`).
+- `decideItems` (since 2026-10-26, §5.3) syncs the register when a decision is saved: previous active exception for the same `item_key` → `superseded`; an item decided `revoke` closes an active exception (`revoked`); changing an Exception decision to Keep or clearing it withdraws the exception this review registered (`revoked`, reason `withdrawn`). `signReview` runs the same sync, normally a no-op.
 - New `listExceptions({ status?: string, page?: number }) → { items, total }`.
 - `expireExceptions(now: number): Promise<number>` in `src/db/exceptions.ts`, called from `PRIVACY` consumer branch.
 - `buildReviewItems` unchanged; new `applyExceptions(items, active: ExceptionRow[], now)` pure fn in `src/engine/exceptions.ts`.
@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS access_exception (
 **Acceptance criteria.**
 1. Revoke/exception without valid note → `BadRequest`, nothing persisted (UI blocked too).
 2. Exception without expiry, expiry in past, or >366 days → `BadRequest`.
-3. Signing creates one `access_exception` per exception item; register lists it.
+3. Saving an Exception decision creates one `access_exception` per exception item, without sign-off; register lists it (since 2026-10-26; before that, at signing).
 4. New review on later snapshot pre-fills unexpired exceptions; expired ones flagged with risk ≥65.
 5. Daily job flips expired rows; audit event written once per run with count.
 6. Signed review verification still passes for reviews signed before R1 (signature v1 path).
@@ -596,7 +596,7 @@ Concurrency: sign assigns `chain_seq = MAX+1` with unique index; on duplicate ke
 | rovo | R2 | ❌ | ✅ | `ar-rovo` |
 | signatureChain (2026-10-26) | R2 | ❌ | ✅ | `signReview`, `verifyReview`, `verifyChain`, `startSnapshotVerify`, `getVerifyJob`, `VERIFY_SNAPSHOT` step |
 
-Standard features without a flag: exceptions, coverage, risk rules. Signature v2 and the chain moved to Advanced on 2026-10-26 (§5.1). `editionView` exposes `comingSoon: string[]` computed from a `RELEASED` constant so Settings promo stays truthful per release. `test/domain/edition.test.ts` extended for the new flag.
+Standard features without a flag: exceptions (decision, register and expiry, without sign-off since 2026-10-26, §5.3), coverage, risk rules. Signature v2 and the chain moved to Advanced on 2026-10-26 (§5.1). `editionView` exposes `comingSoon: string[]` computed from a `RELEASED` constant so Settings promo stays truthful per release. `test/domain/edition.test.ts` extended for the new flag.
 
 ### 5.1 Edition decision 2026-10-26: signing, hash chain and Verify are Advanced
 
@@ -608,9 +608,19 @@ Family rule for all Radrly apps: signing, the hash chain and Verify are always A
 
 **Existing signed data.** Reviews signed earlier (for example before a downgrade) stay fully readable on Standard: review detail with signer, evidence hash, snapshot hash, chain number and previous hash, the Chain # column, and CSV / PDF / Markdown exports. Nothing is deleted or re-signed, and signed reviews stay read-only. Standard cannot sign new reviews, add chain links or run Verify. Reason: the signature is audit evidence the customer already produced and may have handed to an auditor; hiding it would hurt trust and gain nothing, while the hash values can still be recomputed outside the app from the exports. Re-enabling Advanced continues the same chain (next `chain_seq`), so Verify then checks the full history.
 
-**Side effects on Standard.** Exceptions are written to the register and remediation rows are created at sign-off, so on Standard new reviews stay drafts: decisions are saved and exportable, but no new exceptions are registered from them.
+**Side effects on Standard.** Remediation rows are created at sign-off, so on Standard new reviews stay drafts: decisions are saved and exportable. Exceptions no longer depend on sign-off (§5.3).
 
 **Tests.** `test/signatureGate.test.ts` (each resolver refuses Standard before touching data, Advanced passes, consumer closes a job after a downgrade) and `test/editionChainOverride.test.ts` (capabilitySet in any letter case, KVS override on development only).
+
+### 5.3 Edition decision 2026-10-26: exceptions work on Standard without signing
+
+Exception registration is decoupled from sign-off. The Exception decision (justification of at least 10 characters plus an expiry date), the Exceptions register and automatic expiry work on Standard and Advanced. Signing, the hash chain and Verify stay Advanced (§5.1).
+
+**Server.** `decideItems` saves the decision, then `syncReviewExceptions` (`src/db/exceptions.ts`) updates `access_exception` for the decided items: Exception with justification and expiry is registered as `active` (skipped when an identical active row exists, any other active row for the item is `superseded`); Revoke closes active exceptions for the item (`revoked`); Keep or a cleared decision withdraws the exception registered from this review (`revoked`, reason `withdrawn`). Audit: `exception.granted`, `exception.superseded`, `exception.revoked`, `exception.withdrawn`. `signReview` (Advanced) runs the same sync, so drafts decided before this change are still registered at sign-off. `listExceptions` and the daily expiry (`runExpireExceptions`) have no edition gate. Signed reviews stay read-only and earlier signed data stays readable.
+
+**UI.** The decision drawer says the exception is added to the register as soon as it is saved and that sign-off is not needed; saving shows a toast with the number of exceptions registered or withdrawn. The Exceptions page is unchanged and available on Standard.
+
+**Tests.** `test/exceptionsStandard.test.ts` (Standard registers, views and expires exceptions without signing; no duplicate rows; withdraw and revoke; signing still refused on Standard).
 
 ### 5.2 Edition decision 2026-10-26: weekly digest on Standard, real-time alerts stay Advanced
 

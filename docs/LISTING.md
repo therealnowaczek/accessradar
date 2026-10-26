@@ -55,7 +55,7 @@ Built for Jira admins and compliance teams:
 • The "why": group → space role → permission scheme grant
 • Daily or weekly snapshots, plus one on demand
 • Diff two snapshots: access granted and removed, group and scheme changes
-• Access reviews: Keep, Revoke or Exception (justification + expiry), then sign off
+• Access reviews: Keep, Revoke or Exception (justification + expiry); exceptions go straight into the register
 • Advanced: SHA-256 evidence hash (v2) tied to the snapshot; verify in the app
 • Coverage & limitations in every export; risk indicators and completeness
 • CSV/PDF evidence; Advanced pack with SOC 2 / ISO mapping
@@ -287,14 +287,14 @@ Advanced (same method):
 | Explore spaces, groups and people, with the why path | Recurring review campaigns (admin: create, preview, run, pause) |
 | Snapshot diff; coverage & limitations in exports | Real-time alerts after every snapshot: new admin, public grant, inactive user (in-app, configurable rules) |
 | Reviews: Keep / Revoke / Exception (expiry) decisions | In-app reminders for campaign runs (no email) |
-| CSV/PDF export; risk indicators (11 rules); exception register | Reviews delegated to space owners (space settings page) |
+| CSV/PDF export; risk indicators (11 rules); exception register (no sign-off needed) | Reviews delegated to space owners (space settings page) |
 | Weekly digest: one in-app summary of access changes from the last 7 days | Remediation verification (confirm Revokes in later snapshots) |
 | View reviews signed earlier (read-only) | Signed reviews: SHA-256 sign-off v2 |
 | | Site-wide hash chain; Verify signature, snapshot and chain |
 | | Audit evidence pack PDF with SOC 2 / ISO control mapping |
 | | Rovo agent (read-only) |
 
-Edition decision 2026-10-26 (Radrly family rule): signing, the hash chain and Verify are always Advanced. Reviews signed earlier stay readable on Standard (PRD §5.1). Edition decision 2026-10-26: Standard gets the weekly digest, real-time alerts stay Advanced (PRD §5.2).
+Edition decision 2026-10-26 (Radrly family rule): signing, the hash chain and Verify are always Advanced. Reviews signed earlier stay readable on Standard (PRD §5.1). Edition decision 2026-10-26: Standard gets the weekly digest, real-time alerts stay Advanced (PRD §5.2). Exceptions work on Standard without signing (PRD §5.3).
 
 *(PL) Punkty odniesienia konkurencji (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2) zostają historyczne. Finalna cena AccessRadar (2026-10-14): Standard 100 u. = $490/rok, Advanced 100 u. = $990/rok. Wchodzi na listing po akceptacji Marketplace.*
 
