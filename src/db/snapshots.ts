@@ -1,5 +1,6 @@
 import { contentHash, factVersionHash, type FactKind, type StoredFact } from '../engine/facts';
 import { ENGINE_VERSION } from '../engine/resolve';
+import { mapLimit, singleFlight } from '../lib/budget';
 import { purgeNotices } from './notices';
 import { chunk, exec, limitClause, num, placeholders, q } from './sql';
 
@@ -282,23 +283,35 @@ export interface MergeResult {
  * `carry` markers extend open facts by key prefix (e.g. members of a group that could not be read
  * this time). Safe to re-run: already-merged rows (last_seen = seq) are recognised.
  */
-export async function mergeStage(seq: number, prevSeq: number | null): Promise<MergeResult> {
-  const staged = await readStage(seq);
-  const facts = staged.filter((f) => f.kind !== 'coverage' && f.kind !== 'carry');
-  const carry = staged.filter((f) => f.kind === 'carry').map((f) => f.fkey);
+export async function mergeStage(
+  seq: number,
+  prevSeq: number | null,
+  /** Already-read stage rows (FINALIZE has them in memory); avoids holding the stage twice. */
+  stagedRows?: ReadonlyArray<{ kind: string; fkey: string; attrs: unknown }>,
+): Promise<MergeResult> {
+  const staged = stagedRows ?? (await readStage(seq));
+  const carry: string[] = [];
   const open = prevSeq === null ? [] : await openFacts(prevSeq, seq);
   const byKey = new Map(open.map((r) => [`${r.kind}\u0000${r.fkey}`, r]));
   const toExtend: number[] = [];
-  const toInsert: Array<[string, string, string, string]> = [];
+  // Keep references, not serialized copies: attrs are stringified one insert chunk at a time.
+  const toInsert: Array<{ kind: string; fkey: string; vhash: string; attrs: unknown }> = [];
   const present = new Set<string>();
-  for (const f of facts) {
+  let factCount = 0;
+  for (const f of staged) {
+    if (f.kind === 'coverage') continue;
+    if (f.kind === 'carry') {
+      carry.push(f.fkey);
+      continue;
+    }
+    factCount += 1;
     const vhash = factVersionHash(f.kind as FactKind, f.attrs);
     const k = `${f.kind}\u0000${f.fkey}`;
     present.add(k);
     const o = byKey.get(k);
     if (o && o.vhash === vhash) {
       if (o.last_seen !== seq) toExtend.push(o.id);
-    } else toInsert.push([f.kind, f.fkey, vhash, JSON.stringify(f.attrs)]);
+    } else toInsert.push({ kind: f.kind, fkey: f.fkey, vhash, attrs: f.attrs });
   }
   let carried = 0;
   if (carry.length)
@@ -319,37 +332,75 @@ export async function mergeStage(seq: number, prevSeq: number | null): Promise<M
   for (const rows of chunk(toInsert, 100))
     await exec(
       `INSERT IGNORE INTO fact (kind, fkey, vhash, attrs, first_seen, last_seen) VALUES ${placeholders(rows.length, 6)}`,
-      ...rows.flatMap((r) => [...r, seq, seq]),
+      ...rows.flatMap((r) => [r.kind, r.fkey, r.vhash, JSON.stringify(r.attrs), seq, seq]),
     );
   invalidateFactCache();
   return {
     extended: toExtend.length - carried,
     inserted: toInsert.length,
     carried,
-    facts: facts.length + carried,
+    facts: factCount + carried,
   };
 }
 
 // Snapshot facts are immutable once committed (except privacy pseudonymisation), so a short cache helps.
 const cache = new Map<number, { at: number; facts: StoredFact<any>[] }>();
 const CACHE_TTL_MS = 60_000;
+const FACT_PAGE = 3000;
+/** Parallel id-range readers per snapshot load (each pages sequentially inside its range). */
+export const FACT_READ_CONCURRENCY = 4;
+let cacheGeneration = 0;
+const factFlight = singleFlight<string, StoredFact<any>[]>();
 
 export function invalidateFactCache() {
   cache.clear();
+  cacheGeneration += 1;
 }
 
-export async function loadFacts(seq: number): Promise<StoredFact<any>[]> {
-  const hit = cache.get(seq);
-  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.facts;
-  const out: StoredFact<any>[] = [];
-  let after = 0;
+type FactDbRow = { id: number; kind: string; fkey: string; vhash: string; attrs: string };
+
+/** Reads the facts valid at `seq` with ids in (lo, hi], page by page, in id order. */
+async function readFactRange(seq: number, lo: number, hi: number): Promise<FactDbRow[]> {
+  const out: FactDbRow[] = [];
+  let after = lo;
   for (;;) {
-    const rows = await q<{ id: number; kind: string; fkey: string; vhash: string; attrs: string }>(
-      'SELECT id, kind, fkey, vhash, attrs FROM fact WHERE first_seen <= ? AND last_seen >= ? AND id > ? ORDER BY id LIMIT 3000',
+    const rows = await q<FactDbRow>(
+      `SELECT id, kind, fkey, vhash, attrs FROM fact WHERE first_seen <= ? AND last_seen >= ? AND id > ? AND id <= ? ORDER BY id LIMIT ${FACT_PAGE}`,
       seq,
       seq,
       after,
+      hi,
     );
+    out.push(...rows);
+    if (rows.length < FACT_PAGE) return out;
+    after = Number(rows[rows.length - 1].id);
+  }
+}
+
+/** Splits (lo-1, hi] into at most `parts` contiguous id ranges. */
+export function idRanges(lo: number, hi: number, parts: number): Array<[number, number]> {
+  if (hi < lo) return [];
+  const start = lo - 1;
+  const n = Math.max(1, Math.min(parts, Math.ceil((hi - start) / FACT_PAGE)));
+  const span = Math.ceil((hi - start) / n);
+  const out: Array<[number, number]> = [];
+  for (let i = 0; i < n; i++) {
+    const a = start + i * span;
+    const b = i === n - 1 ? hi : Math.min(hi, start + (i + 1) * span);
+    if (b > a) out.push([a, b]);
+  }
+  return out;
+}
+
+async function readFacts(seq: number): Promise<StoredFact<any>[]> {
+  const [bounds] = await q<{ lo: number | null; hi: number | null }>(
+    'SELECT MIN(id) AS lo, MAX(id) AS hi FROM fact',
+  );
+  if (!bounds || bounds.lo === null || bounds.hi === null) return [];
+  const ranges = idRanges(Number(bounds.lo), Number(bounds.hi), FACT_READ_CONCURRENCY);
+  const parts = await mapLimit(ranges, FACT_READ_CONCURRENCY, ([a, b]) => readFactRange(seq, a, b));
+  const out: StoredFact<any>[] = [];
+  for (const rows of parts)
     for (const r of rows)
       out.push({
         kind: r.kind as FactKind,
@@ -357,17 +408,47 @@ export async function loadFacts(seq: number): Promise<StoredFact<any>[]> {
         vhash: r.vhash,
         attrs: JSON.parse(r.attrs),
       });
-    if (rows.length < 3000) break;
-    after = Number(rows[rows.length - 1].id);
-  }
-  if (cache.size > 3) cache.delete(cache.keys().next().value as number);
-  cache.set(seq, { at: Date.now(), facts: out });
   return out;
 }
 
+/**
+ * All facts valid at `seq`. Cached briefly per container; concurrent callers (the UI fires several
+ * views at once) share one in-flight load instead of each scanning the fact table.
+ */
+export async function loadFacts(seq: number): Promise<StoredFact<any>[]> {
+  const hit = cache.get(seq);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.facts;
+  const gen = cacheGeneration;
+  return factFlight(`${gen}:${seq}`, async () => {
+    const out = await readFacts(seq);
+    if (gen === cacheGeneration) {
+      if (cache.size > 3) cache.delete(cache.keys().next().value as number);
+      cache.set(seq, { at: Date.now(), facts: out });
+    }
+    return out;
+  });
+}
+
+/**
+ * Content hash of snapshot `seq` from kind/fkey/vhash only. FINALIZE used to load every fact with
+ * parsed attrs just to hash three short columns, the largest memory spike of a collection run.
+ */
 export async function computeContentHash(seq: number): Promise<string> {
   invalidateFactCache();
-  return contentHash(await loadFacts(seq));
+  const lines: Array<{ kind: string; fkey: string; vhash: string }> = [];
+  let after = 0;
+  for (;;) {
+    const rows = await q<{ id: number; kind: string; fkey: string; vhash: string }>(
+      `SELECT id, kind, fkey, vhash FROM fact WHERE first_seen <= ? AND last_seen >= ? AND id > ? ORDER BY id LIMIT ${FACT_PAGE}`,
+      seq,
+      seq,
+      after,
+    );
+    for (const r of rows) lines.push({ kind: r.kind, fkey: r.fkey, vhash: r.vhash });
+    if (rows.length < FACT_PAGE) break;
+    after = Number(rows[rows.length - 1].id);
+  }
+  return contentHash(lines as Array<Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>>);
 }
 
 // ---------- retention ----------

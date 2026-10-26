@@ -456,6 +456,22 @@ export interface FinalizeResult {
   merge: { extended: number; inserted: number; carried: number; facts: number };
 }
 
+/** A staged fact as readStage would return it after a round trip through the stage table. */
+export function asStored(f: StageFact): { kind: string; fkey: string; attrs: any } {
+  return {
+    kind: f.kind,
+    fkey: f.fkey.slice(0, 400),
+    attrs: JSON.parse(JSON.stringify(f.attrs ?? {})),
+  };
+}
+
+const binCmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+/** readStage order: kind, then fkey (binary collation). */
+export function mergeOrder<T extends { kind: string; fkey: string }>(rows: T[]): T[] {
+  return rows.sort((a, b) => binCmp(a.kind, b.kind) || binCmp(a.fkey, b.fkey));
+}
+
 export async function finalize(ctx: StepContext): Promise<FinalizeResult> {
   const { client, seq } = ctx;
   const staged = await readStage(seq);
@@ -521,11 +537,14 @@ export async function finalize(ctx: StepContext): Promise<FinalizeResult> {
   });
   if (extra.length) await stage(seq, extra);
   const prev = await previousCommitted(seq);
-  const merge = await mergeStage(seq, prev?.seq ?? null);
+  // Merge from the rows already in memory (plus the extra persons exactly as stored), instead of
+  // reading the whole stage a second time. Same rows, same (kind, fkey) order as readStage.
+  const all = mergeOrder([...staged, ...extra.map(asStored)]);
+  const merge = await mergeStage(seq, prev?.seq ?? null, all);
   const hash = await computeContentHash(seq);
   const stats: Record<string, number> = {};
   let activeHumans = 0;
-  for (const f of [...staged, ...extra]) {
+  for (const f of all) {
     if (f.kind === 'coverage' || f.kind === 'carry') continue;
     stats[f.kind] = (stats[f.kind] ?? 0) + 1;
     if (f.kind === 'person') {

@@ -47,6 +47,7 @@ import {
 import { contentHash, coverageHash } from '../engine/facts';
 import { getVerifyJob, insertVerifyJob, patchVerifyJob, streamContentHashPage } from '../db/verify';
 import { push } from '../lib/queue';
+import { jiraCall, mapLimit } from '../lib/budget';
 import { getSettings, kvGet, kvSet, saveSettings } from '../db/settings';
 import {
   buildWeeklyDigest,
@@ -149,8 +150,22 @@ export async function committed(seq: number | null): Promise<SnapshotRow | null>
   return s;
 }
 
+// Built state per loaded fact array: loadFacts returns the same cached array for a snapshot, so
+// repeat views (and the parallel calls the admin page makes) skip rebuilding the access model.
+// Weak keys: an entry goes away with its fact array when the fact cache drops it.
+const stateMemo = new WeakMap<object, AccessState>();
+
+export function stateOf(facts: Awaited<ReturnType<typeof loadFacts>>): AccessState {
+  let st = stateMemo.get(facts);
+  if (!st) {
+    st = buildState(facts);
+    stateMemo.set(facts, st);
+  }
+  return st;
+}
+
 export async function stateFor(seq: number): Promise<AccessState> {
-  return buildState(await loadFacts(seq));
+  return stateOf(await loadFacts(seq));
 }
 
 async function withState<T>(seqInput: unknown, fn: (state: AccessState, snap: SnapshotRow) => T) {
@@ -184,13 +199,15 @@ export async function status(spike = false) {
 }
 
 export async function overview(payload: any) {
-  const settings = await getSettings();
-  const [active, reviews, usage] = await Promise.all([
+  // Independent reads run together; this view is the first one the admin page opens.
+  const [settings, active, reviews, usage, snap, remediation] = await Promise.all([
+    getSettings(),
     activeSnapshot(),
     listReviews(),
     hourUsage(),
+    committed(v.optSeq(payload.seq)),
+    remediationSummarySite().catch(() => ({ open: 0, stillPresent: 0, verified: 0 })),
   ]);
-  const snap = await committed(v.optSeq(payload.seq));
   const reviewSummary = {
     open: reviews.filter((r) => r.status !== 'signed').length,
     signed: reviews.filter((r) => r.status === 'signed').length,
@@ -205,11 +222,6 @@ export async function overview(payload: any) {
       .filter((r) => r.status !== 'signed' && r.dueAt && r.dueAt < Date.now())
       .map((r) => ({ id: r.id, name: r.name, dueAt: r.dueAt })),
   };
-  const remediation = await remediationSummarySite().catch(() => ({
-    open: 0,
-    stillPresent: 0,
-    verified: 0,
-  }));
   if (!snap)
     return {
       snapshot: null,
@@ -219,7 +231,11 @@ export async function overview(payload: any) {
       usage,
       budget: settings.hourlyPointBudget,
     };
-  const state = await stateFor(snap.seq);
+  const prev = await previousCommitted(snap.seq);
+  const [state, prevState] = await Promise.all([
+    stateFor(snap.seq),
+    prev ? stateFor(prev.seq) : Promise.resolve(null),
+  ]);
   const entries = resolveAll(state);
   const persons = [...state.persons.values()];
   const humans = persons.filter((p) => p.accountType === 'atlassian');
@@ -230,13 +246,9 @@ export async function overview(payload: any) {
     keyPermissions: settings.keyPermissions,
   }).map((r) => ({ ...r, items: r.items.slice(0, 50) }));
   let changes: { granted: number; revoked: number; fromSeq: number } | null = null;
-  const prev = await previousCommitted(snap.seq);
-  if (prev) {
+  if (prev && prevState) {
     const keys = new Set(settings.keyPermissions);
-    const d = diffEffective(
-      effectiveTuples(await stateFor(prev.seq), keys),
-      effectiveTuples(state, keys),
-    );
+    const d = diffEffective(effectiveTuples(prevState, keys), effectiveTuples(state, keys));
     changes = { granted: d.granted.length, revoked: d.revoked.length, fromSeq: prev.seq };
   }
   return {
@@ -313,18 +325,20 @@ export async function groupInfo(p: any) {
 
 export async function personInfo(p: any) {
   const accountId = v.id(p.accountId, 'account');
-  const settings = await getSettings();
-  const snap = await committed(v.optSeq(p.seq));
+  const [settings, snap] = await Promise.all([getSettings(), committed(v.optSeq(p.seq))]);
   if (!snap) return { snapshot: null, data: null };
-  const state = await stateFor(snap.seq);
+  const prev = await previousCommitted(snap.seq);
+  const [state, prevLoaded] = await Promise.all([
+    stateFor(snap.seq),
+    prev ? stateFor(prev.seq) : Promise.resolve(null),
+  ]);
   if (!state.persons.has(accountId) && !state.memberOf.has(accountId))
     throw new BadRequest('Person not in this snapshot');
   const data = personAccess(state, accountId);
   // Joiner/mover/leaver: what changed for this person since the previous snapshot.
-  const prev = await previousCommitted(snap.seq);
   let changes = null;
-  if (prev) {
-    const prevState = await stateFor(prev.seq);
+  if (prev && prevLoaded) {
+    const prevState = prevLoaded;
     const mine = (m: ReturnType<typeof effectiveTuples>) =>
       new Map(
         [...m].filter(([, t]) => t.subject.type === 'user' && t.subject.accountId === accountId),
@@ -371,11 +385,13 @@ export async function globalPermissions(p: any) {
   if (!snap) throw new BadRequest('Take a snapshot first');
   const state = await stateFor(snap.seq);
   if (!state.persons.has(accountId)) throw new BadRequest('Person not in the latest snapshot');
-  const res = await api.asApp().requestJira(route`/rest/api/3/permissions/check`, {
-    method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accountId, globalPermissions: GLOBAL_PERMISSIONS }),
-  });
+  const res = await jiraCall('global permissions/check', () =>
+    api.asApp().requestJira(route`/rest/api/3/permissions/check`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accountId, globalPermissions: GLOBAL_PERMISSIONS }),
+    }),
+  );
   if (!res.ok) throw new Error(`Global permission check failed (${res.status})`);
   const body = (await res.json()) as { globalPermissions?: string[] };
   return { checked: GLOBAL_PERMISSIONS, granted: body.globalPermissions ?? [], at: Date.now() };
@@ -406,8 +422,8 @@ export async function changes(p: any) {
     };
   if (a.seq > b.seq) [a, b] = [b, a];
   const [factsA, factsB] = await Promise.all([loadFacts(a.seq), loadFacts(b.seq)]);
-  const sa = buildState(factsA);
-  const sb = buildState(factsB);
+  const sa = stateOf(factsA);
+  const sb = stateOf(factsB);
   const perms = p.allPermissions === true ? null : new Set(settings.keyPermissions);
   const eff = diffEffective(effectiveTuples(sa, perms), effectiveTuples(sb, perms));
   const tuple = (s: AccessState) => (t: AccessTuple) => ({
@@ -489,18 +505,16 @@ export async function createReview(p: any, accountId: string) {
   const dueAt = p.dueAt ? Number(p.dueAt) : null;
   if (dueAt !== null && (!Number.isFinite(dueAt) || dueAt < Date.now() - 86400_000))
     throw new BadRequest('Invalid due date');
-  const state = await stateFor(base.seq);
+  const [state, compareState] = await Promise.all([
+    stateFor(base.seq),
+    compare ? stateFor(compare.seq) : Promise.resolve(undefined),
+  ]);
   // Scope ids are re-resolved against the pinned snapshot; unknown ids are rejected.
   const known = type === 'projects' ? state.projects : state.groups;
   if (type !== 'site' && ids.some((id) => !known.has(id)))
     throw new BadRequest('Scope contains unknown spaces or groups');
   const scope: ReviewScope = { type, ids };
-  const drafts = buildReviewItems(
-    state,
-    scope,
-    settings.keyPermissions,
-    compare ? await stateFor(compare.seq) : undefined,
-  );
+  const drafts = buildReviewItems(state, scope, settings.keyPermissions, compareState);
   if (drafts.length > 20000)
     throw new BadRequest(`Scope too large (${drafts.length} items); narrow it down`);
   const now = Date.now();
@@ -535,17 +549,19 @@ async function loadReview(idInput: unknown): Promise<ReviewRow> {
 
 export async function reviewDetail(p: any) {
   const review = await loadReview(p.id);
-  const items = await getItems(review.id);
-  const state = await stateFor(review.baseSeq);
-  const latest = await latestCommitted();
+  const [items, state, latest, base, compare, baseFull] = await Promise.all([
+    getItems(review.id),
+    stateFor(review.baseSeq),
+    latestCommitted(),
+    getSnapshot(review.baseSeq, false),
+    review.compareSeq ? getSnapshot(review.compareSeq, false) : Promise.resolve(null),
+    getSnapshot(review.baseSeq),
+  ]);
   const names = latest && latest.seq !== review.baseSeq ? await stateFor(latest.seq) : state;
   const personName = (id: string | null) =>
     id
       ? (names.persons.get(id)?.displayName ?? state.persons.get(id)?.displayName ?? 'Unknown user')
       : null;
-  const base = await getSnapshot(review.baseSeq, false);
-  const compare = review.compareSeq ? await getSnapshot(review.compareSeq, false) : null;
-  const baseFull = await getSnapshot(review.baseSeq);
   const coverage = baseFull?.coverage ?? [];
   const limitations = limitationsPayload(base?.status, coverage);
   return {
@@ -1041,6 +1057,8 @@ export async function verifyReview(p: any, accountId: string, edition: EditionDe
 }
 
 /** Walk the site-wide signature chain; reports the first structural or hash break. */
+const CHAIN_READ_WINDOW = 3;
+
 export async function verifyChain(accountId: string, edition: EditionDecision) {
   assertSignatureChain(edition);
   const links = await listChainLinks();
@@ -1055,9 +1073,26 @@ export async function verifyChain(accountId: string, edition: EditionDecision) {
     return structural;
   }
   const results = [...structural.links];
+  // Reads for the next few links run together (bounded), instead of four sequential SQL reads
+  // per signed review; the walk and its early exit stay strictly in chain order.
+  const loadLink = async (id: string) => {
+    const review = await getReview(id);
+    if (!review) return { review: null, items: [], base: null, compare: null };
+    const [items, base, compare] = await Promise.all([
+      getItems(review.id),
+      getSnapshot(review.baseSeq, false),
+      review.compareSeq ? getSnapshot(review.compareSeq, false) : Promise.resolve(null),
+    ]);
+    return { review, items, base, compare };
+  };
+  let window: Array<Awaited<ReturnType<typeof loadLink>>> = [];
   for (let i = 0; i < links.length; i++) {
     const link = links[i];
-    const review = await getReview(link.id);
+    if (i % CHAIN_READ_WINDOW === 0)
+      window = await mapLimit(links.slice(i, i + CHAIN_READ_WINDOW), CHAIN_READ_WINDOW, (l) =>
+        loadLink(l.id),
+      );
+    const { review, items, base, compare } = window[i % CHAIN_READ_WINDOW];
     if (!review || !review.signedBy || !review.signedAt || !review.evidenceHash) {
       const reason = 'signed review missing';
       results[i] = { chainSeq: link.chainSeq, id: link.id, ok: false, reason };
@@ -1076,9 +1111,6 @@ export async function verifyChain(accountId: string, edition: EditionDecision) {
       });
       return out;
     }
-    const items = await getItems(review.id);
-    const base = await getSnapshot(review.baseSeq, false);
-    const compare = review.compareSeq ? await getSnapshot(review.compareSeq, false) : null;
     const version = review.signatureVersion >= 2 ? (2 as const) : (1 as const);
     const computed = evidenceHash(
       evidenceInput(

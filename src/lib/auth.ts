@@ -1,4 +1,5 @@
 import api, { route } from '@forge/api';
+import { jiraCall, singleFlight } from './budget';
 
 export class ForbiddenError extends Error {}
 
@@ -20,19 +21,28 @@ export async function assertJiraAdmin(accountId?: string): Promise<void> {
   if (!accountId) throw new ForbiddenError('AccessRadar is available to Jira administrators only');
   const hit = cache.get(accountId);
   if (hit && Date.now() - hit < TTL_MS) return;
+  // The admin page fires several resolvers at once; they share one Jira check.
+  return adminFlight(accountId, () => checkJiraAdmin(accountId));
+}
+
+const adminFlight = singleFlight<string, void>();
+
+async function checkJiraAdmin(accountId: string): Promise<void> {
   let allowed: boolean;
-  const res = await api.asApp().requestJira(route`/rest/api/3/permissions/check`, {
-    method: 'POST',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ accountId, globalPermissions: ['ADMINISTER'] }),
-  });
+  const res = await jiraCall('permissions/check', () =>
+    api.asApp().requestJira(route`/rest/api/3/permissions/check`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accountId, globalPermissions: ['ADMINISTER'] }),
+    }),
+  );
   if (res.ok) allowed = hasGlobalAdminister(await res.json());
   else {
-    const mine = await api
-      .asUser()
-      .requestJira(route`/rest/api/3/mypermissions?permissions=ADMINISTER`, {
+    const mine = await jiraCall('mypermissions', () =>
+      api.asUser().requestJira(route`/rest/api/3/mypermissions?permissions=ADMINISTER`, {
         headers: { Accept: 'application/json' },
-      });
+      }),
+    );
     if (!mine.ok) throw new Error(`Authorization check failed (${mine.status})`);
     const body = (await mine.json()) as {
       permissions?: { ADMINISTER?: { havePermission?: boolean } };

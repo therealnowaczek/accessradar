@@ -31,6 +31,7 @@ import { runPrivacyReport } from './privacy';
 import * as svc from './api/service';
 import { findOpenAssignmentForProject } from './db/campaigns';
 import { errInfo } from './lib/errors';
+import { withResolverBudget, type Phase } from './lib/budget';
 import { backgroundEdition, decideForInvocation, setEditionOverride } from './api/edition';
 import { effectiveSchedule, REQUIRES_ADVANCED, type EditionLicense } from './domain/edition';
 import { isLicensed, UNLICENSED_MESSAGE } from './domain/license';
@@ -53,23 +54,30 @@ type Handler = (payload: any, ctx: Ctx) => Promise<unknown>;
 function def(name: string, fn: Handler) {
   resolver.define(name, async ({ payload, context }) => {
     const started = Date.now();
+    const phase: Phase = { at: 'auth' };
     try {
       const license = (context as { license?: EditionLicense | null }).license ?? null;
       if (!isLicensed({ license })) return { ok: false, error: UNLICENSED_MESSAGE };
       const accountId = (context as { accountId?: string }).accountId ?? '';
-      await assertJiraAdmin(accountId);
-      await ensureMigrated();
       const environmentType = (context as { environmentType?: string }).environmentType;
-      // Edition is resolved on the server for every call; resolvers enforce features.
-      const edition = await decideForInvocation(license, environmentType);
-      const data = await fn(payload ?? {}, { accountId, environmentType, license, edition });
-      console.log(`[ui] ${name} ok`, { ms: Date.now() - started });
-      return { ok: true, data };
+      const work = (async () => {
+        await assertJiraAdmin(accountId);
+        phase.at = 'setup';
+        await ensureMigrated();
+        phase.at = 'edition';
+        // Edition is resolved on the server for every call; resolvers enforce features.
+        const edition = await decideForInvocation(license, environmentType);
+        phase.at = 'handler';
+        return fn(payload ?? {}, { accountId, environmentType, license, edition });
+      })();
+      const r = await withResolverBudget(`[ui] ${name}`, phase, work);
+      if (r.ok) console.log(`[ui] ${name} ok`, { ms: Date.now() - started });
+      return r;
     } catch (e) {
       const message = String((e as Error)?.message ?? e).slice(0, 300);
       const known = e instanceof ForbiddenError || e instanceof svc.BadRequest;
       if (!known) {
-        console.error(`[ui] ${name} failed`, errInfo(e));
+        console.error(`[ui] ${name} failed`, { phase: phase.at, ...errInfo(e) });
       }
       return {
         ok: false,
@@ -172,31 +180,41 @@ function defProject(name: string, fn: ProjectHandler) {
       const projectId = extension?.project?.id ? String(extension.project.id) : '';
       if (!projectId) return { ok: false, error: 'Space context missing', forbidden: true };
 
-      await ensureMigrated();
       const environmentType = (context as { environmentType?: string }).environmentType;
-      const edition = await decideForInvocation(license, environmentType);
-      if (!edition.features.delegatedReviews) return { ok: false, error: REQUIRES_ADVANCED };
+      const phase: Phase = { at: 'setup' };
+      const work = (async () => {
+        await ensureMigrated();
+        phase.at = 'edition';
+        const edition = await decideForInvocation(license, environmentType);
+        if (!edition.features.delegatedReviews) return { denied: REQUIRES_ADVANCED } as const;
 
-      const siteAdmin = await isJiraAdmin(accountId);
-      if (!siteAdmin) await assertProjectAdminister(accountId, projectId);
+        phase.at = 'auth';
+        const siteAdmin = await isJiraAdmin(accountId);
+        if (!siteAdmin) await assertProjectAdminister(accountId, projectId);
 
-      const open = await findOpenAssignmentForProject(projectId);
-      const access = assignmentAccess({
-        accountId,
-        assignee: open?.assignee ?? null,
-        isSiteAdmin: siteAdmin,
-      });
+        phase.at = 'handler';
+        const open = await findOpenAssignmentForProject(projectId);
+        const access = assignmentAccess({
+          accountId,
+          assignee: open?.assignee ?? null,
+          isSiteAdmin: siteAdmin,
+        });
 
-      const data = await fn(payload ?? {}, {
-        accountId,
-        environmentType,
-        license,
-        edition,
-        projectId,
-        access,
-      });
+        const data = await fn(payload ?? {}, {
+          accountId,
+          environmentType,
+          license,
+          edition,
+          projectId,
+          access,
+        });
+        return { data } as const;
+      })();
+      const r = await withResolverBudget(`[project] ${name}`, phase, work);
+      if (!r.ok) return r;
+      if ('denied' in r.data) return { ok: false, error: r.data.denied };
       console.log(`[project] ${name} ok`, { ms: Date.now() - started });
-      return { ok: true, data };
+      return { ok: true, data: r.data.data };
     } catch (e) {
       const message = String((e as Error)?.message ?? e).slice(0, 300);
       const known = e instanceof ForbiddenError || e instanceof svc.BadRequest;
@@ -304,7 +322,43 @@ export async function privacyHandler() {
 }
 
 // ---------- queue consumer ----------
+/**
+ * Queue consumer entry point. Every step is wrapped so a failure is logged with its context
+ * (step, snapshot, job, attempt) instead of surfacing as a bare "Unhandled exception" with no
+ * app log. Delivery semantics are unchanged: steps that did not ask for a retry before still do
+ * not get one (MIGRATE and the snapshot steps keep their own InvocationError retries).
+ */
 export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
+  try {
+    return await runCollectorEvent(event);
+  } catch (e) {
+    const body = (event?.body ?? {}) as Partial<CollectEvent>;
+    const attempt =
+      (event as { retryContext?: { retryCount?: number } })?.retryContext?.retryCount ?? 0;
+    console.error('[collector] step failed', {
+      step: body.step ?? 'unknown',
+      ...(Number.isInteger(body.snapshotSeq) ? { snapshotSeq: body.snapshotSeq } : {}),
+      ...(Number.isInteger(body.seq) ? { seq: body.seq } : {}),
+      ...(typeof body.jobId === 'string' ? { jobId: body.jobId } : {}),
+      ...(typeof body.runId === 'string' ? { runId: body.runId } : {}),
+      ...(body.batch !== undefined ? { batch: body.batch } : {}),
+      attempt,
+      ...errInfo(e),
+    });
+    // Snapshot steps are idempotent (job_step); a transient SQL error before the step's own
+    // handling (snapshot lookup, step state) gets a bounded retry instead of a stuck snapshot.
+    if (body.step && SNAPSHOT_STEPS.has(body.step) && attempt < 2)
+      return new InvocationError({
+        retryAfter: 60,
+        retryReason: InvocationErrorCode.FUNCTION_RETRY_REQUEST,
+      });
+    return;
+  }
+}
+
+const SNAPSHOT_STEPS = new Set<string>(['PLAN', 'PROJECTS', 'DIRECTORY', 'GROUPS', 'FINALIZE']);
+
+async function runCollectorEvent(event: AsyncEvent<CollectEvent>) {
   const body = event.body;
   switch (body.step) {
     case 'MIGRATE': {
