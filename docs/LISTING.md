@@ -56,7 +56,7 @@ Built for Jira admins and compliance teams:
 • Daily or weekly snapshots, plus one on demand
 • Diff two snapshots: access granted and removed, group and scheme changes
 • Access reviews: Keep, Revoke or Exception (justification + expiry), then sign off
-• SHA-256 evidence hash (v2) tied to the snapshot; verify in the app
+• Advanced: SHA-256 evidence hash (v2) tied to the snapshot; verify in the app
 • Coverage & limitations in every export; risk indicators and completeness
 • CSV/PDF evidence; Advanced pack with SOC 2 / ISO mapping
 
@@ -115,7 +115,7 @@ In Jira Cloud, effective access comes from several layers at once: the permissio
 - A review = a scope (selected spaces or the whole site) + a pinned snapshot, optionally compared with the previous review.
 - Mark items Keep, Revoke or Exception (justification + expiry) with a note; bulk actions for uniform items.
 - Sign-off records who signed and when (UTC and local time) and freezes the review with a SHA-256 evidence hash (v2) over the items, decisions, snapshot content hash, coverage and engine version. The hash is tamper-evident, and auditors can recompute it from the CSV (see docs).
-- Signed reviews form a site-wide **signature chain**: each signature stores the previous evidence hash. Verify the chain from Reviews.
+- Signed reviews form a site-wide **signature chain**: each signature stores the previous evidence hash. Verify the chain from Reviews. Sign-off, the chain and Verify are part of Advanced; Standard keeps reviews signed earlier readable.
 - Items marked Revoke form a to-do list you carry out in Jira yourself. AccessRadar never changes anything. Advanced can verify remediations in later snapshots.
 
 **Campaigns and change alerts (Advanced)**
@@ -286,11 +286,15 @@ Advanced (same method):
 | 90-day history | Unlimited history |
 | Explore spaces, groups and people, with the why path | Recurring review campaigns (admin: create, preview, run, pause) |
 | Snapshot diff; coverage & limitations in exports | Change alerts: new admin, public grant, inactive user (in-app) |
-| Reviews: Keep / Revoke / Exception (expiry), SHA-256 sign-off v2 | In-app reminders for campaign runs (no email) |
-| Site-wide signature chain; verify signature, snapshot & chain | Reviews delegated to space owners (space settings page) |
-| CSV/PDF export; risk indicators (11 rules); exception register | Remediation verification (confirm Revokes in later snapshots) |
+| Reviews: Keep / Revoke / Exception (expiry) decisions | In-app reminders for campaign runs (no email) |
+| CSV/PDF export; risk indicators (11 rules); exception register | Reviews delegated to space owners (space settings page) |
+| View reviews signed earlier (read-only) | Remediation verification (confirm Revokes in later snapshots) |
+| | Signed reviews: SHA-256 sign-off v2 |
+| | Site-wide hash chain; Verify signature, snapshot and chain |
 | | Audit evidence pack PDF with SOC 2 / ISO control mapping |
 | | Rovo agent (read-only) |
+
+Edition decision 2026-10-26 (Radrly family rule): signing, the hash chain and Verify are always Advanced. Reviews signed earlier stay readable on Standard (PRD §5.1).
 
 *(PL) Punkty odniesienia konkurencji (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2) zostają historyczne. Finalna cena AccessRadar (2026-10-14): Standard 100 u. = $490/rok, Advanced 100 u. = $990/rok. Wchodzi na listing po akceptacji Marketplace.*
 

@@ -10,7 +10,7 @@ Inputs: `src/`, `manifest.yml`, `test/`, `static/app/src`, `docs/FEATURE-PARITY.
 ## 0. Podsumowanie (PL)
 
 - **R1 „audit-grade Standard” (8 PR-ów + 1 opcjonalny):** obowiązkowe uzasadnienie przy Revoke i nowa decyzja **Exception z datą wygaśnięcia** (rejestr wyjątków, wygasłe wracają w kolejnej recenzji); sekcja **Coverage & limitations** w PDF/CSV (dziś coverage jest tylko w PDF jako tabela, bez stałych ograniczeń metody i bez CSV); **podpis v2** z hashem snapshotu + hashem coverage (hash snapshotu jest już w dokumencie dowodowym jako `base.contentHash`, R1 dodaje weryfikację przez ponowne przeliczenie i pokazuje go w UI/PDF); **+5 reguł ryzyka** liczonych z danych już zbieranych; **Advanced: weryfikacja remediacji** (Revoke → następny snapshot potwierdza zniknięcie dostępu); **Advanced: evidence pack v1** z mapowaniem SOC 2 CC6.1–6.3 / ISO 27001 A.5.15, A.5.18, A.8.2; **optymalizacja Forge**: `ar-tick` = 1 zapytanie SQL na tick zamiast ~4–6, `timeoutSeconds` dostrojone, lżejszy harmonogram dla darmowego progu.
-- **R2 „campaigns” (9 PR-ów):** kampanie cykliczne z delegacją do ownerów projektów (nowy moduł `jira:projectSettingsPage`, **bez nowych scope'ów**), przypomnienia **wyłącznie w aplikacji** (banner + skrzynka „Moje recenzje”, bez e-maila), alerty zmian w aplikacji, agent Rovo (read-only), łańcuch podpisów w Standard.
+- **R2 „campaigns” (9 PR-ów):** kampanie cykliczne z delegacją do ownerów projektów (nowy moduł `jira:projectSettingsPage`, **bez nowych scope'ów**), przypomnienia **wyłącznie w aplikacji** (banner + skrzynka „Moje recenzje”, bez e-maila), alerty zmian w aplikacji, agent Rovo (read-only), łańcuch podpisów (od 2026-10-26 w Advanced, zob. §5.1).
 - **Zmiany scope'ów: żadna nie jest wymagana dla R1 ani R2 w rekomendowanym wariancie.** Opcjonalne (oznaczone jako SCOPE CHANGE → wersja major + ponowna zgoda adminów): przypomnienia/alerty jako issue Jira (`write:jira-work` + `read:jira-work` lub granularne odpowiedniki), reguła „publiczne filtry/dashboardy” (`read:filter:jira`, `read:dashboard:jira`), Forge KVS do „zero SQL przy bezczynności” (`storage:app`). Rekomenduję odłożyć wszystkie trzy.
 - **Zero egress zostaje:** brak `external.fetch`, brak e-maili/Slacka/webhooków, PDF/CSV generowane w przeglądarce (jak dziś, `static/app/src/export/*`), brak zewnętrznych CDN/fontów. Kwalifikacja **Runs on Atlassian** zachowana; do zweryfikowania tylko Rovo (patrz §5).
 - **Cennik §7.3** wdrażamy dopiero po akceptacji i publikacji na Marketplace (§6). Pytania do Marcina: §9.
@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS access_exception (
 
 ---
 
-### 3.3 R1-3 Snapshot hash in signature — Signature v2 (Standard)
+### 3.3 R1-3 Snapshot hash in signature: Signature v2 (Advanced since 2026-10-26, see §5.1)
 
 **Today.** `evidenceDocument` already includes `base.contentHash` and `compare.contentHash`. Gaps: (a) no `signatureVersion`, so any change to the doc breaks old verifications; (b) verify trusts the stored `snap.content_hash` instead of recomputing; (c) coverage and limitations not in the signed doc; (d) not displayed.
 
@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS verify_job (
 
 **Functions.** `verifyReview({id}) → { ok, signatureVersion, evidenceHash, recomputed }` (unchanged contract + fields); new `startSnapshotVerify({ reviewId }) → { jobId }` (pushes `{ step: 'VERIFY_SNAPSHOT', jobId }` to `accessradar-collect`); `getVerifyJob({ jobId }) → VerifyJob`. Consumer branch `VERIFY_SNAPSHOT`: streams facts with `first_seen <= seq AND last_seen >= seq` in pages of 3 000 ordered by `(kind,fkey)`, incremental SHA-256 (must equal `finalize` ordering — refactor shared `contentHashStream` in `src/engine/facts.ts`). Budget: 900 s; if >800 s, re-enqueue with cursor (`delayInSeconds: 0`).
 
-**Jira REST.** None. **Gating.** Standard.
+**Jira REST.** None. **Gating.** Advanced (`signatureChain`) since 2026-10-26: `signReview`, `verifyReview`, `startSnapshotVerify`, `getVerifyJob` and the `VERIFY_SNAPSHOT` consumer refuse Standard (§5.1).
 
 **AC.** Old (v1) reviews verify unchanged (golden fixture from `test/fixtures.ts`); new reviews are v2; tampering any item/coverage field → mismatch; deep verify on demo (~7 240 facts) < 10 s; deep verify after purge returns `purged`.
 **Tests.** Unit: v1 golden hash, v2 canonical ordering, coverage hash stability; stream hash == finalize hash (property test on fixtures). Integration: sign → mutate `review_item.note` in mocked SQL → verify fails.
@@ -556,7 +556,7 @@ resources:
 
 ---
 
-### 4.4 R2-4 Signature chain across reviews (Standard)
+### 4.4 R2-4 Signature chain across reviews (Advanced since 2026-10-26, see §5.1)
 
 **Story.** As an auditor I can see that no signed review was removed or altered from the sequence.
 
@@ -573,7 +573,7 @@ CREATE UNIQUE INDEX uq_review_chain ON review (chain_seq)
 ```
 Concurrency: sign assigns `chain_seq = MAX+1` with unique index; on duplicate key retry once.
 **Functions.** `verifyChain() → { ok, length, brokenAt?: chainSeq, reason? }` (queue job if >200 reviews), `signReview` extended.
-**REST/Gating.** none / Standard.
+**REST/Gating.** none / Advanced (`signatureChain`): `verifyChain` and new chain links (via `signReview`) refuse Standard (§5.1).
 **AC.** Sequence contiguous; tamper any signed review → chain verify reports it; pre-R2 signed reviews form chain start (chain begins at first R2 signature; older listed as "pre-chain").
 **Tests.** Unit chain walk; concurrency double-sign duplicate key retry.
 **Audit.** `review.signed` `{chainSeq}`; `review.chain_verified`.
@@ -593,7 +593,23 @@ Concurrency: sign assigns `chain_seq = MAX+1` with unique index; on duplicate ke
 | delegatedReviews | R2 | ❌ | ✅ | `ar-project-resolver` |
 | changeAlerts | R2 | ❌ | ✅ | `ALERTS` step, alert resolvers |
 | rovo | R2 | ❌ | ✅ | `ar-rovo` |
-Standard-only features (exceptions, coverage, signature v2/chain, risk rules) need no flag. `editionView` exposes `comingSoon: string[]` computed from a `RELEASED` constant so Settings promo stays truthful per release. `test/domain/edition.test.ts` extended for the new flag.
+| signatureChain (2026-10-26) | R2 | ❌ | ✅ | `signReview`, `verifyReview`, `verifyChain`, `startSnapshotVerify`, `getVerifyJob`, `VERIFY_SNAPSHOT` step |
+
+Standard features without a flag: exceptions, coverage, risk rules. Signature v2 and the chain moved to Advanced on 2026-10-26 (§5.1). `editionView` exposes `comingSoon: string[]` computed from a `RELEASED` constant so Settings promo stays truthful per release. `test/domain/edition.test.ts` extended for the new flag.
+
+### 5.1 Edition decision 2026-10-26: signing, hash chain and Verify are Advanced
+
+Family rule for all Radrly apps: signing, the hash chain and Verify are always Advanced. In AccessRadar this moves signed reviews (Signature v2, §3.3), the site-wide signature chain (§4.4) and every Verify mode (quick signature check, deep snapshot check, chain check) from Standard to Advanced under one flag, `featureFlags.signatureChain`. `evidencePack` and `changeAlerts` stay Advanced; `unlimitedHistory` is unchanged.
+
+**Server.** The edition comes from the same server-side decision as every other gate (license `capabilitySet`, case-insensitive, plus `AR_EDITION_OVERRIDE` and the `edition:override` KVS on development and staging only). `assertSignatureChain` runs first in `signReview`, `verifyReview`, `verifyChain`, `startSnapshotVerify` and `getVerifyJob`, before any read or write, and throws `REQUIRES_ADVANCED`. The `VERIFY_SNAPSHOT` consumer checks `backgroundEdition()` and closes a queued job with `status: error` after a downgrade.
+
+**UI.** Standard: **Sign off** is disabled and the review shows the standard Advanced `PlanNote` (lock icon, Advanced badge, benefit line); **Verify signature & chain** and **Verify chain** are hidden and replaced by the same `PlanNote`. Settings lists "Signed reviews (SHA-256), hash chain and Verify" among the Advanced features.
+
+**Existing signed data.** Reviews signed earlier (for example before a downgrade) stay fully readable on Standard: review detail with signer, evidence hash, snapshot hash, chain number and previous hash, the Chain # column, and CSV / PDF / Markdown exports. Nothing is deleted or re-signed, and signed reviews stay read-only. Standard cannot sign new reviews, add chain links or run Verify. Reason: the signature is audit evidence the customer already produced and may have handed to an auditor; hiding it would hurt trust and gain nothing, while the hash values can still be recomputed outside the app from the exports. Re-enabling Advanced continues the same chain (next `chain_seq`), so Verify then checks the full history.
+
+**Side effects on Standard.** Exceptions are written to the register and remediation rows are created at sign-off, so on Standard new reviews stay drafts: decisions are saved and exportable, but no new exceptions are registered from them.
+
+**Tests.** `test/signatureGate.test.ts` (each resolver refuses Standard before touching data, Advanced passes, consumer closes a job after a downgrade) and `test/editionChainOverride.test.ts` (capabilitySet in any letter case, KVS override on development only).
 
 ---
 

@@ -207,8 +207,8 @@ Wyliczenia Standard (miesięcznie): 25 u. $12.25 · 50 u. $24.50 · 100 u. **$49
 Wyliczenia Advanced: 10 u. $4 · 25 u. $24.75 · 100 u. **$99** ($990/rok) · 250 u. $232.50 · 500 u. $430 · 1 000 u. $825 · 2 500 u. $1 500 · 5 000 u. $2 625.
 
 **Podział funkcji** (egzekwowany po stronie serwera, `src/domain/edition.ts`):
-- **Standard:** snapshoty ręczne i tygodniowe, historia 90 dni, Explore (space / grupy / osoby ze ścieżką „why”), diff snapshotów, przeglądy Keep / Revoke / Exception z podpisem SHA-256, eksport CSV i PDF, wskaźniki ryzyka.
-- **Advanced (wydane):** harmonogramy dzienne i własne, nieograniczona historia, przeglądy delegowane do space ownerów z przypomnieniami w aplikacji, cykliczne kampanie przeglądów, alerty zmian (nowy admin, publiczny grant, nieaktywny użytkownik z dostępem), audit evidence pack PDF (metodologia + ścieżka decyzji), agent Rovo.
+- **Standard:** snapshoty ręczne i tygodniowe, historia 90 dni, Explore (space / grupy / osoby ze ścieżką „why”), diff snapshotów, przeglądy Keep / Revoke / Exception (bez podpisu; wcześniej podpisane przeglądy zostają do odczytu), eksport CSV i PDF, wskaźniki ryzyka.
+- **Advanced (wydane):** harmonogramy dzienne i własne, nieograniczona historia, przeglądy delegowane do space ownerów z przypomnieniami w aplikacji, cykliczne kampanie przeglądów, alerty zmian (nowy admin, publiczny grant, nieaktywny użytkownik z dostępem), audit evidence pack PDF (metodologia + ścieżka decyzji), agent Rovo, podpisane przeglądy SHA-256 z łańcuchem hashy i Verify (decyzja 2026-10-26: podpis, łańcuch hashy i Verify zawsze w Advanced).
 
 **Uwagi:**
 - Te stawki wchodzą na listing Marketplace i `docs/accessradar-pricing-import.csv` (już w repo) przy pierwszym wydaniu po akceptacji Marketplace. Ten dokument nie publikuje cen w Marketplace.
