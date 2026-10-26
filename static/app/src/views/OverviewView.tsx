@@ -7,6 +7,7 @@ import RefreshIcon from '@atlaskit/icon/core/refresh';
 import SectionMessage from '@atlaskit/section-message';
 import type { Overview, Risk } from '../api';
 import { CoverageList, Section, SnapshotLozenge } from '../components';
+import { DigestCard } from './DigestCard';
 import { useCall } from '../data';
 import { LevelDrawer, DrawerBody, type DrawerLevel } from '../Drawer';
 import { formatLocal, plural, relative } from '../format';
@@ -339,6 +340,7 @@ export function OverviewView() {
             </Section>
           </>
         )}
+        <DigestCard />
         <Section
           title="Access reviews"
           description="Periodic reviews with sign-off and evidence export."

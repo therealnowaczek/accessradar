@@ -113,6 +113,9 @@ def('deleteReview', (p, c) => svc.removeReview(p, c.accountId));
 def('listExceptions', (p) => svc.exceptionsList(p));
 def('listAlerts', (p, c) => svc.alertsList(p, c.edition));
 def('dismissAlerts', (p, c) => svc.dismissAlerts(p, c.accountId, c.edition));
+// Weekly digest: Standard and Advanced (no edition gate).
+def('getWeeklyDigest', () => svc.weeklyDigest());
+def('refreshWeeklyDigest', (_p, c) => svc.requestWeeklyDigest(c.accountId));
 def('listCampaigns', (p, c) => svc.campaignsList(p, c.edition));
 def('saveCampaign', (p, c) => svc.campaignSave(p, c.accountId, c.edition));
 def('previewCampaign', (p, c) => svc.campaignPreview(p, c.edition));
@@ -287,6 +290,13 @@ export async function tickHandler() {
 }
 
 /** Daily tick: personal-data report (each account at most once per 7 days) + pseudonymisation of closed accounts. */
+/** Weekly scheduled trigger: queue the in-app weekly digest (Standard and Advanced). */
+export async function digestHandler() {
+  await push({ step: 'DIGEST' });
+  console.log('[digest] queued');
+  return { statusCode: 204 };
+}
+
 export async function privacyHandler() {
   await push({ step: 'PRIVACY' });
   console.log('[privacy] report queued');
@@ -331,6 +341,11 @@ export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
     case 'REMEDIATION': {
       await ensureMigrated();
       if (Number.isInteger(body.seq)) await svc.runRemediationCheck(Number(body.seq));
+      return;
+    }
+    case 'DIGEST': {
+      await ensureMigrated();
+      await svc.runWeeklyDigest();
       return;
     }
     case 'ALERTS': {

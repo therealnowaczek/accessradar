@@ -46,7 +46,14 @@ import {
 import { contentHash, coverageHash } from '../engine/facts';
 import { getVerifyJob, insertVerifyJob, patchVerifyJob, streamContentHashPage } from '../db/verify';
 import { push } from '../lib/queue';
-import { getSettings, kvGet, saveSettings } from '../db/settings';
+import { getSettings, kvGet, kvSet, saveSettings } from '../db/settings';
+import {
+  buildWeeklyDigest,
+  DIGEST_KV_KEY,
+  emptyDigest,
+  pickDigestSnapshots,
+  type WeeklyDigest,
+} from '../engine/digest';
 import {
   comingSoonFeatures,
   effectiveSchedule,
@@ -819,6 +826,48 @@ export async function runAlertsCheck(seq: number): Promise<void> {
   }
   await audit('system', 'alert.raised', `#${seq}`, { seq, counts, total: alerts.length });
   console.log('[alerts] raised', { seq, total: alerts.length });
+}
+
+/**
+ * Weekly digest (Standard and Advanced): compares the newest committed snapshot with the one that
+ * was current 7 days ago, using the change-alert rules, and stores one summary in the kv table.
+ * Runs from the weekly scheduled trigger (via the queue) or on request. In-app only.
+ */
+export async function runWeeklyDigest(now = Date.now()): Promise<WeeklyDigest> {
+  const snaps = (await listSnapshots(200))
+    .filter((s) => s.status === 'complete' || s.status === 'partial')
+    .map((s) => ({ seq: s.seq, startedAt: s.startedAt }));
+  const { head, base, partialWeek } = pickDigestSnapshots(snaps, now);
+  let digest: WeeklyDigest;
+  if (!head) digest = emptyDigest('no-snapshot', now);
+  else if (!base) digest = emptyDigest('no-baseline', now, head);
+  else {
+    const [prevState, nextState] = await Promise.all([stateFor(base.seq), stateFor(head.seq)]);
+    digest = buildWeeklyDigest(prevState, nextState, { base, head, partialWeek }, now);
+  }
+  await kvSet(DIGEST_KV_KEY, digest);
+  await audit('system', 'digest.built', head ? `#${head.seq}` : null, {
+    status: digest.status,
+    baseSeq: digest.base?.seq ?? null,
+    headSeq: digest.head?.seq ?? null,
+    total: digest.total,
+    counts: digest.counts,
+  });
+  console.log('[digest] built', { status: digest.status, total: digest.total });
+  return digest;
+}
+
+/** The stored weekly digest, on every edition. `null` until the first run. */
+export async function weeklyDigest(): Promise<{ digest: WeeklyDigest | null }> {
+  const d = await kvGet<WeeklyDigest>(DIGEST_KV_KEY);
+  return { digest: d && d.version === 1 ? d : null };
+}
+
+/** Queues a digest rebuild now (the weekly trigger does the same). */
+export async function requestWeeklyDigest(accountId: string): Promise<{ queued: true }> {
+  await push({ step: 'DIGEST' });
+  await audit(accountId, 'digest.requested', null, {});
+  return { queued: true };
 }
 
 function alertFromNotice(n: Notice) {

@@ -25,6 +25,35 @@ const en = {
     'Verify the signature, snapshot hash and chain of signed reviews to prove nothing changed.',
   'planGate.projectReview':
     'Let space owners review access to their own space, with in-app reminders.',
+  'digest.title': 'Weekly digest',
+  'digest.description':
+    'Access changes from the last 7 days in one summary, built once a week: new admins, public grants, inactive accounts with access and new space admins.',
+  'digest.refresh': 'Refresh now',
+  'digest.refreshQueued': 'Digest refresh queued',
+  'digest.refreshQueuedHint': 'The new digest appears here in about a minute.',
+  'digest.refreshFailed': 'Could not queue the digest',
+  'digest.unavailable': 'Weekly digest unavailable',
+  'digest.none': 'The first digest is built within a week. Select Refresh now to build it today.',
+  'digest.noSnapshot': 'Take a snapshot to start the weekly digest.',
+  'digest.noBaseline':
+    'The digest compares two snapshots. It appears after the next snapshot (snapshot #{seq} is the only one so far).',
+  'digest.period': 'Snapshot #{base} ({baseAt}) to snapshot #{head} ({headAt}). Built {builtAt}.',
+  'digest.partialWeek':
+    'Fewer than 7 days of snapshots so far, so this digest covers a shorter period.',
+  'digest.empty': 'No access changes in this period.',
+  'digest.omitted': '{count} more change(s) are counted above but not listed.',
+  'digest.colSeverity': 'Severity',
+  'digest.colType': 'Change type',
+  'digest.colChange': 'Change',
+  'digest.high': 'High',
+  'digest.medium': 'Medium',
+  'digest.rule.new-admin': 'New admins',
+  'digest.rule.new-anonymous-grant': 'Public grants',
+  'digest.rule.inactive-with-access': 'Inactive with access',
+  'digest.rule.new-project-admin': 'New space admins',
+  'digest.rule.new-app-account-admin': 'App account admins',
+  'planGate.realtimeAlerts':
+    'Get real-time alerts after every snapshot and choose which alert rules apply.',
   'schedule.freeTier': 'Free plan: every two weeks; manual snapshots any time',
   // Sample data shown (faded, aria-hidden) above the note of a locked panel.
   'planGate.sample.subject1': 'Sample user A',

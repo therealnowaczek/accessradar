@@ -391,3 +391,26 @@ export type LiveProject = {
   category?: string;
 };
 export type ProjectList = { projects: LiveProject[]; complete: boolean };
+
+/** Weekly in-app access digest (Standard and Advanced); mirrors src/engine/digest.ts. */
+export type DigestRule =
+  | 'new-admin'
+  | 'new-anonymous-grant'
+  | 'inactive-with-access'
+  | 'new-project-admin'
+  | 'new-app-account-admin';
+
+export interface WeeklyDigest {
+  version: 1;
+  status: 'ready' | 'no-snapshot' | 'no-baseline';
+  generatedAt: number;
+  periodStart: number;
+  periodEnd: number;
+  base: { seq: number; startedAt: number } | null;
+  head: { seq: number; startedAt: number } | null;
+  partialWeek: boolean;
+  total: number;
+  counts: Record<DigestRule, number>;
+  items: Array<{ rule: DigestRule; severity: 'high' | 'medium'; title: string; body: string }>;
+  omitted: number;
+}

@@ -39,6 +39,10 @@ modules:
     - key: accessradar-privacy-daily
       function: ar-privacy
       interval: day
+    # Weekly in-app access digest (Standard and Advanced). No egress, no new scopes.
+    - key: accessradar-digest-weekly
+      function: ar-digest
+      interval: week
   trigger:
     - key: accessradar-lifecycle
       function: ar-lifecycle
@@ -203,6 +207,9 @@ modules:
       timeoutSeconds: 60
     - key: ar-lifecycle
       handler: index.lifecycle
+    - key: ar-digest
+      handler: index.digest
+      timeoutSeconds: 30
     - key: ar-rovo
       handler: index.rovo
     - key: ar-project-resolver

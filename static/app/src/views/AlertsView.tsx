@@ -9,6 +9,7 @@ import { t } from '../i18n';
 import { navItem } from '../routes';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
+import { DigestCard } from './DigestCard';
 import {
   ErrorState,
   FilterBar,
@@ -66,7 +67,10 @@ export function AlertsView() {
   if (status.data && advanced === false) {
     return (
       <PageFrame header={header}>
-        <PlanNote benefit={t('planGate.alerts')} />
+        <Stack space="space.300">
+          <PlanNote benefit={t('planGate.alerts')} />
+          <DigestCard planNote={false} />
+        </Stack>
       </PageFrame>
     );
   }

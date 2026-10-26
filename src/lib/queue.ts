@@ -17,7 +17,8 @@ export type CollectStep =
   | 'ALERTS'
   | 'CAMPAIGN_RUN'
   | 'CAMPAIGN_MATERIALIZE'
-  | 'REMINDERS';
+  | 'REMINDERS'
+  | 'DIGEST';
 
 export interface CollectEvent extends Record<string, unknown> {
   step: CollectStep;
