@@ -509,7 +509,10 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
     if (!idxs.length) return;
     setBusy(true);
     try {
-      const res = await call<{ changed: number }>('decideItems', {
+      const res = await call<{
+        changed: number;
+        exceptions?: { granted: number; withdrawn: number };
+      }>('decideItems', {
         id,
         idxs,
         decision: value,
@@ -518,6 +521,10 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         ...(expiresAt ? { expiresAt } : {}),
       });
       if (idxs.length > 1) toast.success(`${plural(res.changed, 'decision')} updated`);
+      if (res.exceptions?.granted)
+        toast.success(t('exceptions.registered', { count: res.exceptions.granted }));
+      if (res.exceptions?.withdrawn)
+        toast.success(t('exceptions.withdrawn', { count: res.exceptions.withdrawn }));
       r.reload();
     } catch (e) {
       toast.error('Decision not saved', errorText(e));
@@ -1085,7 +1092,7 @@ function ItemDrawer({
             {value === 'exception' ? (
               <FormField
                 label="Expires on"
-                helper="Date-only · stored as end of that day in your timezone."
+                helper={`Date-only · stored as end of that day in your timezone. ${t('exceptions.registeredOnSave')}`}
               >
                 {(fid) => (
                   <DateField id={fid} value={expiresOn} onChange={(d) => setExpiresOn(d)} />

@@ -8,7 +8,8 @@ import {
   expireExceptions,
   insertException,
   listExceptions,
-  upsertExceptionsOnSign,
+  syncReviewExceptions,
+  type ExceptionSyncResult,
 } from '../db/exceptions';
 import { computeRisks } from '../engine/risk';
 import { buildState, type AccessState } from '../engine/state';
@@ -627,7 +628,24 @@ export async function decideItems(p: any, accountId: string) {
     decision,
     withNote: Boolean(note),
   });
-  return { changed };
+  // Exceptions are registered when the decision is saved, on every edition (2026-10-26); signing
+  // stays Advanced and is not needed for the register.
+  let exceptions: ExceptionSyncResult = { granted: 0, superseded: 0, revoked: 0, withdrawn: 0 };
+  if (changed) {
+    const picked = new Set<number>(idxs);
+    const items = (await getItems(review.id)).filter((i) => picked.has(i.idx));
+    exceptions = await syncReviewExceptions(review.id, items, accountId);
+    await auditExceptionSync(accountId, review.id, exceptions);
+  }
+  return { changed, exceptions };
+}
+
+async function auditExceptionSync(accountId: string, reviewId: string, r: ExceptionSyncResult) {
+  if (r.granted) await audit(accountId, 'exception.granted', reviewId, { count: r.granted });
+  if (r.superseded)
+    await audit(accountId, 'exception.superseded', reviewId, { count: r.superseded });
+  if (r.revoked) await audit(accountId, 'exception.revoked', reviewId, { count: r.revoked });
+  if (r.withdrawn) await audit(accountId, 'exception.withdrawn', reviewId, { count: r.withdrawn });
 }
 
 const TZ = /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+){0,2}$|^UTC$/;
@@ -695,10 +713,13 @@ export async function signReview(p: any, accountId: string, edition: EditionDeci
     signed = await trySign();
   }
   const { hash, chainSeq } = signed;
-  const exc = await upsertExceptionsOnSign(review.id, items, accountId, signedAt);
-  if (exc.granted) await audit(accountId, 'exception.granted', review.id, { count: exc.granted });
-  if (exc.superseded)
-    await audit(accountId, 'exception.superseded', review.id, { count: exc.superseded });
+  // Normally a no-op: decisions already registered their exceptions when saved. Catches drafts
+  // decided before 2026-10-26.
+  await auditExceptionSync(
+    accountId,
+    review.id,
+    await syncReviewExceptions(review.id, items, accountId, signedAt),
+  );
   if (edition.features.remediationVerification) {
     const n = await insertRemediations(
       review.id,

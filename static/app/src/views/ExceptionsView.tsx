@@ -17,6 +17,7 @@ import {
   NoWrap,
   staleNotice,
 } from '../ui';
+import { t } from '../i18n';
 import { FilterBarPhantom, SkeletonRoot } from '../skeletons';
 import { SkeletonTable } from '../skeletonTable';
 
@@ -105,10 +106,7 @@ export function ExceptionsView() {
           />
         </FilterBar>
         {!items.length ? (
-          <EmptyState
-            header="No exceptions yet"
-            description="Exceptions you grant during a review appear here with their expiry date."
-          />
+          <EmptyState header="No exceptions yet" description={t('exceptions.emptyDescription')} />
         ) : (
           <DynamicTable
             head={{

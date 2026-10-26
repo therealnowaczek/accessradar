@@ -109,28 +109,54 @@ export async function insertException(
   return id;
 }
 
-export async function upsertExceptionsOnSign(
+export interface ExceptionSyncItem {
+  itemKey: string;
+  subjectType: string;
+  subjectId: string;
+  projectId: string | null;
+  groupId: string | null;
+  permissions: string[];
+  decision: string | null;
+  note: string | null;
+  expiresAt: number | null;
+}
+
+export interface ExceptionSyncResult {
+  granted: number;
+  superseded: number;
+  revoked: number;
+  withdrawn: number;
+}
+
+/**
+ * Brings the exceptions register in line with review decisions (edition decision 2026-10-26:
+ * registering exceptions does not depend on sign-off). Runs when a decision is saved and again at
+ * sign-off (Advanced) for drafts decided before the change.
+ * - Exception with justification and expiry: registered as active unless an identical active row
+ *   (same item, justification and expiry) already exists; any other active row for the item is
+ *   superseded.
+ * - Revoke: active exceptions for the item are revoked.
+ * - Keep or cleared: an active exception registered from this review is withdrawn (status
+ *   `revoked`, reason `withdrawn`); exceptions from other reviews stay.
+ */
+export async function syncReviewExceptions(
   reviewId: string,
-  items: Array<{
-    itemKey: string;
-    subjectType: string;
-    subjectId: string;
-    projectId: string | null;
-    groupId: string | null;
-    permissions: string[];
-    decision: string | null;
-    note: string | null;
-    expiresAt: number | null;
-  }>,
+  items: ExceptionSyncItem[],
   grantedBy: string,
   now = Date.now(),
-): Promise<{ granted: number; superseded: number; revoked: number }> {
-  let granted = 0;
-  let superseded = 0;
-  let revoked = 0;
+): Promise<ExceptionSyncResult> {
+  const out: ExceptionSyncResult = { granted: 0, superseded: 0, revoked: 0, withdrawn: 0 };
   for (const item of items) {
     if (item.decision === 'exception' && item.note && item.expiresAt) {
-      superseded += await supersedeActive(item.itemKey, now);
+      const same = await q(
+        `SELECT id FROM access_exception
+         WHERE item_key = ? AND status = 'active' AND justification = ? AND expires_at = ?`,
+        item.itemKey,
+        item.note,
+        item.expiresAt,
+      );
+      if (same.length) continue;
+      out.superseded += await supersedeActive(item.itemKey, now);
       await insertException({
         itemKey: item.itemKey,
         subjectType: item.subjectType,
@@ -144,12 +170,20 @@ export async function upsertExceptionsOnSign(
         grantedBy,
         grantedAt: now,
       });
-      granted += 1;
+      out.granted += 1;
     } else if (item.decision === 'revoke') {
-      revoked += await revokeActive(item.itemKey, now);
+      out.revoked += await revokeActive(item.itemKey, now);
+    } else if (item.decision === 'keep' || item.decision === null) {
+      out.withdrawn += await exec(
+        `UPDATE access_exception SET status = 'revoked', closed_at = ?, closed_reason = 'withdrawn'
+         WHERE review_id = ? AND item_key = ? AND status = 'active'`,
+        now,
+        reviewId,
+        item.itemKey,
+      );
     }
   }
-  return { granted, superseded, revoked };
+  return out;
 }
 
 export async function getException(id: string): Promise<ExceptionRow | null> {

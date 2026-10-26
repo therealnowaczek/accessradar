@@ -16,6 +16,8 @@ export const ACTIVITY_LABELS: Record<string, string> = {
   'exception.granted': 'Granted exceptions',
   'exception.superseded': 'Replaced exceptions',
   'exception.expired': 'Exceptions expired',
+  'exception.revoked': 'Revoked exceptions',
+  'exception.withdrawn': 'Withdrew exceptions',
   'remediation.created': 'Tracking revocations',
   'remediation.checked': 'Checked revocations',
   'remediation.accepted': 'Accepted a remediation risk',
@@ -114,6 +116,8 @@ export function activityDetail(e: Pick<ActivityEvent, 'action' | 'detail'>): str
     case 'exception.granted':
     case 'exception.superseded':
     case 'exception.expired':
+    case 'exception.revoked':
+    case 'exception.withdrawn':
     case 'remediation.created':
     case 'reminder.issued':
       return d.count !== undefined ? String(d.count) : '';

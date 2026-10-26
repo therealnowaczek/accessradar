@@ -19,6 +19,12 @@ const en = {
     'Schedule recurring access reviews and delegate them to space owners with reminders.',
   'planGate.remediation':
     'See whether each revoked access really disappeared in the next snapshot.',
+  'exceptions.registeredOnSave':
+    'The exception is added to the Exceptions register as soon as you save. Sign-off is not needed.',
+  'exceptions.registered': '{count} exception(s) added to the register',
+  'exceptions.withdrawn': '{count} exception(s) withdrawn from the register',
+  'exceptions.emptyDescription':
+    'Exceptions you grant during a review appear here with their expiry date as soon as you save the decision.',
   'planGate.signing':
     'Sign off reviews with a SHA-256 evidence hash linked into a tamper-evident chain you can verify.',
   'planGate.verify':
