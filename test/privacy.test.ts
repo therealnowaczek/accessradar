@@ -52,4 +52,43 @@ describe('error logging', () => {
       suggestion: "check '?'",
     });
   });
+
+  it('redacts unquoted e-mails and Atlassian accountIds', () => {
+    expect(redact('user 557058:f58131cb-b67d-43c7-b30d-6b58d40bd077 not found')).toBe(
+      'user <id> not found',
+    );
+    expect(redact('no access for 712020:2c1f5e3a-0d4b-4e8f-9a6c-7b1d2e3f4a5b.')).toBe(
+      'no access for <id>.',
+    );
+    expect(redact('account 5b10ac8d82e05b22cc7d4ef5 is inactive')).toBe('account <id> is inactive');
+    expect(redact('Account 5B10AC8D82E05B22CC7D4EF5 closed')).toBe('Account <id> closed');
+    expect(redact('mail anna.kowalska+jira@example.co.uk bounced')).toBe('mail <email> bounced');
+    expect(redact('a@b.io,5b10ac8d82e05b22cc7d4ef5')).toBe('<email>,<id>');
+  });
+
+  it('keeps UUIDs, hashes and other identifiers that are logged on purpose', () => {
+    const uuid = '3f2b8c1e-9a4d-4e7f-b2c6-1d0e9f8a7b6c';
+    const sha256 = 'a'.repeat(8) + '0123456789abcdef'.repeat(3) + 'b'.repeat(8);
+    for (const text of [
+      `verify job ${uuid} failed`,
+      `hash ${sha256} mismatch`,
+      'hash 0123456789ab mismatch',
+      'Jira did not respond within 8 s (permissions/check)',
+      'HTTP 403',
+      'snapshot 42 step FINALIZE batch 3',
+    ])
+      expect(redact(text)).toBe(text);
+  });
+
+  it('redacts only the message, not structured context fields', () => {
+    const jobId = '3f2b8c1e-9a4d-4e7f-b2c6-1d0e9f8a7b6c';
+    const e = new Error('lookup for 557058:f58131cb-b67d-43c7-b30d-6b58d40bd077 / x@y.com failed');
+    const logged = { step: 'VERIFY_SNAPSHOT', jobId, ...errInfo(e) };
+    expect(logged).toEqual({
+      step: 'VERIFY_SNAPSHOT',
+      jobId,
+      message: 'lookup for <id> / <email> failed',
+    });
+    expect(JSON.stringify(logged)).not.toMatch(/557058|x@y\.com/);
+  });
 });
