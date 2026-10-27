@@ -16,10 +16,11 @@ import { describe, expect, it } from 'vitest';
  *  9. a full-page spinner (<Loading /> without compact, Spinner size="large" outside ui.tsx,
  *     `100vh - 160px`) or a Spinner without a label; first loads are skeletons.
  * AccessRadar extras for the v1.1 layout rules:
- * 10. z-index other than 1 or the ADS "card" layer (100) in CSS / xcss (table 1.8);
+ * 10. z-index other than 1, the ADS "card" layer (100), or SidePanel blanket/modal (500/510);
  * 11. media-query breakpoints other than 1023 / 900 / 860 / 768 / 600 / 520 (table 1.7);
- * 12. own empty-state components or drawer panels (only @atlaskit/empty-state and
- *     @atlaskit/drawer, width "wide"; "narrow" only for the navigation overlay).
+ * 12. own empty-state components or ad-hoc panels (only @atlaskit/empty-state and the shared
+ *     LevelSidePanel in Drawer.tsx). `@atlaskit/drawer` width "wide" is forbidden; "narrow" only
+ *     for the navigation overlay (AdminNav).
  * Rules 7-9 have exported detectors and a self-test, so the guard cannot pass by mistake.
  * Allowlists are counted per file and every entry says why.
  */
@@ -118,12 +119,14 @@ export function findFullPageSpinners(list: Source[]): string[] {
 
 const CSS_Z_INDEX = /z-index:\s*([^;]+);/g;
 const XCSS_Z_INDEX = /zIndex:\s*['"]?([^'",}\s]+)/g;
-const ALLOWED_Z = new Set(['1', '100', 'card']);
+const ALLOWED_Z = new Set(['1', '100', 'card', '500', '510', 'blanket', 'modal']);
 const MEDIA_WIDTH = /@media[^{]*\((?:max|min)-width:\s*(\d+)px\)/g;
 const ALLOWED_BREAKPOINTS = new Set(['1023', '900', '860', '768', '600', '520']);
 const OWN_EMPTY = /\bfunction\s+Empty\b|className=["'][^"']*\bempty-state\b|\.empty-state\b/;
-const OWN_DRAWER =
-  /role=["']dialog["']|aria-modal=|className=["'][^"']*\bdrawer-(?:panel|scrim|root)\b/;
+/** Ad-hoc panels outside the shared SidePanel wrapper (Drawer.tsx). */
+const OWN_DRAWER = /className=["'][^"']*\bdrawer-(?:panel|scrim)\b/;
+const OWN_DIALOG = /role=["']dialog["']|aria-modal=/;
+const SIDE_PANEL_FILE = 'Drawer.tsx';
 const DRAWER_WIDTH = /<(?:Atlaskit)?Drawer\b[^>]*\bwidth=["']([^"']+)["']/g;
 
 /** Rule 10: z-index values outside table 1.8 (1 and the ADS "card" layer). */
@@ -145,13 +148,17 @@ export function findBreakpoints(list: Source[]): string[] {
   );
 }
 
-/** Rule 12: own empty states / drawer panels, or an ADS Drawer width other than the shared ones. */
+/**
+ * Rule 12: own empty states / ad-hoc panels, or ADS Drawer that is not narrow nav (R-7.5).
+ * SidePanel (Drawer.tsx) may use role=dialog; wide Drawer is always forbidden.
+ */
 export function findOwnSurfaces(list: Source[]): string[] {
   return list.flatMap((s) => [
     ...lines(s, OWN_EMPTY),
     ...lines(s, OWN_DRAWER),
+    ...(s.path === SIDE_PANEL_FILE ? [] : lines(s, OWN_DIALOG)),
     ...[...s.text.matchAll(DRAWER_WIDTH)]
-      .filter((m) => m[1] !== 'wide' && !(m[1] === 'narrow' && s.path === 'AdminNav.tsx'))
+      .filter((m) => !(m[1] === 'narrow' && s.path === 'AdminNav.tsx'))
       .map((m) => `${s.path}: Drawer width="${m[1]}"`),
   ]);
 }
@@ -247,7 +254,7 @@ describe('design system guard (Radrly layout standard)', () => {
     expect(findFullPageSpinners(sources)).toEqual([]);
   });
 
-  it('10. uses only z-index 1 and the ADS card layer (100)', () => {
+  it('10. uses only z-index 1, card (100), or SidePanel blanket/modal (500/510)', () => {
     expect(findZIndex(sources)).toEqual([]);
   });
 
@@ -255,7 +262,7 @@ describe('design system guard (Radrly layout standard)', () => {
     expect(findBreakpoints(sources)).toEqual([]);
   });
 
-  it('12. has no own empty states or drawer panels; drawers are ADS "wide"', () => {
+  it('12. has no own empty states or ad-hoc panels; SidePanel only; Drawer narrow for nav', () => {
     expect(findOwnSurfaces(sources)).toEqual([]);
   });
 
@@ -304,8 +311,14 @@ describe('design system guard (Radrly layout standard)', () => {
     expect(findBreakpoints(src('a.css', '@media (max-width: 1023px) {'))).toHaveLength(0);
     expect(findOwnSurfaces(src('a.tsx', 'export function Empty() {'))).not.toHaveLength(0);
     expect(findOwnSurfaces(src('a.tsx', '<div role="dialog">'))).not.toHaveLength(0);
+    expect(findOwnSurfaces(src('Drawer.tsx', '<div role="dialog">'))).toHaveLength(0);
     expect(findOwnSurfaces(src('a.tsx', '<Drawer isOpen width="medium">'))).not.toHaveLength(0);
-    expect(findOwnSurfaces(src('a.tsx', '<AtlaskitDrawer isOpen width="wide">'))).toHaveLength(0);
+    expect(findOwnSurfaces(src('a.tsx', '<AtlaskitDrawer isOpen width="wide">'))).not.toHaveLength(
+      0,
+    );
+    expect(
+      findOwnSurfaces(src('AdminNav.tsx', '<Drawer isOpen width="narrow" label="Nav">')),
+    ).toHaveLength(0);
   });
 });
 

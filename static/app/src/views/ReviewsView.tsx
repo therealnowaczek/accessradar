@@ -5,7 +5,6 @@ import Button from '@atlaskit/button/new';
 import Checkbox from '@atlaskit/checkbox';
 import { DropdownItem } from '@atlaskit/dropdown-menu';
 import DynamicTable from '../Table';
-import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import ProgressBar from '@atlaskit/progress-bar';
 import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
@@ -65,6 +64,7 @@ import {
   Metric,
   PageFrame,
   PageHeader,
+  pageBreadcrumbs,
   Pill,
   PlanGate,
   PlanNote,
@@ -642,12 +642,13 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
       status={
         d ? <Pill tone={STATUS[d.review.status][1]}>{STATUS[d.review.status][0]}</Pill> : null
       }
+      breadcrumbs={pageBreadcrumbs([
+        { text: 'Reviews', onClick: onBack },
+        { text: d?.review.name ?? 'Review' },
+      ])}
       actions={
         <>
-          {/* Controls → secondaries → primary last (family header CTA order). */}
-          <Button iconBefore={ArrowLeftIcon} onClick={onBack}>
-            All reviews
-          </Button>
+          {/* Secondaries → primary last (family header CTA order). Back is breadcrumbs only. */}
           <ExportMenu
             isDisabled={!d}
             onCsv={() =>
