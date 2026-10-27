@@ -243,10 +243,79 @@ body {
 }
 
 /*
- * Drawer header (Drawer.tsx): same pinned-header pattern as the page header. The 1px color.border
- * separator comes from the header's xcss; content scrolling in DrawerContent fades out under it
- * (24px, from the overlay surface the drawer paints on). Line and fade always; no shadow.
+ * SidePanel (Drawer.tsx LevelSidePanel): right-edge entity/settings overlay. Blanket from
+ * @atlaskit/blanket (z-index 500). Panel above it. Header keeps the pinned separator + overlay fade
+ * (R-3.7). Narrow @atlaskit/drawer stays only for AdminNav ≤1023px.
  */
+.side-panel-root {
+  position: fixed;
+  inset: 0;
+  z-index: 500; /* ADS blanket layer — hosts blanket + panel */
+  pointer-events: none;
+}
+
+.side-panel-root > * {
+  pointer-events: auto;
+}
+
+.side-panel {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 510; /* above blanket */
+  width: min(600px, 100vw);
+  max-width: 100vw;
+  display: flex;
+  flex-direction: column;
+  background: var(--ds-surface-overlay);
+  box-shadow: var(--ds-shadow-overlay);
+  outline: none;
+}
+
+.side-panel-root.is-open .side-panel {
+  animation: side-panel-in 200ms ease-out;
+}
+
+.side-panel-root.is-closing .side-panel {
+  animation: side-panel-out 200ms ease-in forwards;
+}
+
+@keyframes side-panel-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes side-panel-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .side-panel-root.is-open .side-panel,
+  .side-panel-root.is-closing .side-panel {
+    animation: none;
+  }
+}
+
+/* PageHeader action labels must not wrap mid-word (R-3.13). */
+.page-header-actions,
+.page-header .page-header-actions {
+  white-space: nowrap;
+}
+
+.page-header-actions button,
+.page-header [data-testid] button {
+  white-space: nowrap;
+}
+
 div[data-testid='ar-drawer-header'] {
   position: relative;
 }

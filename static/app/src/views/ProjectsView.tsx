@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
-import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
-import ArrowLeftIcon from '@atlaskit/icon/core/arrow-left';
 import type {
   ProjectAccess,
   ProjectRow,
@@ -39,6 +37,7 @@ import {
   LinkButton,
   PageFrame,
   PageHeader,
+  pageBreadcrumbs,
   Pill,
   ToggleField,
   NoWrap,
@@ -310,11 +309,12 @@ function ProjectDetail({
           ? `${d.project.style === 'team' ? 'Team-managed' : 'Company-managed'} · ${d.project.schemeName ?? 'per-space permissions'}`
           : undefined
       }
+      breadcrumbs={pageBreadcrumbs([
+        { text: 'Spaces', onClick: onBack },
+        { text: d ? `${d.project.key} · ${d.project.name}` : 'Space' },
+      ])}
       actions={
         <>
-          <Button iconBefore={ArrowLeftIcon} onClick={onBack}>
-            All spaces
-          </Button>
           <ExportMenu
             isDisabled={!d}
             onCsv={() =>

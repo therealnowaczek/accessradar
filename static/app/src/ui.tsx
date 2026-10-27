@@ -1,14 +1,28 @@
-import { Component, useEffect, useId, useState, type ReactNode } from 'react';
+import {
+  Children,
+  Component,
+  isValidElement,
+  useEffect,
+  useId,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
+import { IconButton } from '@atlaskit/button/new';
 import LinkStyleButton from '@atlaskit/button/standard-button';
+import Breadcrumbs, { BreadcrumbsItem } from '@atlaskit/breadcrumbs';
+import DropdownMenu, { DropdownItem, DropdownItemGroup } from '@atlaskit/dropdown-menu';
 import { HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
 import LockIcon from '@atlaskit/icon/core/lock-locked';
+import ShowMoreIcon from '@atlaskit/icon/core/show-more-horizontal';
 import Lozenge from '@atlaskit/lozenge';
 import AdsPageHeader from '@atlaskit/page-header';
 import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
 import Toggle from '@atlaskit/toggle';
+import Tooltip from '@atlaskit/tooltip';
 import { DatePicker } from '@atlaskit/datetime-picker';
 import { DATE_PICKER_FORMAT, parseDateInput } from './format';
 import { t } from './i18n';
@@ -148,31 +162,127 @@ const pageHeaderTightenStyles = xcss({ marginBlockEnd: 'space.negative.300' });
 const pageHeaderWithMetaStyles = xcss({ paddingBlockEnd: 'space.200' });
 
 /**
- * ADS PageHeader. Put the primary action LAST in `actions` (left → right: controls, icon
- * secondaries such as Refresh, text secondaries/menus, then primary). ADS places the actions
- * slot at the end of the title row (right-aligned on wide screens), so primary is the rightmost
- * commitment. Status/description are full width under the title row (not in ADS bottomBar).
- * Below 768px actions move under the meta.
+ * Collapse header actions: max 2 visible (primary last + one secondary). Under ~900px only
+ * primary stays visible. Overflow goes in Atlaskit DropdownMenu "More".
+ */
+function collapseHeaderActions(actions: ReactNode, compact: boolean): ReactNode {
+  const items = Children.toArray(actions).filter(Boolean);
+  const maxVisible = compact ? 1 : 2;
+  if (items.length <= maxVisible) {
+    return (
+      <Inline space="space.100" alignBlock="center" shouldWrap={false}>
+        {items}
+      </Inline>
+    );
+  }
+  const primary = items[items.length - 1];
+  const earlier = items.slice(0, -1);
+  const visibleExtra = compact ? [] : earlier.slice(-1);
+  const overflow = compact ? earlier : earlier.slice(0, -1);
+  return (
+    <Box xcss={pageHeaderActionsStyles}>
+      <Inline space="space.100" alignBlock="center" shouldWrap={false}>
+        {overflow.length > 0 ? <MoreHeaderActions items={overflow} /> : null}
+        {visibleExtra}
+        {primary}
+      </Inline>
+    </Box>
+  );
+}
+
+function actionLabel(node: ReactNode, fallback: string): string {
+  if (!isValidElement(node)) return fallback;
+  const props = node.props as { label?: string; children?: ReactNode };
+  if (typeof props.label === 'string' && props.label.trim()) return props.label;
+  if (typeof props.children === 'string' && props.children.trim()) return props.children;
+  return fallback;
+}
+
+function MoreHeaderActions({ items }: { items: ReactNode[] }) {
+  return (
+    <DropdownMenu
+      placement="bottom-end"
+      trigger={({ triggerRef, ...props }) => (
+        <IconButton {...props} ref={triggerRef} icon={ShowMoreIcon} label="More actions" />
+      )}
+    >
+      <DropdownItemGroup>
+        {items.map((item, index) => {
+          if (!isValidElement(item)) return null;
+          const props = item.props as {
+            onClick?: (e: React.MouseEvent) => void;
+            isDisabled?: boolean;
+            children?: ReactNode;
+          };
+          return (
+            <DropdownItem
+              key={index}
+              isDisabled={props.isDisabled}
+              onClick={(e) => props.onClick?.(e as unknown as React.MouseEvent)}
+            >
+              {actionLabel(item, `Action ${index + 1}`)}
+            </DropdownItem>
+          );
+        })}
+      </DropdownItemGroup>
+    </DropdownMenu>
+  );
+}
+
+const pageHeaderActionsStyles = xcss({ flexShrink: 0 });
+
+export type PageBreadcrumb = { text: string; onClick?: () => void };
+
+/** ADS breadcrumbs for detail/child pages (R-3.15–3.20). Last item is the current page (no link). */
+export function pageBreadcrumbs(items: PageBreadcrumb[]): ReactElement {
+  return (
+    <Breadcrumbs maxItems={4}>
+      {items.map((item, i) => (
+        <BreadcrumbsItem
+          key={`${item.text}-${i}`}
+          text={item.text}
+          onClick={
+            item.onClick
+              ? (e) => {
+                  e.preventDefault();
+                  item.onClick?.();
+                }
+              : undefined
+          }
+          href={item.onClick ? '#' : undefined}
+        />
+      ))}
+    </Breadcrumbs>
+  );
+}
+
+/**
+ * ADS PageHeader (R-3.9–3.20). Put the primary action LAST. Title truncates to one line with
+ * Tooltip for the full string. Status/description sit under the title — never between title and
+ * actions. ≤~900px: only primary visible (rest in More) and actions wrap to their own row below.
+ * Detail pages pass `breadcrumbs` (not a Back / “All X” action).
  */
 export function PageHeader({
   title,
   description,
   status,
   actions,
+  breadcrumbs,
   flush = false,
 }: {
   title: string;
   description?: string;
   status?: ReactNode;
   actions?: ReactNode;
+  /** Detail/child trail via `@atlaskit/breadcrumbs` (R-3.15+). */
+  breadcrumbs?: ReactElement;
   /** Pages with tabs: the tab bar replaces the separator under the header. */
   flush?: boolean;
 }) {
-  const wide = !useMaxWidth(768);
+  // ~900px: actions below title + only primary outside More (R-3.11, R-3.12).
+  const stackActions = useMaxWidth(899);
   const actionRow = actions ? (
-    <Inline space="space.100" alignBlock="center" shouldWrap>
-      {actions}
-    </Inline>
+    <div className="page-header-actions">{collapseHeaderActions(actions, stackActions)}</div>
   ) : null;
   const meta =
     status || description ? (
@@ -181,23 +291,37 @@ export function PageHeader({
         {description ? <Text color="color.text.subtle">{description}</Text> : null}
       </Inline>
     ) : null;
+  const titleNode = (
+    <Tooltip content={title}>
+      {(tooltipProps) => (
+        <span {...tooltipProps}>
+          <Heading size="large" as="h1">
+            {title}
+          </Heading>
+        </span>
+      )}
+    </Tooltip>
+  );
   const header = (
-    <AdsPageHeader actions={wide && actionRow ? actionRow : undefined} disableTitleStyles>
-      <Heading size="large" as="h1">
-        {title}
-      </Heading>
+    <AdsPageHeader
+      breadcrumbs={breadcrumbs}
+      actions={!stackActions && actionRow ? (actionRow as unknown as ReactElement) : undefined}
+      truncateTitle
+      disableTitleStyles
+    >
+      {titleNode}
     </AdsPageHeader>
   );
   return (
     <header className={flush ? 'page-header is-flush' : 'page-header'}>
-      {!meta && wide ? (
+      {!meta && !stackActions ? (
         header
       ) : (
         <Box xcss={meta ? pageHeaderWithMetaStyles : undefined}>
           <Stack space="space.100">
             {meta ? <Box xcss={pageHeaderTightenStyles}>{header}</Box> : header}
             {meta}
-            {!wide ? actionRow : null}
+            {stackActions ? actionRow : null}
           </Stack>
         </Box>
       )}
