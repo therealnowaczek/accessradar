@@ -13,7 +13,7 @@
 - **Limity (jak w MarginRadar, zweryfikowane tam w docs 2026-10-09):** nazwa ≤60, tagline ≤130 **bez kropki na końcu** (z checklisty), summary ≤250, More details ≤1000, 3 highlighty (tytuł ≤50, opis ≤220, podpis ≤220), 2 kategorie + 4 keywords. Wszystkie pola mieszczą się w limitach; skrypt `docs/listing-check.py` to sprawdza i potwierdza, że każdy tekst występuje w tym pliku dosłownie.
 - **Kategorie:** Security and compliance + Administrative tools. **Keywords:** Audit, Compliance, User permissions, Risk Management. Dokładnie taki zestaw mają Project Access Review (Akeles), a podobny Access Reviewer360 i AuditAdmin (sprawdzone w Marketplace REST 2026-10-09). To standard niszy, więc nie ma sensu z nim walczyć.
 - **Pozycjonowanie bez nazywania konkurentów:** „the why” (ścieżka grantu), uczciwa kompletność, dowód z hashem SHA-256, read-only (kontrast z Access Reviewer360, które robi revoke). Konkurentów (AccessLens, Project Access Review, Project Roles) ani JRACLOUD-71967 **nie wymieniamy** w listingu. Ticket to dobry materiał na stronę /docs albo post w Community, ale dopiero po Twojej decyzji.
-- **Ceny (FINAL, decyzja 2026-10-14):** Standard $0 do 10 użytkowników (płasko), potem $0.49 / $0.35 / $0.25 / $0.20 (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced $4 płasko do 10 użytkowników, potem $0.99 / $0.89 / $0.79 / $0.45. Rocznie 10× miesięcznie, 30-dniowy trial, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $49/mies. = $490/rok. Funkcje R1/R2 są wydane. Te stawki wchodzą na listing Marketplace i plik cenowy przy pierwszym wydaniu po akceptacji Marketplace; ten PR nie zmienia samego Marketplace.
+- **Ceny (stan 2026-10-30):** Standard **LIVE** w Marketplace (decyzja 2026-10-23, bez zmian): $0 do 10 użytkowników (płasko), potem $0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12 (11–100 / 101–250 / 251–1 000 / 1 001–2 500 / 2 501–5 000 / 5 001+). Advanced **nowe ceny zatwierdzone przez Marcina 2026-10-30**: $5 płasko do 10 użytkowników (było $4), potem $1.49 / $1.09 / $0.69 / $0.39 (11–100 / 101–250 / 251–1 000 / 1 001+; było $1.49 / $0.99 / $0.99 / $0.49). Rocznie 10× miesięcznie, 30-dniowy trial, multi-instance = single-instance. Model progresywny **od 1. użytkownika**: Standard 100 u. = $75/mies. = $750/rok, Advanced 100 u. = $149/mies. = $1 490/rok. Nowe ceny Advanced trzeba opublikować w konsoli (Editions → Manage editions → Manage pricing); to repo nie zmienia samego Marketplace.
 - **Privacy & Security:** gotowe odpowiedzi w §9. Dwie rzeczy wymagają uczciwego ujawnienia: (1) manifest deklaruje `allowImpersonation: true` na scope'ach odczytu, (2) Atlassian po instalacji dodaje app usera AccessRadar do grup adminów (week1-findings §3), choć aplikacja ma wyłącznie scope'y `read:*`. Pytania prawne oznaczyłem **[TO CONFIRM]**.
 - **Feature truth check (R1 i R2 wydane):** łańcuch podpisów oraz Advanced: kampanie, alerty zmian, delegacja (space settings page dla space adminów), przypomnienia tylko in-app, agent Rovo (read-only, 5 akcji GET) w manifeście i w Settings. Ograniczenie: delegaci nie dostają powiadomień poza Jirą. Lista w §11.
 - **Produkcja:** wdrożona 9.10.2026 (gałąź `release/production`, workflow Deploy (production) zielony, spike usunięty w CI). **Instalacja prod przez CLI jest zablokowana przez Atlassian** („Installing a licensed app is not permitted”): aplikacji z `licensing.enabled: true` nie da się zainstalować z produkcji, dopóki listing nie zostanie zatwierdzony (instalacja tylko przez Marketplace). Zrzuty do listingu trzeba więc zrobić z dev/staging (z dopiskiem „Dev”/„Staging”) albo jako kompozycje, a finalne zrzuty z prod podmienić po akceptacji.
@@ -235,15 +235,17 @@ Extra-screenshot caption counts (verified by the script): S4 126 · S5 124 · S6
 
 ## 8. Pricing (USD per month, Paid via Atlassian)
 
-> **Final prices decided 2026-10-14.** Replaces the 2026-10-10 MarginRadar-matched rates and the earlier Standard-only proposal. Atlassian fixes the tier boundaries; the vendor only sets the price per tier. R1 and R2 features are released (nothing is Coming soon). These rates go live on the Marketplace listing and the pricing import at the first release after Marketplace approval. This repository does not change Marketplace itself. `docs/accessradar-pricing-import.csv` is the tier list to paste into the console template then (one row per Atlassian `unitCount`, monthly total and annual = 10×; multi-instance = single-instance).
+> **Prices as of 2026-10-30.** Standard is unchanged and **live** on the Marketplace (decided 2026-10-23, live since the 2026-10-28 console update, verified on the listing 2026-10-30). Advanced uses the **new prices approved on 2026-10-30**: the 1–10 flat fee goes from $4 to $5, 11–100 stays $1.49, 101–250 goes from $0.99 to $1.09, 251–1,000 from $0.99 to $0.69 and 1,001+ from $0.49 to $0.39. Until they are published in the partner console (Editions tab → Manage editions → Manage pricing), the listing still shows the previous Advanced prices. Atlassian fixes the tier boundaries; the vendor only sets the price per tier. This repository does not change Marketplace itself. `docs/accessradar-pricing-import.csv` holds both editions, one row per Atlassian annual `unitCount` (monthly total for that user count and annual = 10×; multi-instance = single-instance). Its Standard rows match all 84 live annual tiers.
 
-| Users (Atlassian's monthly tiers) | **Standard** | **Advanced** |
+| Users (Atlassian's monthly tiers) | **Standard** (live) | **Advanced** (new, 2026-10-30) |
 |---|---:|---:|
-| 1–10 | **$0** (flat, free) | **$4** (flat) |
-| 11–100 | $0.49 / user | $0.99 / user |
-| 101–250 | $0.35 / user | $0.89 / user |
-| 251–1,000 | $0.25 / user | $0.79 / user |
-| 1,001+ (every higher tier up to 100,000) | $0.20 / user | $0.45 / user |
+| 1–10 | **$0** (flat, free) | **$5** (flat) |
+| 11–100 | $0.75 / user | $1.49 / user |
+| 101–250 | $0.55 / user | $1.09 / user |
+| 251–1,000 | $0.35 / user | $0.69 / user |
+| 1,001–2,500 | $0.20 / user | $0.39 / user |
+| 2,501–5,000 | $0.15 / user | $0.39 / user |
+| 5,001+ (every higher tier) | $0.12 / user | $0.39 / user |
 | Annual | 10× monthly (Marketplace rule, automatic), sold in annual user tiers (10, 15, 25, 50, 100, 200, 300, 400, 500, …) | same |
 | Multi-instance | Same as single-instance (checklist §4) | same |
 | Trial | 30-day free trial | 30-day free trial |
@@ -253,28 +255,28 @@ Extra-screenshot caption counts (verified by the script): S4 126 · S5 124 · S6
 | Users | Monthly (list) | Calculation | Annual equivalent (10×) |
 |---:|---:|---|---:|
 | 10 | $0.00 | flat free tier | $0 |
-| 25 | $12.25 | 25 × $0.49 | $122.50 |
-| 50 | $24.50 | 50 × $0.49 | $245 |
-| 100 | $49.00 | 100 × $0.49 | $490 |
-| 250 | $101.50 | 100 × $0.49 + 150 × $0.35 | $1,015 |
-| 500 | $164.00 | $101.50 + 250 × $0.25 | $1,640 |
-| 1,000 | $289.00 | $164.00 + 500 × $0.25 | $2,890 |
-| 2,500 | $589.00 | $289.00 + 1,500 × $0.20 | $5,890 |
-| 5,000 | $1,089.00 | $589.00 + 2,500 × $0.20 | $10,890 |
+| 25 | $18.75 | 25 × $0.75 | $187.50 |
+| 50 | $37.50 | 50 × $0.75 | $375 |
+| 100 | $75.00 | 100 × $0.75 | $750 |
+| 250 | $157.50 | 100 × $0.75 + 150 × $0.55 | $1,575 |
+| 500 | $245.00 | $157.50 + 250 × $0.35 | $2,450 |
+| 1,000 | $420.00 | $245.00 + 500 × $0.35 | $4,200 |
+| 2,500 | $720.00 | $420.00 + 1,500 × $0.20 | $7,200 |
+| 5,000 | $1,095.00 | $720.00 + 2,500 × $0.15 | $10,950 |
 
-Advanced (same method):
+Advanced (same method, new prices):
 
 | Users | Advanced monthly | Calculation | Annual equivalent (10×) |
 |---:|---:|---|---:|
-| 10 | $4.00 | flat | $40 |
-| 25 | $24.75 | 25 × $0.99 | $247.50 |
-| 50 | $49.50 | 50 × $0.99 | $495 |
-| 100 | $99.00 | 100 × $0.99 | $990 |
-| 250 | $232.50 | 100 × $0.99 + 150 × $0.89 | $2,325 |
-| 500 | $430.00 | $232.50 + 250 × $0.79 | $4,300 |
-| 1,000 | $825.00 | $430.00 + 500 × $0.79 | $8,250 |
-| 2,500 | $1,500.00 | $825.00 + 1,500 × $0.45 | $15,000 |
-| 5,000 | $2,625.00 | $1,500.00 + 2,500 × $0.45 | $26,250 |
+| 10 | $5.00 | flat | $50 |
+| 25 | $37.25 | 25 × $1.49 | $372.50 |
+| 50 | $74.50 | 50 × $1.49 | $745 |
+| 100 | $149.00 | 100 × $1.49 | $1,490 |
+| 250 | $312.50 | 100 × $1.49 + 150 × $1.09 | $3,125 |
+| 500 | $485.00 | $312.50 + 250 × $0.69 | $4,850 |
+| 1,000 | $830.00 | $485.00 + 500 × $0.69 | $8,300 |
+| 2,500 | $1,415.00 | $830.00 + 1,500 × $0.39 | $14,150 |
+| 5,000 | $2,390.00 | $1,415.00 + 2,500 × $0.39 | $23,900 |
 
 `docs/listing-check.py` recomputes these examples from the tier tables.
 
@@ -296,7 +298,7 @@ Advanced (same method):
 
 Edition decision 2026-10-26 (Radrly family rule): signing, the hash chain and Verify are always Advanced. Reviews signed earlier stay readable on Standard (PRD §5.1). Edition decision 2026-10-26: Standard gets the weekly digest, real-time alerts stay Advanced (PRD §5.2). Exceptions work on Standard without signing (PRD §5.3).
 
-*(PL) Punkty odniesienia konkurencji (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2) zostają historyczne. Finalna cena AccessRadar (2026-10-14): Standard 100 u. = $490/rok, Advanced 100 u. = $990/rok. Wchodzi na listing po akceptacji Marketplace.*
+*(PL) Punkty odniesienia konkurencji (USD/100 u./rok, Marketplace API 9.10.2026, `name-pricing-legal.md` §2.2) zostają historyczne. Cena AccessRadar (stan 2026-10-30): Standard 100 u. = $750/rok (LIVE), Advanced 100 u. = $1 490/rok (nowe ceny Advanced z 2026-10-30, do opublikowania w konsoli).*
 
 Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime Forge revenue, then the standard Forge rate).
 
