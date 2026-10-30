@@ -3,6 +3,8 @@ import { bumpGate } from '../collector/gate';
 import { audit } from '../db/audit';
 import { BadRequest } from './service';
 import { kvGet, kvSet } from '../db/settings';
+import { ensureMigrated } from '../db/migrations';
+import { isLicenseActive } from '../domain/license';
 import {
   featureFlags,
   normalizeEdition,
@@ -28,13 +30,50 @@ const OVERRIDE_KEY = 'edition:override';
 /** Last license seen on a UI invocation; background triggers use it to apply edition limits. */
 const LICENSE_KEY = 'edition:license';
 
+/**
+ * Stored shape: a normalized `active` (true when either Forge flag is true) plus the raw
+ * `isActive`, so background jobs read the same state as the UI invocation.
+ */
 const pickLicense = (l: EditionLicense | null | undefined): EditionLicense | null =>
-  l ? { active: l.active, capabilitySet: l.capabilitySet ?? null } : null;
+  l
+    ? {
+        active: isLicenseActive(l),
+        isActive: l.isActive ?? null,
+        capabilitySet: l.capabilitySet ?? null,
+      }
+    : null;
+
+/** Persist the invocation license if it changed; bumps the trigger gate on change. */
+async function storeLicense(license: EditionLicense | null | undefined): Promise<void> {
+  const next = pickLicense(license);
+  const prev = await kvGet<EditionLicense | null>(LICENSE_KEY);
+  if (JSON.stringify(prev) !== JSON.stringify(next)) {
+    await kvSet(LICENSE_KEY, next);
+    await bumpGate().catch(() => undefined);
+  }
+}
+
+/**
+ * Unlicensed invocation (license object present but inactive): resolvers refuse the call, but
+ * the stored license must still change so scheduled jobs drop to Standard. Best effort.
+ */
+export async function rememberInactiveLicense(
+  license: EditionLicense | null | undefined,
+): Promise<void> {
+  if (!license || isLicenseActive(license)) return;
+  try {
+    await ensureMigrated();
+    await storeLicense(license);
+  } catch {
+    // Never let bookkeeping change the unlicensed response.
+  }
+}
 
 /**
  * Precedence when overrides are allowed: AR_EDITION_OVERRIDE env > saved in-app override >
  * license capabilitySet > development default (Advanced).
  * On production, only the license (or development default if no license object) applies.
+ * A license object that is not active resolves to Standard (source `inactive`).
  */
 export async function decideEdition(
   license: EditionLicense | null | undefined,
@@ -61,12 +100,7 @@ export async function decideForInvocation(
   license: EditionLicense | null | undefined,
   environmentType?: string | null,
 ) {
-  const next = pickLicense(license);
-  const prev = await kvGet<EditionLicense | null>(LICENSE_KEY);
-  if (JSON.stringify(prev) !== JSON.stringify(next)) {
-    await kvSet(LICENSE_KEY, next);
-    await bumpGate().catch(() => undefined);
-  }
+  await storeLicense(license);
   return decideEdition(license, { environmentType });
 }
 

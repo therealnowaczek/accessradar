@@ -1,5 +1,5 @@
 import { __getRuntime, getAppContext } from '@forge/api';
-import { decideForInvocation } from '../api/edition';
+import { decideForInvocation, rememberInactiveLicense } from '../api/edition';
 import { BadRequest } from '../api/service';
 import { ensureMigrated } from '../db/migrations';
 import type { EditionLicense } from '../domain/edition';
@@ -42,7 +42,10 @@ export async function rovoHandler(
     const app = appContextSafe();
     const license = context.license ?? app.license ?? null;
     const environmentType = context.environmentType ?? app.environmentType;
-    if (!isLicensed({ license })) return { error: UNLICENSED_MESSAGE };
+    if (!isLicensed({ license })) {
+      await rememberInactiveLicense(license);
+      return { error: UNLICENSED_MESSAGE };
+    }
     const accountId = context.principal?.accountId ?? context.accountId ?? '';
     await assertJiraAdmin(accountId);
     await ensureMigrated();

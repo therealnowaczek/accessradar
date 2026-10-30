@@ -5,6 +5,7 @@ const kv = vi.hoisted(() => ({ store: new Map<string, unknown>() }));
 vi.mock('@forge/api', () => ({ getAppContext: () => ({}) }));
 vi.mock('../src/collector/gate', () => ({ bumpGate: async () => undefined }));
 vi.mock('../src/db/audit', () => ({ audit: async () => undefined }));
+vi.mock('../src/db/migrations', () => ({ ensureMigrated: async () => undefined }));
 vi.mock('../src/api/service', () => ({ BadRequest: class BadRequest extends Error {} }));
 vi.mock('../src/db/settings', () => ({
   kvGet: async (k: string) => kv.store.get(k) ?? null,

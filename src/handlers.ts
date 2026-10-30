@@ -32,7 +32,12 @@ import * as svc from './api/service';
 import { findOpenAssignmentForProject } from './db/campaigns';
 import { errInfo } from './lib/errors';
 import { withResolverBudget, type Phase } from './lib/budget';
-import { backgroundEdition, decideForInvocation, setEditionOverride } from './api/edition';
+import {
+  backgroundEdition,
+  decideForInvocation,
+  rememberInactiveLicense,
+  setEditionOverride,
+} from './api/edition';
 import { effectiveSchedule, REQUIRES_ADVANCED, type EditionLicense } from './domain/edition';
 import { isLicensed, UNLICENSED_MESSAGE } from './domain/license';
 
@@ -57,7 +62,10 @@ function def(name: string, fn: Handler) {
     const phase: Phase = { at: 'auth' };
     try {
       const license = (context as { license?: EditionLicense | null }).license ?? null;
-      if (!isLicensed({ license })) return { ok: false, error: UNLICENSED_MESSAGE };
+      if (!isLicensed({ license })) {
+        await rememberInactiveLicense(license);
+        return { ok: false, error: UNLICENSED_MESSAGE };
+      }
       const accountId = (context as { accountId?: string }).accountId ?? '';
       const environmentType = (context as { environmentType?: string }).environmentType;
       const work = (async () => {
@@ -174,7 +182,10 @@ function defProject(name: string, fn: ProjectHandler) {
     const started = Date.now();
     try {
       const license = (context as { license?: EditionLicense | null }).license ?? null;
-      if (!isLicensed({ license })) return { ok: false, error: UNLICENSED_MESSAGE };
+      if (!isLicensed({ license })) {
+        await rememberInactiveLicense(license);
+        return { ok: false, error: UNLICENSED_MESSAGE };
+      }
       const accountId = (context as { accountId?: string }).accountId ?? '';
       const extension = (context as { extension?: { project?: { id?: string } } }).extension;
       const projectId = extension?.project?.id ? String(extension.project.id) : '';

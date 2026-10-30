@@ -7,13 +7,17 @@
  * it null until the customer changes edition.
  * Development and staging omit `license`. Those sites are Advanced unless
  * `AR_EDITION_OVERRIDE` or the stored in-app override says otherwise.
+ * A license object that is present but not active (`active`/`isActive` not true: expired,
+ * cancelled) is Standard with source `inactive` — never Advanced.
  *
  * Overrides (env + stored) are honourable only when `overridesAllowed` — never on
  * Marketplace production, so a Standard license cannot unlock Advanced in Settings.
  */
+import { isLicenseActive } from './license';
+
 export type Edition = 'standard' | 'advanced';
 
-export type EditionSource = 'env' | 'stored' | 'license' | 'development';
+export type EditionSource = 'env' | 'stored' | 'license' | 'inactive' | 'development';
 
 /** Forge DEVELOPMENT / STAGING only. Missing or PRODUCTION → no overrides. */
 export function overridesAllowed(environmentType?: string | null): boolean {
@@ -22,7 +26,10 @@ export function overridesAllowed(environmentType?: string | null): boolean {
 }
 
 export interface EditionLicense {
-  active?: boolean;
+  /** Documented Forge flag. */
+  active?: boolean | null;
+  /** Alternative flag some Forge contexts provide; either one true means active. */
+  isActive?: boolean | null;
   capabilitySet?: string | null;
 }
 
@@ -106,8 +113,13 @@ export function resolveEdition(input: {
     return { edition: stored, source: 'stored' };
   }
   const license = input.license;
-  if (!license || license.active !== true) {
+  if (!license) {
+    // No license object: development, staging, or not listed on Marketplace.
     return { edition: 'advanced', source: 'development' };
+  }
+  if (!isLicenseActive(license)) {
+    // Present but inactive (expired / cancelled / flags missing): never Advanced.
+    return { edition: 'standard', source: 'inactive' };
   }
   if (isAdvancedCapability(license.capabilitySet)) {
     return { edition: 'advanced', source: 'license' };

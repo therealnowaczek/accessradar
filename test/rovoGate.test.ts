@@ -11,7 +11,10 @@ vi.mock('@forge/api', () => ({
   getAppContext: () => m.appContext,
   __getRuntime: () => ({ appContext: { moduleKey: 'ar-review-status' } }),
 }));
-vi.mock('../src/api/edition', () => ({ decideForInvocation: m.decide }));
+vi.mock('../src/api/edition', () => ({
+  decideForInvocation: m.decide,
+  rememberInactiveLicense: async () => undefined,
+}));
 vi.mock('../src/db/migrations', () => ({ ensureMigrated: async () => undefined }));
 vi.mock('../src/lib/auth', () => ({
   ForbiddenError: class ForbiddenError extends Error {},

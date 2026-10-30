@@ -7,7 +7,7 @@ import {
   RELEASED_FEATURES,
   resolveEdition,
 } from './edition';
-import { isLicensed } from './license';
+import { isLicensed, isLicenseActive } from './license';
 
 describe('overridesAllowed', () => {
   it('allows only Forge development and staging', () => {
@@ -21,9 +21,47 @@ describe('overridesAllowed', () => {
 });
 
 describe('resolveEdition', () => {
-  it('treats a missing license as Advanced', () => {
-    expect(resolveEdition({ license: null }).edition).toBe('advanced');
-    expect(resolveEdition({ license: { active: false } }).source).toBe('development');
+  it('treats a missing license as the development default (Advanced)', () => {
+    expect(resolveEdition({ license: null })).toEqual({
+      edition: 'advanced',
+      source: 'development',
+    });
+    expect(resolveEdition({ license: undefined })).toEqual({
+      edition: 'advanced',
+      source: 'development',
+    });
+    expect(resolveEdition({})).toEqual({ edition: 'advanced', source: 'development' });
+  });
+
+  it('active true + capabilityAdvanced is Advanced', () => {
+    expect(
+      resolveEdition({ license: { active: true, capabilitySet: 'capabilityAdvanced' } }),
+    ).toEqual({ edition: 'advanced', source: 'license' });
+  });
+
+  it('isActive true + lowercase capabilityadvanced is Advanced', () => {
+    expect(
+      resolveEdition({ license: { isActive: true, capabilitySet: 'capabilityadvanced' } }),
+    ).toEqual({ edition: 'advanced', source: 'license' });
+  });
+
+  it('never makes an inactive license Advanced', () => {
+    expect(
+      resolveEdition({ license: { active: false, capabilitySet: 'capabilityAdvanced' } }),
+    ).toEqual({ edition: 'standard', source: 'inactive' });
+    expect(
+      resolveEdition({ license: { isActive: false, capabilitySet: 'capabilityAdvanced' } }),
+    ).toEqual({ edition: 'standard', source: 'inactive' });
+    expect(resolveEdition({ license: { isActive: false } }).edition).toBe('standard');
+    expect(resolveEdition({ license: { active: false } }).edition).toBe('standard');
+  });
+
+  it('treats a license object with neither flag as inactive (Standard)', () => {
+    expect(resolveEdition({ license: { capabilitySet: 'capabilityAdvanced' } })).toEqual({
+      edition: 'standard',
+      source: 'inactive',
+    });
+    expect(resolveEdition({ license: {} }).edition).toBe('standard');
   });
 
   it('maps capabilitySet on an active license', () => {
@@ -117,5 +155,24 @@ describe('isLicensed', () => {
     expect(isLicensed({})).toBe(true);
     expect(isLicensed({ license: { active: false } })).toBe(false);
     expect(isLicensed({ license: { active: true } })).toBe(true);
+  });
+
+  it('accepts isActive as well as active', () => {
+    expect(isLicensed({ license: { isActive: true } })).toBe(true);
+    expect(isLicensed({ license: { isActive: false } })).toBe(false);
+    expect(isLicensed({ license: {} })).toBe(false);
+    expect(isLicensed({ license: null })).toBe(true);
+  });
+});
+
+describe('isLicenseActive', () => {
+  it('is true only for an object with active or isActive true', () => {
+    expect(isLicenseActive({ active: true })).toBe(true);
+    expect(isLicenseActive({ isActive: true })).toBe(true);
+    expect(isLicenseActive({ active: false, isActive: true })).toBe(true);
+    expect(isLicenseActive({ active: false })).toBe(false);
+    expect(isLicenseActive({})).toBe(false);
+    expect(isLicenseActive(null)).toBe(false);
+    expect(isLicenseActive(undefined)).toBe(false);
   });
 });
