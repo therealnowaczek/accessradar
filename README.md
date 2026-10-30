@@ -3,7 +3,7 @@
 Read-only access review for Jira Cloud: who has access to what, why, and what changed since the last review.
 Built on Atlassian Forge and eligible for Runs on Atlassian (no egress).
 
-> Status: R1 and R2 are released. Final Marketplace prices (2026-10-14) are in `docs/LISTING.md` §8 and `docs/accessradar-pricing-import.csv`; they go live on the listing at the first release after Marketplace approval.
+> Status: R1 and R2 are released. Prices (updated 2026-10-30) are in `docs/LISTING.md` §8 and `docs/accessradar-pricing-import.csv`. **Standard** (live, unchanged): free up to 10 users, then $0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12 per user/month (11–100 / 101–250 / 251–1,000 / 1,001–2,500 / 2,501–5,000 / 5,001+). **Advanced** (new prices published in the partner console 2026-10-30 ~19:58 CET, effective 24 h later): $5 flat up to 10 users, then $1.49 / $1.09 / $0.69 / $0.39 (11–100 / 101–250 / 251–1,000 / 1,001+). Progressive from user 1; annual = 10× monthly; 30-day trial; existing customers keep their previous price for 60 days (Atlassian price-change policy).
 
 ## Layout
 

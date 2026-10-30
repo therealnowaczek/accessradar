@@ -47,6 +47,8 @@ Not measured from Developer Console in this step. Baseline code path still does 
 
 `docs/accessradar-pricing-import.csv` now holds the 2026-10-14 final prices (Standard and Advanced, one row per Marketplace `unitCount`). It is not uploaded to Marketplace until the first release after Marketplace approval.
 
+*Updated 2026-10-30:* the CSV now holds the current prices — Standard live ($0 up to 10, then $0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12) and Advanced new prices ($5 flat up to 10, then $1.49 / $1.09 / $0.69 / $0.39), saved in the partner console 2026-10-30, effective after 24 h.
+
 ## 7. Open-question defaults applied (PRD §9)
 
 | # | Default used |

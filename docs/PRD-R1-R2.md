@@ -3,6 +3,8 @@
 Status: draft for Marcin's approval · 2026-10-10 · baseline `main` @ `9ee84d2` · docs only, no code changed.
 
 Implementation status (2026-10-15): every R1 and R2 item (R1-01..R1-08, R2-01..R2-08) is on `main` and released in Settings (nothing is Coming soon, including Rovo). Not built: the §8a future major (needs new scopes) and R1-09 free-tier schedule. Final prices (2026-10-14) are recorded in the docs and `docs/accessradar-pricing-import.csv`; they go live on Marketplace at the first release after approval.
+
+**Updated 2026-10-30 (pricing):** the 2026-10-14 prices above are superseded. Standard is live on Marketplace at $0 up to 10 users, then $0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12; Advanced new prices ($5 flat up to 10, then $1.49 / $1.09 / $0.69 / $0.39) were published 2026-10-30 ~19:58 CET and take effect 24 h later. See §6.
 Inputs: `src/`, `manifest.yml`, `test/`, `static/app/src`, `docs/FEATURE-PARITY.md` (§4 gaps, §5 differentiators, §6 R1/R2, §7 pricing, §7.1 Forge cost, §7.3 APPROVED pricing).
 
 ---
@@ -642,7 +644,23 @@ Exception registration is decoupled from sign-off. The Exception decision (justi
 
 ---
 
-## 6. Pricing rollout after release (FINAL 2026-10-14)
+## 6. Pricing rollout after release (FINAL 2026-10-14; updated 2026-10-30)
+
+**Updated 2026-10-30 — current prices (supersede the 2026-10-14 table below, kept as decision history).** Standard is **live** on Marketplace (decided 2026-10-23, unchanged). Advanced new prices were approved by Marcin and saved in the partner console on 2026-10-30 ~19:58 CET; they take effect 24 h later. Existing customers keep their previous price for 60 days (Atlassian grandfathering on price changes).
+
+| Tier (monthly, per user, progressive from user 1) | Standard (live) | Advanced (new, 2026-10-30) |
+|---|---:|---:|
+| 1–10 | $0 flat | $5 flat |
+| 11–100 | $0.75 | $1.49 |
+| 101–250 | $0.55 | $1.09 |
+| 251–1 000 | $0.35 | $0.69 |
+| 1 001–2 500 | $0.20 | $0.39 |
+| 2 501–5 000 | $0.15 | $0.39 |
+| 5 001+ (all higher tiers) | $0.12 | $0.39 |
+
+Examples: Std 100 u. $75, 250 u. $157.50, 500 u. $245, 1 000 u. $420; Adv 10 u. $5, 100 u. $149, 250 u. $312.50, 500 u. $485, 1 000 u. $830. Annual 10× monthly, 30-day trial. Repo files (`docs/LISTING.md` §8, `docs/accessradar-pricing-import.csv`, `docs/listing-check.py`) were updated in `46dbf80`.
+
+*History (2026-10-14 plan, superseded):*
 
 **Precondition:** Marketplace approval + public listing live (and Advanced edition enabled in Marketplace after paid app approval — LISTING.md §8). The prices below are recorded in the repo now. They go live on the Marketplace listing and pricing import at the first release after that approval. Do not edit Marketplace before then.
 
@@ -658,7 +676,7 @@ Examples: Std 100 u. $49, 250 u. $101.50, 500 u. $164, 1 000 u. $289; Adv 10 u. 
 
 Steps (owner: Marcin for console/site deploy; repo files are in this docs pass):
 1. **Repo:** `docs/accessradar-pricing-import.csv` (one row per Marketplace `unitCount` for Standard and Advanced; monthly total and annual = 10×), `docs/LISTING.md` §8, `docs/name-pricing-legal.md` §2.5, `docs/listing-check.py`. `FEATURE-PARITY.md` is not in this repo.
-2. **Partner console:** Pricing → Standard tiers; Advanced edition tiers ($4 flat …). Check that existing evaluations/customers follow Marketplace price-change notice rules (60 days for existing customers on increase; this is a decrease vs current entries, so immediate — verify).
+2. **Partner console:** Pricing → Standard tiers; Advanced edition tiers ($4 flat …). Check that existing evaluations/customers follow Marketplace price-change notice rules (60 days for existing customers on increase; this is a decrease vs current entries, so immediate — verify). *Updated 2026-10-30:* done — Standard live; Advanced saved as $5 flat / $1.49 / $1.09 / $0.69 / $0.39 (Editions → Manage editions → Manage pricing), effective after 24 h; existing customers get 60-day grandfathering.
 3. **Website accessradar.radrly.com:** edit `~/Desktop/CostRadar GIT/radrly/accessradar/` — `index.html#pricing`, `docs/` (editions page), `terms/` (price reference if any); deploy from Mac: `rsync -avz --delete -e "ssh -p 2244 -i ~/.ssh/vps_radrly" "~/Desktop/CostRadar GIT/radrly/accessradar/" root@84.247.134.34:/srv/radrly/accessradar/` (from `docs/site-prompts.md`), then check page + cache.
 4. **Edition flags:** no code change for pricing; feature rows follow §5 `RELEASED`.
 5. **Verify:** `python docs/listing-check.py`; Marketplace pricing page screenshot; Rest `/rest/2/addons/{key}/pricing/cloud/live` matches CSV.
@@ -699,7 +717,7 @@ Steps (owner: Marcin for console/site deploy; repo files are in this docs pass):
 | R2-07 | `r2/signature-chain` | migrations v037–v039, `signReview`, `verifyChain`, block signed delete, Reviews UI, tests | R1-05 | M |
 | R2-08 | `r2/rovo-agent` | `manifest.yml` (+`rovo:agent`, `action`, `ar-rovo`, resource `rovo`), `src/rovo/*`, `resources/rovo/agent.md`, tests | R2-02, R2-04 | M (eligibility check) |
 | R2-09 | `docs/r2-listing` | LISTING.md, privacy tab check, FEATURE-PARITY | R2-* | S |
-| P-01 | `docs/pricing-7-3` | CSV, LISTING §8, name-pricing-legal §2.5, listing-check.py (after Marketplace release only) | release | S |
+| P-01 | `docs/pricing-7-3` | CSV, LISTING §8, name-pricing-legal §2.5, listing-check.py (after Marketplace release only) — *updated 2026-10-30: done on `main` (`46dbf80` + docs follow-up)* | release | S |
 
 Total: **21 PRs** (verification: 1, R1: 10 incl. 1 optional, R2: 9, pricing: 1); the scope-requiring work is a separate future major (§8a), not counted. Manifest-touching PRs: R1-01 (timeouts), R2-06, R2-08 — each must paste `forge lint` + `forge deploy -e development` output proving no new permissions.
 

@@ -12,7 +12,7 @@ Zasada: liczby pochodzą wyłącznie z API lub ze stron, które podaję. Czego n
 1. **Nazwa „AccessRadar” jest wolna w Marketplace.** 0 wyników dla `AccessRadar`, `accessradar`, `access-radar`, `PermissionRadar`, `AuditRadar` we wszystkich hostingach (bez filtra, cloud, server, datacenter). Klucze `accessradar`, `access-radar`, `com.radrly.accessradar` i podobne zwracają 404. Poza Marketplace ta sama nazwa jest już używana: skaner dostępności WCAG (WCAG.World, getaccessradar.com) oraz IAM/GRC „Vennx Access Radar” (Brazylia). Rejestrów znaków towarowych (EUIPO/WIPO) **nie udało się sprawdzić** automatycznie, więc ten punkt jest NIESPRAWDZONY.
 2. **Pełna nazwa nie koliduje dosłownie z niczym, ale jej opisowa część jest prawie identyczna z dwoma konkurentami:** *AccessLens — Permission Audit & Access Review for Jira* oraz *Clearance for Jira (Permission Audit & Access Review)*. To nie jest problem prawny (sformułowanie jest opisowe), ale osłabia wyróżnienie w wynikach wyszukiwania. Alternatywa A z LISTING.md (*Permission Audit & Access Reviews*) jest jeszcze bliższa AccessLens, więc jej nie polecam.
 3. **Nisza jest zatłoczona i nikt w niej nie ma trakcji.** Znalazłem **20 aplikacji** typu access review / permission audit dla Jira Cloud (19 płatnych i darmową Akeles). Żadna nie przekracza 114 instalacji, a większość ma 0–3. Cena za 100 użytkowników rocznie wynosi od **$100 do $4 530**, mediana **$900**. Aplikacje adminowe z realną trakcją (750+ instalacji) biorą **$1.00/user** w progu 11–100.
-4. **Ceny (FINAL 2026-10-14, zastępują §2.4 i stawki z 2026-10-10):** Standard $0 płasko do 10 użytkowników, potem **$0.49 / $0.35 / $0.25 / $0.20** (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced **$4** płasko do 10 użytkowników, potem **$0.99 / $0.89 / $0.79 / $0.45**. Rocznie 10× miesięcznie, 30-dniowy trial, multi-instance = single-instance. Standard: **$490 rocznie za 100 użytkowników**. Szczegóły w §2.5. Na listing Marketplace i import cen wchodzą przy pierwszym wydaniu po akceptacji Marketplace.
+4. **Ceny (FINAL 2026-10-14, zastępują §2.4 i stawki z 2026-10-10):** Standard $0 płasko do 10 użytkowników, potem **$0.49 / $0.35 / $0.25 / $0.20** (11–100 / 101–250 / 251–1 000 / 1 001+). Advanced **$4** płasko do 10 użytkowników, potem **$0.99 / $0.89 / $0.79 / $0.45**. Rocznie 10× miesięcznie, 30-dniowy trial, multi-instance = single-instance. Standard: **$490 rocznie za 100 użytkowników**. Szczegóły w §2.5. Na listing Marketplace i import cen wchodzą przy pierwszym wydaniu po akceptacji Marketplace. **Zaktualizowano 2026-10-30:** te ceny są nieaktualne, obowiązujące są w §2.6 (Standard LIVE $0 / $0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12; Advanced $5 płasko, potem $1.49 / $1.09 / $0.69 / $0.39).
 5. **Błąd w LISTING.md §8:** przykłady cen liczą płatnych użytkowników dopiero od 11. (np. „100 users $54.00 = $540/year”). Atlassian liczy jednak próg 11–100 od pierwszego użytkownika. Zweryfikowałem to na 26 aplikacjach (cena roczna / 10 = suma progresywna od 1. użytkownika). Przy starej propozycji $0.60 prawidłowo wychodzi **100 u. = $60/mies. = $600/rok**, a nie $540. Trzeba to poprawić w LISTING.md.
 6. **Prawo i prywatność:** z 7 pytań [TO CONFIRM] 3 wymagają prawnika (kontroler/procesor, CCPA, transfer poza EOG). Kod ujawnił też 4 rzeczy do poprawy przed submitem (§3.3). Najważniejsza: po zamknięciu konta zamieniamy tylko wyświetlaną nazwę, a accountId zostaje w snapshotach, recenzjach i audit logu. To pseudonimizacja, a nie usunięcie danych.
 
@@ -190,6 +190,8 @@ Czego **nie wiem** i nie zgaduję: konwersji trial→paid w tej niszy, przychod�
 
 ### 2.5 Finalne ceny: edycje Standard i Advanced (2026-10-14)
 
+> **Zaktualizowano 2026-10-30:** ta sekcja to historia decyzji; aktualne ceny są w §2.6.
+
 Zastępują propozycję z §2.4 i stawki 1:1 z MarginRadar z 2026-10-10 (obie zostają w tym pliku jako historia decyzji). R1 i R2 są wydane.
 
 | Próg (miesięcznie, progresywnie od 1. użytkownika) | Standard | Advanced |
@@ -212,6 +214,28 @@ Wyliczenia Advanced: 10 u. $4 · 25 u. $24.75 · 100 u. **$99** ($990/rok) · 25
 
 **Uwagi:**
 - Te stawki wchodzą na listing Marketplace i `docs/accessradar-pricing-import.csv` (już w repo) przy pierwszym wydaniu po akceptacji Marketplace. Ten dokument nie publikuje cen w Marketplace.
+
+### 2.6 Aktualne ceny (zaktualizowano 2026-10-30)
+
+Zastępują §2.5. Standard jest **LIVE** w Marketplace (decyzja 2026-10-23, bez zmian). Nowe ceny Advanced zatwierdził Marcin 2026-10-30; zapisane w konsoli ok. 19:58 CET, obowiązują po 24 h. Obecni klienci zachowują dotychczasową cenę przez 60 dni (polityka Atlassian przy zmianie cen).
+
+| Próg (miesięcznie, progresywnie od 1. użytkownika) | Standard (LIVE) | Advanced (od 2026-10-30) |
+|---|---:|---:|
+| 1–10 | **$0** (płasko) | **$5** (płasko) |
+| 11–100 | $0.75 | $1.49 |
+| 101–250 | $0.55 | $1.09 |
+| 251–1 000 | $0.35 | $0.69 |
+| 1 001–2 500 | $0.20 | $0.39 |
+| 2 501–5 000 | $0.15 | $0.39 |
+| 5 001+ (wszystkie wyższe progi) | $0.12 | $0.39 |
+| Rocznie | 10× miesięcznie | 10× miesięcznie |
+| Trial | 30 dni | 30 dni |
+| Multi-instance | jak single-instance | jak single-instance |
+
+Wyliczenia Standard (miesięcznie): 25 u. $18.75 · 50 u. $37.50 · 100 u. **$75** ($750/rok) · 250 u. $157.50 · 500 u. $245 · 1 000 u. $420 · 2 500 u. $720 · 5 000 u. $1 095.
+Wyliczenia Advanced: 10 u. $5 · 25 u. $37.25 · 100 u. **$149** ($1 490/rok) · 250 u. $312.50 · 500 u. $485 · 1 000 u. $830 · 2 500 u. $1 415 · 5 000 u. $2 390.
+
+Podział funkcji Standard/Advanced bez zmian (jak w §2.5). Źródło prawdy w repo: `docs/LISTING.md` §8 i `docs/accessradar-pricing-import.csv`.
 
 ---
 

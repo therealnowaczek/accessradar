@@ -26,10 +26,12 @@
 - [ ] Pułapka: zapis highlightów („File does not exist”/„Must be a valid UUID”); jeśli wystąpi, zapisać ręcznie z innej przeglądarki
 
 ## 4. Cennik
-- [ ] Standard (FINAL 2026-10-14): $0 płasko do 10 userów, potem $0.49 / $0.35 / $0.25 / $0.20 (11–100 / 101–250 / 251–1 000 / 1 001+)
-- [ ] Advanced: $4 płasko do 10, potem $0.99 / $0.89 / $0.79 / $0.45; 30-dniowy trial
-- [ ] Multi-instance = single-instance; roczna cena = 10× miesięczna (automatycznie)
-- [ ] Wgrać `docs/accessradar-pricing-import.csv` na listing przy pierwszym wydaniu po akceptacji Marketplace (nie wcześniej; sam Marketplace ten PR nie rusza)
+*Zaktualizowano 2026-10-30 (zastępuje ceny z 2026-10-14).*
+- [x] Standard (LIVE, bez zmian): $0 płasko do 10 userów, potem $0.75 / $0.55 / $0.35 / $0.20 / $0.15 / $0.12 (11–100 / 101–250 / 251–1 000 / 1 001–2 500 / 2 501–5 000 / 5 001+)
+- [x] Advanced (nowe ceny zatwierdzone i zapisane w konsoli 2026-10-30 ok. 19:58 CET, obowiązują po 24 h): $5 płasko do 10, potem $1.49 / $1.09 / $0.69 / $0.39 (11–100 / 101–250 / 251–1 000 / 1 001+); 30-dniowy trial
+- [x] Multi-instance = single-instance; roczna cena = 10× miesięczna (automatycznie)
+- [x] Ceny wpisane w konsoli (Editions → Manage editions → Manage pricing); `docs/accessradar-pricing-import.csv` jest zgodny z nimi
+- [ ] Obecni klienci: 60 dni starej ceny (grandfathering wg polityki Atlassian) — sprawdzić po 60 dniach, że ceny przeszły
 - [ ] Edycja Advanced w konsoli dopiero po zatwierdzeniu płatnej aplikacji; funkcje R1/R2 są już wydane w kodzie
 
 ## 5. Privacy & Security tab
