@@ -104,15 +104,44 @@ export async function decideForInvocation(
   return decideEdition(license, { environmentType });
 }
 
-/** Background jobs (no invocation license): use the last license seen + Forge env type. */
+/**
+ * Background jobs (scheduled triggers, consumers, events). Forge does not put the license in
+ * these payloads, but the runtime app context (`getAppContext().license`) carries it, so:
+ * 1. runtime license (also stored, best effort, so later jobs and the UI agree);
+ * 2. else the last license stored by a UI invocation;
+ * 3. else, where overrides are not allowed (production / unknown env), Standard with source
+ *    `unknown` — never Advanced just because no license has been seen yet (fresh install);
+ * 4. else (development / staging) the development default (Advanced, or the overrides).
+ */
 export async function backgroundEdition(): Promise<EditionDecision> {
   let environmentType: string | undefined;
+  let runtimeLicense: EditionLicense | null = null;
   try {
-    environmentType = getAppContext()?.environmentType;
+    const ctx = getAppContext();
+    environmentType = ctx?.environmentType;
+    runtimeLicense = ctx?.license ?? null;
   } catch {
     environmentType = undefined;
   }
-  return decideEdition(await kvGet<EditionLicense | null>(LICENSE_KEY), { environmentType });
+  if (runtimeLicense) {
+    try {
+      await storeLicense(runtimeLicense);
+    } catch {
+      // Bookkeeping only; the runtime license still decides this job.
+    }
+    return decideEdition(runtimeLicense, { environmentType });
+  }
+  const stored = await kvGet<EditionLicense | null>(LICENSE_KEY);
+  if (!stored && !overridesAllowed(environmentType)) {
+    return {
+      edition: 'standard',
+      source: 'unknown',
+      features: featureFlags('standard'),
+      override: null,
+      canOverride: false,
+    };
+  }
+  return decideEdition(stored, { environmentType });
 }
 
 export async function setEditionOverride(

@@ -3,10 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const kv = vi.hoisted(() => ({
   store: new Map<string, unknown>(),
   env: 'PRODUCTION' as string | undefined,
+  /** Runtime app-context license (what Forge exposes to scheduled triggers / consumers). */
+  license: undefined as Record<string, unknown> | undefined,
   bumps: 0,
+  failSet: false,
 }));
 
-vi.mock('@forge/api', () => ({ getAppContext: () => ({ environmentType: kv.env }) }));
+vi.mock('@forge/api', () => ({
+  getAppContext: () => ({ environmentType: kv.env, license: kv.license }),
+}));
 vi.mock('../src/collector/gate', () => ({
   bumpGate: async () => {
     kv.bumps += 1;
@@ -17,7 +22,10 @@ vi.mock('../src/db/migrations', () => ({ ensureMigrated: async () => undefined }
 vi.mock('../src/api/service', () => ({ BadRequest: class BadRequest extends Error {} }));
 vi.mock('../src/db/settings', () => ({
   kvGet: async (k: string) => kv.store.get(k) ?? null,
-  kvSet: async (k: string, v: unknown) => void kv.store.set(k, v),
+  kvSet: async (k: string, v: unknown) => {
+    if (kv.failSet) throw new Error('kv down');
+    kv.store.set(k, v);
+  },
 }));
 
 import {
@@ -43,6 +51,8 @@ describe('license state across invocations and background jobs', () => {
   beforeEach(() => {
     kv.store.clear();
     kv.env = 'PRODUCTION';
+    kv.license = undefined;
+    kv.failSet = false;
     kv.bumps = 0;
   });
 
@@ -106,5 +116,81 @@ describe('license state across invocations and background jobs', () => {
     await rememberInactiveLicense(null);
     await rememberInactiveLicense({ active: true, capabilitySet: 'capabilityAdvanced' });
     expect(kv.store.has('edition:license')).toBe(false);
+  });
+
+  describe('background jobs: runtime license (getAppContext) before stored', () => {
+    it('production with no license anywhere is Standard (source unknown), never Advanced', async () => {
+      const bg = await backgroundEdition();
+      expect(bg).toMatchObject({
+        edition: 'standard',
+        source: 'unknown',
+        override: null,
+        canOverride: false,
+      });
+      for (const f of ADVANCED_ONLY) expect(bg.features[f]).toBe(false);
+      expect(kv.store.has('edition:license')).toBe(false);
+    });
+
+    it('a missing environment type is treated like production', async () => {
+      kv.env = undefined;
+      expect(await backgroundEdition()).toMatchObject({ edition: 'standard', source: 'unknown' });
+    });
+
+    it('runtime active Advanced license is Advanced and gets stored', async () => {
+      kv.license = { isActive: true, capabilitySet: 'capabilityAdvanced' };
+      const bg = await backgroundEdition();
+      expect(bg).toMatchObject({ edition: 'advanced', source: 'license' });
+      for (const f of ADVANCED_ONLY) expect(bg.features[f]).toBe(true);
+      expect(kv.store.get('edition:license')).toEqual({
+        active: true,
+        isActive: true,
+        capabilitySet: 'capabilityAdvanced',
+      });
+      expect(kv.bumps).toBe(1);
+      // Same license again: no re-store, no gate bump.
+      await backgroundEdition();
+      expect(kv.bumps).toBe(1);
+    });
+
+    it('runtime license wins over a stale stored one', async () => {
+      kv.store.set('edition:license', { active: true, capabilitySet: 'capabilityAdvanced' });
+      kv.license = { active: true, capabilitySet: 'capabilityStandard' };
+      expect(await backgroundEdition()).toMatchObject({ edition: 'standard', source: 'license' });
+      expect(kv.store.get('edition:license')).toMatchObject({
+        capabilitySet: 'capabilityStandard',
+      });
+    });
+
+    it('runtime inactive license is Standard (source inactive)', async () => {
+      kv.store.set('edition:license', { active: true, capabilitySet: 'capabilityAdvanced' });
+      kv.license = { active: false, capabilitySet: 'capabilityAdvanced' };
+      const bg = await backgroundEdition();
+      expect(bg).toMatchObject({ edition: 'standard', source: 'inactive' });
+      for (const f of ADVANCED_ONLY) expect(bg.features[f]).toBe(false);
+      expect(kv.store.get('edition:license')).toMatchObject({ active: false });
+    });
+
+    it('stored license still applies when the runtime context has none', async () => {
+      kv.store.set('edition:license', { active: true, capabilitySet: 'capabilityAdvanced' });
+      expect(await backgroundEdition()).toMatchObject({ edition: 'advanced', source: 'license' });
+    });
+
+    it('development / staging with nothing keeps the development default (Advanced)', async () => {
+      for (const env of ['DEVELOPMENT', 'STAGING']) {
+        kv.env = env;
+        expect(await backgroundEdition()).toMatchObject({
+          edition: 'advanced',
+          source: 'development',
+          canOverride: true,
+        });
+      }
+    });
+
+    it('storing the runtime license is best effort', async () => {
+      kv.license = { active: true, capabilitySet: 'capabilityAdvanced' };
+      kv.failSet = true;
+      expect(await backgroundEdition()).toMatchObject({ edition: 'advanced', source: 'license' });
+      kv.failSet = false;
+    });
   });
 });

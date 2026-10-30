@@ -17,7 +17,11 @@ import { isLicenseActive } from './license';
 
 export type Edition = 'standard' | 'advanced';
 
-export type EditionSource = 'env' | 'stored' | 'license' | 'inactive' | 'development';
+/**
+ * `unknown`: background job on production with no license anywhere (runtime context or stored)
+ * — Standard, never Advanced. Set only by `backgroundEdition`, never by `resolveEdition`.
+ */
+export type EditionSource = 'env' | 'stored' | 'license' | 'inactive' | 'unknown' | 'development';
 
 /** Forge DEVELOPMENT / STAGING only. Missing or PRODUCTION → no overrides. */
 export function overridesAllowed(environmentType?: string | null): boolean {
