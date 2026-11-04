@@ -31,6 +31,16 @@ npm run check        # format:check, lint, typecheck, test, build:ui, forge lint
 forge deploy --environment development
 ```
 
+## Local development guardrails
+
+Cursor reads `.cursor/rules/accessradar-ui.mdc` in every chat (`AGENTS.md` points at it). `.cursor/hooks.json` runs `scripts/cursor-lint-hook.mjs` after the agent edits a file. That hook runs ESLint (`--max-warnings=0`) and Prettier on the edited `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, or `.cjs` file and returns the findings to the agent. Other files are skipped. If `node_modules` is missing, the hook exits quietly. A light `stop` hook repeats any finding still open, once.
+
+`.vscode/extensions.json` recommends the ESLint and Prettier extensions. `.vscode/settings.json` turns on the flat ESLint config, format on save with Prettier, and ESLint fix on an explicit save.
+
+The Husky `pre-commit` hook runs lint-staged (ESLint `--max-warnings=0` and Prettier `--check` on staged files) and `npm run typecheck`. `npm run check` is still the full gate before a deploy. `npm run lint` itself allows warnings, so the design-system warnings already in a few UI files (for example `use-heading-level-in-section-message`, `no-placeholder`) block a commit or show up in the hook only once you edit that file; fix them in the same change. Husky is pinned to 9.1.7 and lint-staged to 16.4.0 (lint-staged 17 needs a newer Node.js than 22.12).
+
+Once, after pulling this: `npm install` (`prepare` enables Husky), install the recommended extensions, and restart Cursor so the project hooks load.
+
 ## UI
 
 One Jira admin menu entry (**Apps > AccessRadar**), no manifest `pages`/`sections`. Three `jira:adminPage`

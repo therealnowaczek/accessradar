@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "node scripts/cursor-lint-hook.mjs",
+        "timeout": 60
+      }
+    ],
+    "stop": [
+      {
+        "command": "node scripts/cursor-lint-hook.mjs --stop",
+        "timeout": 10,
+        "loop_limit": 1
+      }
+    ]
+  }
+}

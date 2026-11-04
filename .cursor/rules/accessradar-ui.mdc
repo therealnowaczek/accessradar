@@ -1,0 +1,65 @@
+---
+description: Radrly UI, language, and zero-egress rules for AccessRadar Custom UI. ESLint and Prettier must pass on every edit.
+alwaysApply: true
+---
+
+# AccessRadar UI rules
+
+Forge Custom UI (React + Atlaskit) in `static/app/src`. `npm run check` is the gate. These rules match `eslint.config.mjs`, `static/app/src/designSystem.guard.test.ts`, and the screens that already pass them. Do not change app behaviour, `manifest.yml`, scopes, or egress while doing UI work.
+
+## Atlassian Design System only
+
+Every control comes from Atlaskit. Do not build custom buttons, links, inputs, selects, menus, modals, tooltips, spinners, badges, empty states, or panels.
+
+- Actions: `Button` or `IconButton` from `@atlaskit/button/new`. Raw `<button>` fails `@atlaskit/design-system/no-html-button`. Also errors: `no-html-anchor`, `no-html-checkbox`, `no-html-radio`, `no-html-select`, `no-html-text-input`, `no-html-textarea`, `no-html-code`, `no-html-heading`, `no-html-image`, `no-html-range`.
+- Layout and text: `Box`, `Inline`, `Stack`, `Text`, and `xcss` from `@atlaskit/primitives` (`use-primitives-text`, `prefer-primitives`). Headings use `Heading` from `@atlaskit/heading` (`use-heading`).
+- Color, spacing, shape, typography: `token()` from `@atlaskit/tokens` in TS and TSX. In CSS, `var(--ds-*)`. Rules: `ensure-design-token-usage`, `no-unsafe-design-token-usage`, `no-deprecated-design-token-usage`, `use-tokens-space`, `use-tokens-shape`, `use-tokens-typography`. The guard test rejects colour literals and raw `var(--ds-*)` in TS/TSX.
+- Styling API: `xcss`. Do not import `@atlaskit/css` (Vite has no Compiled plugin; `no-restricted-imports`).
+- Hidden text: `@atlaskit/visually-hidden` (`use-visually-hidden`).
+- Icons take a `label` (`icon-label`). Decorative icons use `label=""`. An icon-only button needs a non-empty label (`no-empty-icon-button-label`).
+- Modals from `@atlaskit/modal-dialog` include `ModalTitle` (`use-modal-title`). `@atlaskit/drawer` takes a `label` (`use-drawer-label`) and only `narrow` for the navigation overlay. Entity panels use `LevelDrawer`, `DrawerBody`, and `DrawerFooter` from `static/app/src/Drawer.tsx`. Empty states use `@atlaskit/empty-state`.
+- Side navigation: `@atlaskit/navigation-system` and `@atlaskit/side-nav-items`. `@atlaskit/side-navigation` is forbidden (lint and guard test).
+- Also errors: `no-deprecated-imports`, `no-deprecated-apis`.
+- First loads are skeletons (`skeletons.tsx`), never a full-page spinner. Every `Spinner` has a `label`.
+
+## Button placement
+
+- Modals: in `ModalFooter`, Cancel then the primary button. The primary sits on the right. See `Confirm.tsx`.
+- Drawers and full-page forms: primary first (left), Cancel immediately after. `DrawerFooter` in `Drawer.tsx` renders its children (the primary) first and the `onCancel` button after, aligned to the start. See the footers in `SettingsView.tsx`, `ReviewsView.tsx`, and `CampaignsView.tsx`.
+
+## Sticky headers
+
+A pinned header has a 1px separator and a scroll fade. No shadow. All in `static/app/src/styles.css`.
+
+- Page header: `.page-header` has `border-bottom: var(--ds-border-width) solid var(--ds-border)` and `.page-header::after` is the 24px (`--ds-space-300`) fade, `linear-gradient(to bottom, var(--ds-surface), transparent)`, `pointer-events: none`.
+- Pages with tabs: use `PageHeader flush` and `PageTabs` (`ui.tsx`). The tab bar is the separator; the fade is `.page-tabs [role='tablist']::after`.
+- Drawer header: `div[data-testid='ar-drawer-header']::after` fades over `--ds-surface-overlay`.
+
+## Language and copy
+
+- The UI language follows the Jira user settings (`context.locale` from `view.getContext()`), with English as the fallback. AccessRadar ships English only today.
+- All new user-facing copy for keyed features goes through `t()` in `static/app/src/i18n.ts`. A key missing from the active catalog falls back to English, never to the key.
+- Dates and times use the Jira profile time zone (`context.timezone`, set in `main.tsx` with `setContextTimeZone`). Format dates with the helpers in `static/app/src/format.ts` (`formatLocal`, `formatLocalExport`, `formatUtc`, `formatIsoDate`, `relative`). Do not build ad-hoc date formats in views.
+- No language switcher in the sidebar, the header, or anywhere else. The guard test (rule 8) rejects a language or locale picker.
+- New user-facing copy has no em dash, no en dash, and no emoji.
+
+## Zero egress (Runs on Atlassian)
+
+- The UI calls resolvers with `invoke` from `@forge/bridge` (`static/app/src/api.ts`). Resolvers call Jira with `requestJira` from `@forge/api`. Storage is Forge SQL and KVS.
+- No external `fetch`, `axios`, `node-fetch`, or CDN. The only `fetch` is the bundled font asset in `static/app/src/export/fonts.ts`.
+- Do not add a `remotes` block, `permissions.external`, or new scopes.
+
+## `@forge/jira-bridge`
+
+AccessRadar does not use it today. If it is ever needed, load it only with a dynamic `import()` inside the function that needs it. A static import runs `getCallBridge()` while the module evaluates, before the Custom UI bridge exists, and the iframe stays blank. Keep it out of `main.tsx` and every module the entry chunk imports statically.
+
+## After every edit
+
+The Cursor `afterFileEdit` hook (`scripts/cursor-lint-hook.mjs`) runs ESLint and Prettier on each edited `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, or `.cjs` file and returns the findings. Still run the commands yourself and fix every error before the next edit:
+
+```bash
+npx eslint <files>
+npx prettier --check <files>
+```
+
+Before finishing, run `npm run check` (Prettier, ESLint, `tsc`, Vitest, UI build, Forge lint).

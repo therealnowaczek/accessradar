@@ -1,0 +1,6 @@
+#!/bin/sh
+# Staged files: ESLint (zero warnings) and Prettier. Then the project typecheck.
+# The full gate stays `npm run check` (tests, UI build, Forge lint).
+set -e
+npx lint-staged
+npm run typecheck
