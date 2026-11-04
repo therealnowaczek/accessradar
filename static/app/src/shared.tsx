@@ -100,6 +100,7 @@ export function SnapshotProgress({ active }: { active: Snapshot }) {
     <SectionMessage
       appearance="information"
       title={`Snapshot #${active.seq} is ${active.status === 'queued' ? 'queued' : 'running'}`}
+      headingLevel="h2"
     >
       <Box xcss={progressStyles}>
         <Stack space="space.075">
@@ -156,6 +157,7 @@ export function PartialBanner({
     <SectionMessage
       appearance="warning"
       title={`Snapshot #${snapshot.seq} is partial`}
+      headingLevel="h2"
       actions={
         onDetails ? (
           <SectionMessageAction onClick={onDetails}>What we could not see</SectionMessageAction>

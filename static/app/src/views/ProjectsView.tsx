@@ -144,7 +144,7 @@ export function ProjectsView() {
               onDetails={() => go('snapshots', { seq: String(snapshot.seq) })}
             />
             <FilterBar>
-              <SearchField value={query} onChange={setQuery} placeholder="Search spaces" />
+              <SearchField value={query} onChange={setQuery} label="Search spaces" />
               <FilterSelect<Opt>
                 label="Filter spaces"
                 options={FILTERS}
@@ -368,11 +368,7 @@ function ProjectDetail({
           <>
             <PartialBanner snapshot={detail.data?.snapshot ?? null} />
             <FilterBar>
-              <SearchField
-                value={query}
-                onChange={setQuery}
-                placeholder="Search people and groups"
-              />
+              <SearchField value={query} onChange={setQuery} label="Search people and groups" />
               <ToggleField label="Show app accounts" isChecked={showApps} onChange={setShowApps} />
             </FilterBar>
             <DynamicTable

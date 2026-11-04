@@ -116,11 +116,7 @@ export function PeopleView() {
               onDetails={() => go('snapshots', { seq: String(snapshot.seq) })}
             />
             <FilterBar>
-              <SearchField
-                value={query}
-                onChange={setQuery}
-                placeholder="Search by name or account ID"
-              />
+              <SearchField value={query} onChange={setQuery} label="Search by name or account ID" />
               <FilterSelect<Opt>
                 label="Filter people"
                 options={FILTERS}

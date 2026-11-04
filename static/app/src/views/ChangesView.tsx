@@ -290,7 +290,7 @@ export function ChangesView() {
       <SearchField
         value={query}
         onChange={setQuery}
-        placeholder={access ? 'Search people, spaces, paths' : 'Search changes'}
+        label={access ? 'Search people, spaces, paths' : 'Search changes'}
       />
       {(
         (access

@@ -101,7 +101,7 @@ export function GroupsView() {
               onDetails={() => go('snapshots', { seq: String(snapshot.seq) })}
             />
             <FilterBar>
-              <SearchField value={query} onChange={setQuery} placeholder="Search groups" />
+              <SearchField value={query} onChange={setQuery} label="Search groups" />
               <FilterSelect<Opt>
                 label="Filter groups"
                 options={FILTERS}

@@ -34,7 +34,13 @@ import {
 import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
 import { DrawerBody, DrawerFooter, LevelDrawer, type DrawerLevel } from '../Drawer';
-import { canStartReview, isDecisionChangeValid } from '../formRules';
+import { CharacterCounter } from '@atlaskit/form';
+import {
+  NAME_MAX_LENGTH,
+  NOTE_MAX_LENGTH,
+  canStartReview,
+  isDecisionChangeValid,
+} from '../formRules';
 import { downloadCsv, downloadMarkdown, downloadPdf } from '../export/download';
 import { reviewCsv, reviewFileName, reviewMarkdown, reviewPdf } from '../export/evidence';
 import {
@@ -54,6 +60,7 @@ import { navItem } from '../routes';
 import { exportContext, logExport, NoSnapshot, useApp, useExporter, useSnapshots } from '../shared';
 import { useToast } from '../Toast';
 import {
+  DATE_HELPER,
   DateField,
   Details,
   ErrorState,
@@ -339,12 +346,19 @@ function CreateReview({
         <Stack space="space.150">
           <FormField label="Name">
             {(id) => (
-              <Textfield
-                id={id}
-                value={name}
-                onChange={(e) => setName((e.target as HTMLInputElement).value)}
-                maxLength={200}
-              />
+              <>
+                <Textfield
+                  id={id}
+                  value={name}
+                  onChange={(e) => setName((e.target as HTMLInputElement).value)}
+                  aria-describedby={`${id}-character-counter`}
+                />
+                <CharacterCounter
+                  inputId={id}
+                  maxCharacters={NAME_MAX_LENGTH}
+                  currentValue={name}
+                />
+              </>
             )}
           </FormField>
           <RadioField label="Scope">
@@ -366,7 +380,10 @@ function CreateReview({
             />
           </RadioField>
           {scope !== 'site' ? (
-            <FormField label={scope === 'projects' ? 'Spaces' : 'Groups'}>
+            <FormField
+              label={scope === 'projects' ? 'Spaces' : 'Groups'}
+              helper="Type to search. You can select more than one."
+            >
               {(id) => (
                 <Select<Opt, true>
                   menuPosition="fixed"
@@ -376,7 +393,6 @@ function CreateReview({
                   value={ids}
                   onChange={(v) => setIds([...v])}
                   isLoading={projects.loading || groups.loading}
-                  placeholder="Search…"
                 />
               )}
             </FormField>
@@ -420,8 +436,10 @@ function CreateReview({
               />
             )}
           </FormField>
-          <FormField label="Due date (optional)">
-            {(id) => <DateField id={id} value={due} onChange={(v) => setDue(v)} />}
+          <FormField label="Due date (optional)" helper={DATE_HELPER}>
+            {(id, helperId) => (
+              <DateField id={id} describedBy={helperId} value={due} onChange={(v) => setDue(v)} />
+            )}
           </FormField>
           <Text as="p" color="color.text.subtle">
             Reviewers are Jira administrators. Key permissions from Settings define which access is
@@ -754,6 +772,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           <SectionMessage
             appearance="success"
             title={`Signed by ${d.review.signedByName ?? 'Jira admin'}`}
+            headingLevel="h2"
           >
             <Stack space="space.200">
               <Text as="p">
@@ -807,7 +826,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           <SearchField
             value={query}
             onChange={setQuery}
-            placeholder="Search people, spaces, paths, notes"
+            label="Search people, spaces, paths, notes"
           />
           {(
             [
@@ -1077,26 +1096,39 @@ function ItemDrawer({
                   : 'Optional. Notes become part of the evidence.'
               }
             >
-              {(fid) => (
-                <Textarea
-                  id={fid}
-                  value={note}
-                  maxLength={2000}
-                  onChange={(e) => setNote(e.target.value)}
-                  resize="vertical"
-                  isInvalid={
-                    needsJustification && note.trim().length > 0 && note.trim().length < 10
-                  }
-                />
+              {(fid, helperId) => (
+                <>
+                  <Textarea
+                    id={fid}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    resize="vertical"
+                    isInvalid={
+                      (needsJustification && note.trim().length > 0 && note.trim().length < 10) ||
+                      note.length > NOTE_MAX_LENGTH
+                    }
+                    aria-describedby={`${helperId} ${fid}-character-counter`}
+                  />
+                  <CharacterCounter
+                    inputId={fid}
+                    maxCharacters={NOTE_MAX_LENGTH}
+                    currentValue={note}
+                  />
+                </>
               )}
             </FormField>
             {value === 'exception' ? (
               <FormField
                 label="Expires on"
-                helper={`Date-only · stored as end of that day in your timezone. ${t('exceptions.registeredOnSave')}`}
+                helper={`${DATE_HELPER} Date-only · stored as end of that day in your timezone. ${t('exceptions.registeredOnSave')}`}
               >
-                {(fid) => (
-                  <DateField id={fid} value={expiresOn} onChange={(d) => setExpiresOn(d)} />
+                {(fid, helperId) => (
+                  <DateField
+                    id={fid}
+                    describedBy={helperId}
+                    value={expiresOn}
+                    onChange={(d) => setExpiresOn(d)}
+                  />
                 )}
               </FormField>
             ) : null}

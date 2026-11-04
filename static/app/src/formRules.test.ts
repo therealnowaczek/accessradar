@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { canStartReview, isCampaignDraftValid, isDecisionChangeValid } from './formRules';
+import {
+  NAME_MAX_LENGTH,
+  NOTE_MAX_LENGTH,
+  canStartReview,
+  isCampaignDraftValid,
+  isDecisionChangeValid,
+} from './formRules';
 
 const draft = {
   name: 'Quarterly admins',
@@ -74,5 +80,33 @@ describe('R-9.3 decide drawer', () => {
         expiresOn: '2026-12-31',
       }),
     ).toBe(true);
+  });
+});
+
+describe('character limits (shown by the ADS CharacterCounter)', () => {
+  it('caps campaign and review names at the column width', () => {
+    const atLimit = 'a'.repeat(NAME_MAX_LENGTH);
+    const over = 'a'.repeat(NAME_MAX_LENGTH + 1);
+    expect(isCampaignDraftValid({ ...draft, name: atLimit })).toBe(true);
+    expect(isCampaignDraftValid({ ...draft, name: over })).toBe(false);
+    expect(canStartReview({ name: atLimit, scope: 'site', selected: 0 })).toBe(true);
+    expect(canStartReview({ name: over, scope: 'site', selected: 0 })).toBe(false);
+  });
+  it('caps the decision justification', () => {
+    const undecided = { decision: null, note: null };
+    expect(
+      isDecisionChangeValid(undecided, {
+        value: 'revoke',
+        note: 'a'.repeat(NOTE_MAX_LENGTH),
+        expiresOn: '',
+      }),
+    ).toBe(true);
+    expect(
+      isDecisionChangeValid(undecided, {
+        value: 'revoke',
+        note: 'a'.repeat(NOTE_MAX_LENGTH + 1),
+        expiresOn: '',
+      }),
+    ).toBe(false);
   });
 });

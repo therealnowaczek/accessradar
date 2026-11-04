@@ -184,6 +184,7 @@ export function OverviewView() {
           <SectionMessage
             appearance="warning"
             title={`${status.data!.alertCount} unread change alert${status.data!.alertCount === 1 ? '' : 's'}`}
+            headingLevel="h2"
           >
             <Text as="p">
               New admins, anonymous grants, or inactive accounts with access were detected since a
@@ -195,6 +196,7 @@ export function OverviewView() {
           <SectionMessage
             appearance="error"
             title={`Snapshot #${status.data.lastAttempt.seq} failed`}
+            headingLevel="h2"
           >
             <Text as="p">
               {status.data.lastAttempt.error ??
@@ -373,6 +375,7 @@ export function OverviewView() {
                 <SectionMessage
                   appearance="warning"
                   title={`${plural(d.reviews.overdue.length, 'review')} past due`}
+                  headingLevel="h3"
                 >
                   <Text as="p">{d.reviews.overdue.map((r) => r.name).join(', ')}</Text>
                 </SectionMessage>

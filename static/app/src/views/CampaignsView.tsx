@@ -14,13 +14,15 @@ import { RowMenu } from '../components';
 import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
 import { DrawerBody, DrawerFooter, LevelDrawer, type DrawerLevel } from '../Drawer';
-import { isCampaignDraftValid } from '../formRules';
+import { CharacterCounter } from '@atlaskit/form';
+import { NAME_MAX_LENGTH, isCampaignDraftValid } from '../formRules';
 import { formatLocal } from '../format';
 import { t } from '../i18n';
 import { navItem } from '../routes';
 import { useApp, useRefresh } from '../shared';
 import { useToast } from '../Toast';
 import {
+  DATE_HELPER,
   DateField,
   ErrorState,
   FormField,
@@ -421,12 +423,19 @@ function CampaignForm({
         <Stack space="space.300">
           <FormField label="Name">
             {(id) => (
-              <Textfield
-                id={id}
-                value={d.name}
-                onChange={(e) => set('name', e.currentTarget.value)}
-                maxLength={200}
-              />
+              <>
+                <Textfield
+                  id={id}
+                  value={d.name}
+                  onChange={(e) => set('name', e.currentTarget.value)}
+                  aria-describedby={`${id}-character-counter`}
+                />
+                <CharacterCounter
+                  inputId={id}
+                  maxCharacters={NAME_MAX_LENGTH}
+                  currentValue={d.name}
+                />
+              </>
             )}
           </FormField>
           <RadioField label="Scope">
@@ -485,10 +494,11 @@ function CampaignForm({
               />
             )}
           </FormField>
-          <FormField label="Start date (UTC)">
-            {(id) => (
+          <FormField label="Start date (UTC)" helper={DATE_HELPER}>
+            {(id, helperId) => (
               <DateField
                 id={id}
+                describedBy={helperId}
                 value={d.startDate}
                 onChange={(v) => set('startDate', v || d.startDate)}
               />

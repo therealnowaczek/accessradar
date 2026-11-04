@@ -151,6 +151,7 @@ export function ProjectReviewView() {
             key={n.id}
             appearance={n.severity === 'high' ? 'warning' : 'information'}
             title={n.title}
+            headingLevel="h2"
             actions={
               <SectionMessageAction onClick={() => void dismiss(n.id)}>
                 Dismiss
@@ -171,7 +172,7 @@ export function ProjectReviewView() {
           />
         ) : (
           <>
-            <SectionMessage appearance="information" title={d.review.name}>
+            <SectionMessage appearance="information" title={d.review.name} headingLevel="h2">
               <Text as="p">
                 Due {formatLocal(d.assignment.dueAt)} · snapshot #{d.review.baseSeq} ·{' '}
                 {d.access === 'site-admin' ? (

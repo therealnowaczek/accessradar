@@ -3,6 +3,11 @@
  * valid change. Pure rules so they can be unit tested without rendering the views.
  */
 
+/** Longest campaign or review name (database column `name VARCHAR(200)`). */
+export const NAME_MAX_LENGTH = 200;
+/** Longest decision justification. */
+export const NOTE_MAX_LENGTH = 2000;
+
 export type CampaignDraftFields = {
   name: string;
   scopeType: 'site' | 'projects' | 'category';
@@ -14,7 +19,7 @@ export type CampaignDraftFields = {
 
 /** New campaign drawer: name, a scope selection, a start date and a 1–90 day window. */
 export function isCampaignDraftValid(d: CampaignDraftFields): boolean {
-  if (!d.name.trim()) return false;
+  if (!d.name.trim() || d.name.length > NAME_MAX_LENGTH) return false;
   if (d.scopeType === 'projects' && !d.projectIds.length) return false;
   if (d.scopeType === 'category' && !d.categoryIds.length) return false;
   if (!d.startDate) return false;
@@ -28,7 +33,11 @@ export function canStartReview(f: {
   scope: 'site' | 'projects' | 'groups';
   selected: number;
 }): boolean {
-  return Boolean(f.name.trim()) && (f.scope === 'site' || f.selected > 0);
+  return (
+    Boolean(f.name.trim()) &&
+    f.name.length <= NAME_MAX_LENGTH &&
+    (f.scope === 'site' || f.selected > 0)
+  );
 }
 
 export type DecisionValue = 'keep' | 'revoke' | 'exception' | null;
@@ -48,6 +57,7 @@ export function isDecisionChangeValid(
     note !== (item.note ?? '').trim() ||
     (draft.value === 'exception' && Boolean(draft.expiresOn));
   if (!changed) return false;
+  if (draft.note.length > NOTE_MAX_LENGTH) return false;
   if ((draft.value === 'revoke' || draft.value === 'exception') && note.length < 10) return false;
   if (draft.value === 'exception' && !draft.expiresOn) return false;
   return true;

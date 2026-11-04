@@ -51,12 +51,24 @@ function App() {
     void view.theme.enable();
     load();
   }, []);
-  if (error) return <ErrorState title="AccessRadar could not start" message={error} retry={load} />;
+  if (error)
+    return (
+      <ErrorState
+        title="AccessRadar could not start"
+        message={error}
+        retry={load}
+        headingLevel="h1"
+      />
+    );
   // Full-screen-shaped skeleton until the context arrives (never a full-page spinner).
   if (!context) return <AppPhantom />;
   if (context.license && context.license.active !== true) {
     return (
-      <SectionMessage appearance="warning" title="AccessRadar needs an active license">
+      <SectionMessage
+        appearance="warning"
+        title="AccessRadar needs an active license"
+        headingLevel="h1"
+      >
         <Text as="p">
           The license for AccessRadar on this site is not active. Ask your Jira administrator to
           renew or start a trial in Manage apps.

@@ -202,6 +202,7 @@ function MoreHeaderActions({ items }: { items: ReactNode[] }) {
   return (
     <DropdownMenu
       placement="bottom-end"
+      shouldRenderToParent
       trigger={({ triggerRef, ...props }) => (
         <IconButton {...props} ref={triggerRef} icon={ShowMoreIcon} label="More actions" />
       )}
@@ -408,6 +409,10 @@ export function Metric({ label, value, hint }: { label: string; value: ReactNode
   );
 }
 
+/** Helper text for every DateField (the format hint lives here, not in a placeholder). */
+export const DATE_HELPER =
+  'Type a date such as 27 Oct 2026 or 27/10/2026, or pick one from the calendar.';
+
 /**
  * The one date input: ADS DatePicker showing the app's date format ("27 Oct 2026") while the
  * value stays an ISO date (YYYY-MM-DD). Typed input accepts "27 Oct 2026", "27/10/2026" or ISO.
@@ -416,12 +421,12 @@ export function DateField({
   id,
   value,
   onChange,
-  placeholder = 'e.g. 27 Oct 2026',
+  describedBy,
 }: {
   id?: string;
   value: string;
   onChange: (iso: string) => void;
-  placeholder?: string;
+  describedBy?: string;
 }) {
   return (
     <DatePicker
@@ -430,7 +435,8 @@ export function DateField({
       onChange={onChange}
       locale="en-GB"
       dateFormat={DATE_PICKER_FORMAT}
-      placeholder={placeholder}
+      aria-describedby={describedBy}
+      shouldShowCalendarButton
       parseInputValue={(text) => parseDateInput(text) ?? new Date(NaN)}
     />
   );
@@ -440,15 +446,18 @@ export function ErrorState({
   title,
   message,
   retry,
+  headingLevel = 'h2',
 }: {
   title: string;
   message: string;
   retry: () => void;
+  headingLevel?: 'h1' | 'h2' | 'h3';
 }) {
   return (
     <SectionMessage
       appearance="error"
       title={title}
+      headingLevel={headingLevel}
       actions={<SectionMessageAction onClick={retry}>Try again</SectionMessageAction>}
     >
       <Text as="p">{message}</Text>
@@ -595,7 +604,10 @@ export function PathList({ paths }: { paths: string[] }) {
   );
 }
 
-/** Labelled form control: ADS Label above the control, optional ADS HelperMessage below. */
+/**
+ * Labelled form control: ADS Label above the control, optional ADS HelperMessage below. The
+ * helper sits in an element with `helperId` so the control can reference it via aria-describedby.
+ */
 export function FormField({
   label,
   helper,
@@ -603,14 +615,19 @@ export function FormField({
 }: {
   label: ReactNode;
   helper?: ReactNode;
-  children: (id: string) => ReactNode;
+  children: (id: string, helperId: string) => ReactNode;
 }) {
   const id = useId();
+  const helperId = `${id}-helper`;
   return (
     <Stack space="space.050">
       <Label htmlFor={id}>{label}</Label>
-      {children(id)}
-      {helper ? <HelperMessage>{helper}</HelperMessage> : null}
+      {children(id, helperId)}
+      {helper ? (
+        <Box id={helperId}>
+          <HelperMessage>{helper}</HelperMessage>
+        </Box>
+      ) : null}
     </Stack>
   );
 }
@@ -740,7 +757,7 @@ export function FilterControl({
 
 /**
  * The one Select for filter bars: compact, labelled for screen readers, and its menu is fixed so it
- * is never clipped by the scrolling page. `value: null` shows the placeholder.
+ * is never clipped by the scrolling page. No placeholder: every option list has a value for "none".
  */
 export function FilterSelect<T extends { label: string; value: string | number }>({
   label,
@@ -748,7 +765,6 @@ export function FilterSelect<T extends { label: string; value: string | number }
   value,
   onChange,
   size = 'medium',
-  placeholder,
   isSearchable = false,
   inputId,
 }: {
@@ -757,7 +773,6 @@ export function FilterSelect<T extends { label: string; value: string | number }
   value: T | null | undefined;
   onChange: (option: T | null) => void;
   size?: FilterSize;
-  placeholder?: string;
   isSearchable?: boolean;
   inputId?: string;
 }) {
@@ -769,7 +784,6 @@ export function FilterSelect<T extends { label: string; value: string | number }
         options={options}
         value={value ?? null}
         onChange={(option) => onChange((option as T | null) ?? null)}
-        placeholder={placeholder ?? label}
         spacing="compact"
         isSearchable={isSearchable}
         menuPosition="fixed"

@@ -195,7 +195,7 @@ export function SnapshotPicker({
 }) {
   const committed = snapshots.filter((s) => s.status === 'complete' || s.status === 'partial');
   const options: Option[] = [
-    ...(allowLatest ? [{ label: 'Latest snapshot', value: 0 }] : []),
+    { label: allowLatest ? 'Latest snapshot' : 'Previous snapshot', value: 0 },
     ...committed.map((s) => ({ label: snapshotLabel(s), value: s.seq })),
   ];
   const selected = options.find((o) => o.value === (value ?? 0)) ?? null;
@@ -206,7 +206,6 @@ export function SnapshotPicker({
       options={options}
       value={selected}
       onChange={(o) => onChange(o && o.value ? o.value : null)}
-      placeholder={allowLatest ? undefined : 'Previous snapshot'}
       size={size}
     />
   );
@@ -215,17 +214,16 @@ export function SnapshotPicker({
 export function SearchField({
   value,
   onChange,
-  placeholder,
+  label,
 }: {
   value: string;
   onChange: (v: string) => void;
-  placeholder: string;
+  label: string;
 }) {
   return (
     <FilterControl>
       <Textfield
-        aria-label={placeholder}
-        placeholder={placeholder}
+        aria-label={label}
         value={value}
         isCompact
         elemBeforeInput={
@@ -255,6 +253,7 @@ export function ExportMenu({
   return (
     <DropdownMenu
       placement="bottom-end"
+      shouldRenderToParent
       trigger={({ triggerRef, ...props }) => (
         <Button {...props} ref={triggerRef} iconBefore={DownloadIcon} isDisabled={isDisabled}>
           {label}
@@ -330,7 +329,11 @@ export function CoverageLimitations({
   if (!limitations && !coverage.length) return null;
   const partial = limitations?.completeness === 'partial' || limitations?.completeness === 'failed';
   return (
-    <SectionMessage appearance={partial ? 'warning' : 'information'} title="Coverage & limitations">
+    <SectionMessage
+      appearance={partial ? 'warning' : 'information'}
+      title="Coverage & limitations"
+      headingLevel="h2"
+    >
       <Stack space="space.200">
         {limitations ? (
           <Text as="p">
@@ -391,6 +394,7 @@ export function RowMenu({ label, children }: { label: string; children: ReactNod
   return (
     <DropdownMenu
       placement="bottom-end"
+      shouldRenderToParent
       trigger={({ triggerRef, ...props }) => (
         <IconButton
           {...props}

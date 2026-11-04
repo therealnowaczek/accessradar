@@ -191,12 +191,12 @@ function GetStartedBody() {
             </Text>
           </Stack>
           {startError ? (
-            <SectionMessage appearance="error" title="Snapshot could not start">
+            <SectionMessage appearance="error" title="Snapshot could not start" headingLevel="h2">
               <Text as="p">{startError}</Text>
             </SectionMessage>
           ) : null}
           {done === steps.length ? (
-            <SectionMessage appearance="success" title="You are set up">
+            <SectionMessage appearance="success" title="You are set up" headingLevel="h2">
               <Stack space="space.200" alignInline="start">
                 <Text as="p">
                   The first snapshot is ready. Explore who has access to what, or start your first
