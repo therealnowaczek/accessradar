@@ -1,5 +1,6 @@
 import { InvocationError, InvocationErrorCode, type AsyncEvent } from '@forge/events';
 import { exec, q } from '../db/sql';
+import { sqlRequestCount } from '../db/sqlCount';
 import { getSettings } from '../db/settings';
 import { effectiveSchedule } from '../domain/edition';
 import { backgroundEdition } from '../api/edition';
@@ -174,6 +175,7 @@ export async function runCollectStep(
         points: after?.points,
         calls: after?.calls,
         gaps: r.coverage.filter((c) => c.status !== 'info').length,
+        sql: sqlRequestCount(),
       });
       if (process.env.ACCESSRADAR_SPIKE === '1') await push({ step: 'SELFTEST' }, 5);
       const { retentionDays } = effectiveSchedule(settings, (await backgroundEdition()).features);
@@ -196,6 +198,7 @@ export async function runCollectStep(
       points: client.points,
       calls: client.calls,
       ms: Date.now() - started,
+      sql: sqlRequestCount(),
     });
   } catch (e) {
     await addUsage(seq, client.points, client.calls).catch(() => undefined);

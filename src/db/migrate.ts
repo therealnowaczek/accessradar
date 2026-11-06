@@ -1,5 +1,6 @@
 import sql, { migrationRunner } from '@forge/sql';
 import { errInfo } from '../lib/errors';
+import { noteSqlRequest } from './sqlCount';
 
 /**
  * Detect DDL that already ran on a peer (or a prior half-finished apply).
@@ -58,6 +59,7 @@ function isMigrationCheckPointError(e: unknown): boolean {
 
 /** Record a migration name as applied (idempotent if a peer already inserted the row). */
 export async function ensureMigrationCheckpoint(name: string): Promise<void> {
+  noteSqlRequest();
   try {
     await sql.prepare('INSERT INTO __migrations (name) VALUES (?)').bindParams(name).execute();
   } catch (e) {
@@ -83,10 +85,14 @@ export async function runMigrationsWithRetry(
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const batch = await runner.run();
+      // Forge runner: CREATE TABLE IF NOT EXISTS + list, then DDL + checkpoint per migration.
+      noteSqlRequest(2 + 2 * batch.length);
       applied.push(...batch);
       return applied;
     } catch (e) {
       const name = migrationNameFromError(e);
+      // Lower bound: baseline statements plus the failing DDL (or checkpoint).
+      noteSqlRequest(name ? 3 : 2);
       if (isMigrationExecutionError(e) && name && isAlreadyAppliedSchemaError(e)) {
         console.warn('[migrate] already applied (concurrent)', { name, ...errInfo(e) });
         await checkpoint(name);
