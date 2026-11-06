@@ -1,23 +1,34 @@
 import { sql } from '@forge/sql';
+import { noteSqlRequest } from './sqlCount';
 
 /** Parameterised query helpers. SQL is only ever built with bound parameters. */
 export async function q<T = Record<string, any>>(
   query: string,
   ...params: unknown[]
 ): Promise<T[]> {
-  const res = await sql
-    .prepare<T>(query)
-    .bindParams(...params)
-    .execute();
-  return (res.rows as T[]) ?? [];
+  const started = Date.now();
+  try {
+    const res = await sql
+      .prepare<T>(query)
+      .bindParams(...params)
+      .execute();
+    return (res.rows as T[]) ?? [];
+  } finally {
+    noteSqlRequest(1, Date.now() - started);
+  }
 }
 
 export async function exec(query: string, ...params: unknown[]): Promise<number> {
-  const res = await sql
-    .prepare<any>(query)
-    .bindParams(...params)
-    .execute();
-  return Number((res.rows as { affectedRows?: number })?.affectedRows ?? 0);
+  const started = Date.now();
+  try {
+    const res = await sql
+      .prepare<any>(query)
+      .bindParams(...params)
+      .execute();
+    return Number((res.rows as { affectedRows?: number })?.affectedRows ?? 0);
+  } finally {
+    noteSqlRequest(1, Date.now() - started);
+  }
 }
 
 /** "(?, ?, ?), (?, ?, ?)" for multi-row inserts. */

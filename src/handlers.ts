@@ -4,6 +4,7 @@ import { assertJiraAdmin, ForbiddenError } from './lib/auth';
 import { assertProjectAdminister, assignmentAccess, isJiraAdmin } from './lib/projectAuth';
 import { push, type CollectEvent } from './lib/queue';
 import { ensureMigrated, runMigrations } from './db/migrations';
+import { resetSqlRequestCount, sqlRequestCount, sqlRequestMillis } from './db/sqlCount';
 import { purgeNotices } from './db/notices';
 import { failStale, purgeAudit } from './db/snapshots';
 import { getSettings } from './db/settings';
@@ -273,10 +274,11 @@ export async function lifecycleHandler(event: LifecycleEvent) {
 // ---------- scheduled triggers ----------
 export async function tickHandler() {
   const now = Date.now();
+  resetSqlRequestCount();
   try {
     const memo = readGateMemo(now);
     if (memo && shouldFastPath(memo, now)) {
-      console.log('[tick] fast', { sql: 0 });
+      console.log('[tick] fast', { sql: sqlRequestCount() });
       return { statusCode: 204 };
     }
 
@@ -295,22 +297,20 @@ export async function tickHandler() {
 
     if (gate && shouldFastPath(gate, now)) {
       writeGateMemo(gate, now);
-      console.log('[tick] fast', { sql: 1 });
+      console.log('[tick] fast', { sql: sqlRequestCount() });
       return { statusCode: 204 };
     }
 
     // Slow path: migrations, optional stale fail, schedule, rewrite gate.
     await ensureMigrated();
-    let sql = 1;
     if (!gate || gate.staleCheckAfter !== null) {
       const stale = await failStale();
-      sql += 1;
       if (stale) console.warn('[tick] marked stale snapshots failed', { stale });
     }
     await scheduledTick();
     await refreshGate(now);
     await spikeOnTick();
-    console.log('[tick] slow', { sql });
+    console.log('[tick] slow', { sql: sqlRequestCount(), ms: sqlRequestMillis() });
   } catch (e) {
     clearGateMemo();
     console.error('[tick] failed', errInfo(e));
@@ -340,6 +340,7 @@ export async function privacyHandler() {
  * not get one (MIGRATE and the snapshot steps keep their own InvocationError retries).
  */
 export async function collectorHandler(event: AsyncEvent<CollectEvent>) {
+  resetSqlRequestCount();
   try {
     return await runCollectorEvent(event);
   } catch (e) {
