@@ -18,6 +18,10 @@ All data lives in Forge SQL inside the customer's Atlassian environment (no egre
 
 Work item content, comments, attachments and e-mail addresses are never read.
 
+## Rovo and MCP tools
+
+The Rovo agent and the `rovo:mcp` tools return read-only answers (space keys, group names, display names, permission keys, review names and statuses, at most 50 rows) to the signed-in Jira admin. With external MCP enabled by a site admin, the answer goes through Atlassian's MCP endpoint to the AI client that user connected with Atlassian OAuth; the client's own terms apply from there. AccessRadar itself makes no outbound call, calls Jira only as the user on that path (no asApp) and stores one audit row per call (`rovo.action`: actor accountId, action, row count). Details: `mcp-tools.md`.
+
 ## Retention
 
 - Snapshots older than the retention setting (Settings → Retention, 30–3650 days, default 395) are deleted after each snapshot, together with fact versions no remaining snapshot needs. Snapshots used by a review are kept with the review.
