@@ -1,6 +1,6 @@
 # E2E checklist: phase 1, layout standard conformance
 
-- Dev version: `2.92.0` (deployed 11.11 ~19:50 Europe/Warsaw, Runs on Atlassian eligible)
+- Dev version: `2.92.0` (deployed 11.11 ~19:18 Europe/Warsaw, Runs on Atlassian eligible)
 - Commit: `3dc9d79` (squash of #58 on main)
 - Branch: `ui/layout-standard-conformance`
 - Site: marginradar.atlassian.net, **development** install. The app shows a "Dev" label. Do not use the production
