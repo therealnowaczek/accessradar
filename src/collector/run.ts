@@ -248,7 +248,7 @@ export async function runCollectStep(
 }
 
 export async function scheduledTick(): Promise<void> {
-  // Standard runs a saved daily schedule weekly; free tier (≤10 active humans) is biweekly.
+  // Standard runs a saved daily schedule weekly (free tier included); Advanced may run daily.
   const settings = await scheduledSettings();
   const rows = await q<{ started_at: number }>(
     "SELECT MAX(started_at) AS started_at FROM snap WHERE trigger_kind = 'scheduled'",

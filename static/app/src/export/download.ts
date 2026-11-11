@@ -21,3 +21,6 @@ export const downloadPdf = (filename: string, bytes: Uint8Array) =>
 
 export const downloadMarkdown = (filename: string, markdown: string) =>
   download(filename, markdown, 'text/markdown;charset=utf-8');
+
+export const downloadJson = (filename: string, json: string) =>
+  download(filename, json, 'application/json;charset=utf-8');

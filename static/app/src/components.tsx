@@ -241,12 +241,17 @@ export function ExportMenu({
   onCsv,
   onPdf,
   onMarkdown,
+  onJson,
+  extraItems,
   isDisabled,
   label = 'Export',
 }: {
   onCsv: () => void;
   onPdf?: () => void;
   onMarkdown?: () => void;
+  onJson?: () => void;
+  /** Additional file types of the same page, e.g. the Advanced evidence pack. */
+  extraItems?: Array<{ label: string; description: string; onClick: () => void }>;
   isDisabled?: boolean;
   label?: string;
 }) {
@@ -286,6 +291,25 @@ export function ExportMenu({
             Markdown
           </DropdownItem>
         ) : null}
+        {onJson ? (
+          <DropdownItem
+            elemBefore={<DocumentIcon label="" />}
+            description="Structured data, schema v1"
+            onClick={onJson}
+          >
+            JSON
+          </DropdownItem>
+        ) : null}
+        {extraItems?.map((x) => (
+          <DropdownItem
+            key={x.label}
+            elemBefore={<DocumentIcon label="" />}
+            description={x.description}
+            onClick={x.onClick}
+          >
+            {x.label}
+          </DropdownItem>
+        ))}
       </DropdownItemGroup>
     </DropdownMenu>
   );

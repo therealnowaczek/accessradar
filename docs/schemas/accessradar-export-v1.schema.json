@@ -1,0 +1,312 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://radrly.com/schemas/accessradar-export-v1.schema.json",
+  "title": "AccessRadar JSON export, schema version 1",
+  "description": "One document per export. 'kind' selects the payload. New optional fields can appear without a version change; removing or redefining a field bumps schemaVersion. All timestamps are ISO 8601 in UTC.",
+  "type": "object",
+  "required": ["schema", "schemaVersion", "kind", "generatedBy", "site", "exportedAt", "timeZone"],
+  "properties": {
+    "schema": { "const": "accessradar-export" },
+    "schemaVersion": { "const": 1 },
+    "kind": { "enum": ["access-matrix", "changes", "review", "evidence-pack"] },
+    "generatedBy": {
+      "type": "object",
+      "required": ["app", "version", "readOnly"],
+      "properties": {
+        "app": { "const": "AccessRadar" },
+        "version": { "type": "string" },
+        "readOnly": { "const": true }
+      }
+    },
+    "site": { "type": ["string", "null"] },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "timeZone": { "type": "string", "minLength": 1 }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/accessMatrix" },
+    { "$ref": "#/definitions/changes" },
+    { "$ref": "#/definitions/review" },
+    { "$ref": "#/definitions/evidencePack" }
+  ],
+  "definitions": {
+    "hash": { "type": ["string", "null"] },
+    "ts": { "type": ["string", "null"], "format": "date-time" },
+    "snapshotRef": {
+      "type": ["object", "null"],
+      "required": ["seq", "status", "capturedAt", "engineVersion", "contentHash"],
+      "properties": {
+        "seq": { "type": "integer", "minimum": 1 },
+        "status": { "type": "string" },
+        "capturedAt": { "$ref": "#/definitions/ts" },
+        "engineVersion": { "type": "string" },
+        "contentHash": { "$ref": "#/definitions/hash" }
+      }
+    },
+    "limitations": {
+      "type": ["object", "null"],
+      "required": ["version", "completeness", "label", "statements"],
+      "properties": {
+        "version": { "type": "integer" },
+        "completeness": { "enum": ["complete", "partial", "failed"] },
+        "label": { "type": "string" },
+        "statements": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["status", "area", "target", "reason"],
+        "properties": {
+          "status": { "type": "string" },
+          "area": { "type": "string" },
+          "target": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "accessMatrix": {
+      "properties": {
+        "kind": { "const": "access-matrix" },
+        "snapshot": { "$ref": "#/definitions/snapshotRef" },
+        "limitations": { "$ref": "#/definitions/limitations" },
+        "coverage": { "$ref": "#/definitions/coverage" },
+        "columns": { "type": "array", "items": { "type": "string" } },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "snapshot_id",
+              "captured_at_utc",
+              "project_key",
+              "subject_type",
+              "subject_id",
+              "display_name",
+              "permission",
+              "path",
+              "active"
+            ],
+            "properties": {
+              "snapshot_id": { "type": "integer" },
+              "captured_at_utc": { "$ref": "#/definitions/ts" },
+              "project_key": { "type": ["string", "null"] },
+              "project_name": { "type": ["string", "null"] },
+              "project_style": { "type": ["string", "null"] },
+              "subject_type": { "type": ["string", "null"] },
+              "subject_id": { "type": ["string", "null"] },
+              "display_name": { "type": ["string", "null"] },
+              "account_type": { "type": ["string", "null"] },
+              "active": { "type": ["boolean", "null"] },
+              "permission": { "type": ["string", "null"] },
+              "path": { "type": ["string", "null"] },
+              "path_codes": { "type": ["string", "null"] },
+              "completeness_flag": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "severity", "title", "count", "partial"],
+            "properties": {
+              "id": { "type": "string" },
+              "severity": { "type": "string" },
+              "title": { "type": "string" },
+              "count": { "type": "integer" },
+              "partial": { "type": "boolean" }
+            }
+          }
+        }
+      },
+      "required": ["snapshot", "limitations", "coverage", "columns", "rows", "risks"]
+    },
+    "changes": {
+      "properties": {
+        "kind": { "const": "changes" },
+        "snapshotA": { "$ref": "#/definitions/snapshotRef" },
+        "snapshotB": { "$ref": "#/definitions/snapshotRef" },
+        "keyPermissions": { "type": "array", "items": { "type": "string" } },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["change", "fact_type", "display_name", "permission", "detail"],
+            "properties": {
+              "change": { "type": "string" },
+              "fact_type": { "type": "string" },
+              "project_key": { "type": "string" },
+              "subject_type": { "type": "string" },
+              "subject_id": { "type": "string" },
+              "display_name": { "type": "string" },
+              "permission": { "type": "string" },
+              "detail": { "type": "string" },
+              "path": { "type": "string" },
+              "snapshot_a": { "type": ["integer", "string"] },
+              "snapshot_b": { "type": ["integer", "string"] }
+            }
+          }
+        }
+      },
+      "required": ["snapshotA", "snapshotB", "keyPermissions", "rows"]
+    },
+    "decision": { "enum": ["keep", "revoke", "exception", null] },
+    "review": {
+      "properties": {
+        "kind": { "const": "review" },
+        "review": {
+          "type": "object",
+          "required": ["id", "name", "status", "scope", "keyPermissions", "itemCount", "signature"],
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "status": { "enum": ["draft", "in_progress", "signed"] },
+            "scope": {
+              "type": "object",
+              "required": ["type", "ids", "labels"],
+              "properties": {
+                "type": { "enum": ["site", "projects", "groups"] },
+                "ids": { "type": "array", "items": { "type": "string" } },
+                "labels": { "type": "array", "items": { "type": "string" } }
+              }
+            },
+            "keyPermissions": { "type": "array", "items": { "type": "string" } },
+            "engineVersion": { "type": "string" },
+            "createdAt": { "$ref": "#/definitions/ts" },
+            "dueAt": { "$ref": "#/definitions/ts" },
+            "itemCount": { "type": "integer" },
+            "signature": {
+              "type": ["object", "null"],
+              "required": ["signedBy", "signedAt", "evidenceHash", "signatureVersion"],
+              "properties": {
+                "signedBy": { "type": ["string", "null"] },
+                "signedByName": { "type": ["string", "null"] },
+                "signedAt": { "$ref": "#/definitions/ts" },
+                "signerTz": { "type": ["string", "null"] },
+                "evidenceHash": { "$ref": "#/definitions/hash" },
+                "signatureVersion": { "type": "integer" },
+                "chainSeq": { "type": ["integer", "null"] },
+                "prevReviewHash": { "$ref": "#/definitions/hash" }
+              }
+            }
+          }
+        },
+        "baseSnapshot": { "$ref": "#/definitions/snapshotRef" },
+        "compareSnapshot": { "$ref": "#/definitions/snapshotRef" },
+        "limitations": { "$ref": "#/definitions/limitations" },
+        "coverage": { "$ref": "#/definitions/coverage" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "itemKey",
+              "subjectType",
+              "subjectId",
+              "displayName",
+              "permissions",
+              "path",
+              "decision"
+            ],
+            "properties": {
+              "itemKey": { "type": "string" },
+              "subjectType": { "type": "string" },
+              "subjectId": { "type": "string" },
+              "displayName": { "type": "string" },
+              "projectKey": { "type": ["string", "null"] },
+              "groupName": { "type": ["string", "null"] },
+              "permissions": { "type": "array", "items": { "type": "string" } },
+              "path": { "type": "array", "items": { "type": "string" } },
+              "pathCodes": { "type": "array", "items": { "type": "string" } },
+              "change": { "enum": ["new", "unchanged", "removed", null] },
+              "decision": { "$ref": "#/definitions/decision" },
+              "note": { "type": ["string", "null"] },
+              "expiresAt": { "$ref": "#/definitions/ts" },
+              "decidedBy": { "type": ["string", "null"] },
+              "decidedAt": { "$ref": "#/definitions/ts" }
+            }
+          }
+        }
+      },
+      "required": [
+        "review",
+        "baseSnapshot",
+        "compareSnapshot",
+        "limitations",
+        "coverage",
+        "items"
+      ]
+    },
+    "evidencePack": {
+      "properties": {
+        "kind": { "const": "evidence-pack" },
+        "header": {
+          "type": "object",
+          "required": [
+            "reviewId",
+            "name",
+            "scope",
+            "signedBy",
+            "signedAt",
+            "evidenceHash",
+            "signatureVersion",
+            "engineVersion",
+            "itemCount"
+          ],
+          "properties": {
+            "reviewId": { "type": "string" },
+            "name": { "type": "string" },
+            "scope": { "type": "object" },
+            "baseSnapshot": { "type": ["object", "null"] },
+            "compareSnapshot": { "type": ["object", "null"] },
+            "signedBy": { "type": ["string", "null"] },
+            "signedAt": { "$ref": "#/definitions/ts" },
+            "signerTz": { "type": ["string", "null"] },
+            "evidenceHash": { "$ref": "#/definitions/hash" },
+            "signatureVersion": { "type": "integer" },
+            "coverageHash": { "$ref": "#/definitions/hash" },
+            "chainSeq": { "type": ["integer", "null"] },
+            "prevReviewHash": { "$ref": "#/definitions/hash" },
+            "engineVersion": { "type": "string" },
+            "attestation": { "type": ["string", "null"] },
+            "itemCount": { "type": "integer" }
+          }
+        },
+        "sections": {
+          "type": ["object", "null"],
+          "properties": {
+            "methodology": { "type": "object" },
+            "limitations": { "type": "object" },
+            "coverage": { "type": "array" },
+            "summary": { "type": "object" },
+            "controls": { "type": "object" },
+            "exceptions": { "type": "array" },
+            "remediation": { "type": "array" },
+            "audit": { "type": "array" }
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["itemKey", "subjectType", "subjectId", "permissions", "decision"],
+            "properties": {
+              "itemKey": { "type": "string" },
+              "subjectType": { "type": "string" },
+              "subjectId": { "type": "string" },
+              "projectId": { "type": ["string", "null"] },
+              "groupId": { "type": ["string", "null"] },
+              "permissions": { "type": "array", "items": { "type": "string" } },
+              "change": { "enum": ["new", "unchanged", "removed", null] },
+              "decision": { "$ref": "#/definitions/decision" },
+              "note": { "type": ["string", "null"] },
+              "expiresAt": { "$ref": "#/definitions/ts" }
+            }
+          }
+        }
+      },
+      "required": ["header", "sections", "items"]
+    }
+  }
+}

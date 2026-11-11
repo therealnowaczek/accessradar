@@ -1,5 +1,5 @@
 import { call, type Coverage, type Overview, type Snapshot, type SettingsView } from '../api';
-import { downloadCsv, downloadMarkdown, downloadPdf } from './download';
+import { downloadCsv, downloadJson, downloadMarkdown, downloadPdf } from './download';
 import {
   matrixCsv,
   matrixFileName,
@@ -7,6 +7,7 @@ import {
   matrixPdf,
   type ExportContext,
 } from './evidence';
+import { jsonFileName, matrixJson, serializeJson } from './json';
 
 type Matrix = { snapshot: Snapshot | null; data: Array<Record<string, string>> | null };
 
@@ -15,7 +16,7 @@ type Matrix = { snapshot: Snapshot | null; data: Array<Record<string, string>> |
  * PDF carries key permissions so it stays readable.
  */
 export async function exportMatrix(
-  format: 'csv' | 'pdf' | 'md',
+  format: 'csv' | 'pdf' | 'md' | 'json',
   seq: number | null,
   ctx: ExportContext,
   projectKey?: string,
@@ -50,6 +51,20 @@ export async function exportMatrix(
         overview?.risks ?? [],
         detail.coverage ?? [],
         detail.limitations,
+      ),
+    );
+  } else if (format === 'json') {
+    downloadJson(
+      jsonFileName(matrixFileName(m.snapshot, 'json')).replace('.json', `${suffix}.json`),
+      serializeJson(
+        matrixJson(
+          m.snapshot,
+          rows,
+          ctx,
+          overview?.risks ?? [],
+          detail.coverage ?? [],
+          detail.limitations,
+        ),
       ),
     );
   } else if (format === 'md') {

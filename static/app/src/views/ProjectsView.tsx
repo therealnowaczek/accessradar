@@ -112,6 +112,11 @@ export function ProjectsView() {
               exportMatrix('md', snapshot?.seq ?? null, exportContext(siteUrl)),
             )
           }
+          onJson={() =>
+            void exporter('Access matrix JSON', () =>
+              exportMatrix('json', snapshot?.seq ?? null, exportContext(siteUrl)),
+            )
+          }
         />
       }
     />
@@ -341,6 +346,16 @@ function ProjectDetail({
               void exporter('Space access Markdown', () =>
                 exportMatrix(
                   'md',
+                  detail.data?.snapshot?.seq ?? null,
+                  exportContext(siteUrl),
+                  d?.project.key,
+                ),
+              )
+            }
+            onJson={() =>
+              void exporter('Space access JSON', () =>
+                exportMatrix(
+                  'json',
                   detail.data?.snapshot?.seq ?? null,
                   exportContext(siteUrl),
                   d?.project.key,

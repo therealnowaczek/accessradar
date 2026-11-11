@@ -1,0 +1,104 @@
+{
+  "schema": "accessradar-export",
+  "schemaVersion": 1,
+  "kind": "evidence-pack",
+  "generatedBy": {
+    "app": "AccessRadar",
+    "version": "1.0.0",
+    "readOnly": true
+  },
+  "site": "https://example.atlassian.net",
+  "exportedAt": "2026-10-09T12:00:00.000Z",
+  "timeZone": "Europe/Warsaw",
+  "header": {
+    "reviewId": "0f6e3c2a-1111-4222-8333-444455556666",
+    "name": "Q4 review",
+    "scope": {
+      "type": "site",
+      "ids": []
+    },
+    "baseSnapshot": {
+      "seq": 7,
+      "contentHash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "capturedAt": "2026-10-09T10:00:00.000Z"
+    },
+    "compareSnapshot": null,
+    "signedBy": "a1",
+    "signedAt": "2026-10-09T12:00:00.000Z",
+    "signerTz": "Europe/Warsaw",
+    "evidenceHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "signatureVersion": 2,
+    "coverageHash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "chainSeq": 1,
+    "prevReviewHash": null,
+    "engineVersion": "1.0.0",
+    "attestation": "I confirm.",
+    "itemCount": 1
+  },
+  "sections": {
+    "methodology": {
+      "engineVersion": "1.0.0",
+      "dataSources": [
+        "/rest/api/3/project"
+      ],
+      "note": "n"
+    },
+    "limitations": {
+      "version": 1,
+      "statements": [
+        "Team-managed projects use a simplified permission model."
+      ],
+      "completeness": "partial",
+      "gapCount": 1,
+      "label": "partial (1 gap)"
+    },
+    "coverage": [
+      {
+        "area": "groups",
+        "target": "g1",
+        "status": "unreadable",
+        "reason": "denied"
+      }
+    ],
+    "summary": {
+      "keep": 1
+    },
+    "controls": {
+      "version": 1,
+      "mappings": [],
+      "disclaimer": "d"
+    },
+    "exceptions": [
+      {
+        "itemKey": "x",
+        "justification": "j",
+        "expiresAt": "2026-10-09T12:00:00.000Z",
+        "status": "active"
+      }
+    ],
+    "remediation": [],
+    "audit": [
+      {
+        "at": "2026-10-09T12:00:00.000Z",
+        "actor": "a1",
+        "action": "review.signed"
+      }
+    ]
+  },
+  "items": [
+    {
+      "itemKey": "p:1|u:1",
+      "subjectType": "user",
+      "subjectId": "u1",
+      "projectId": "1",
+      "groupId": null,
+      "permissions": [
+        "BROWSE_PROJECTS"
+      ],
+      "change": null,
+      "decision": "keep",
+      "note": null,
+      "expiresAt": null
+    }
+  ]
+}

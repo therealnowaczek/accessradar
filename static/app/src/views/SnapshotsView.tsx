@@ -291,6 +291,11 @@ function SnapshotDrawer({ seq }: { seq: number }) {
                   exportMatrix('md', s.seq, exportContext(siteUrl)),
                 )
               }
+              onJson={() =>
+                void exporter('Access matrix JSON', () =>
+                  exportMatrix('json', s.seq, exportContext(siteUrl)),
+                )
+              }
             />
             <Button
               onClick={() =>

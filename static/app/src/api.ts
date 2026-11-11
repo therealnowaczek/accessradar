@@ -352,7 +352,6 @@ export type SettingsView = {
   settings: Settings;
   edition: EditionView;
   /** Standard edition and ≤10 active humans in the latest snapshot. */
-  freeTier?: boolean;
   fallbackIsMe: boolean;
   fallbackEnabled: boolean;
   privacy: {
