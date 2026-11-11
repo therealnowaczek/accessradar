@@ -44,8 +44,8 @@ import {
   CONTROLS_VERSION,
   EVIDENCE_DATA_SOURCES,
 } from '../domain/controls';
-import { contentHash, coverageHash } from '../engine/facts';
-import { getVerifyJob, insertVerifyJob, patchVerifyJob, streamContentHashPage } from '../db/verify';
+import { coverageHash } from '../engine/facts';
+import { getVerifyJob, insertVerifyJob, patchVerifyJob, recomputeSnapshotHash } from '../db/verify';
 import { push } from '../lib/queue';
 import { jiraCall, mapLimit } from '../lib/budget';
 import { getSettings, kvGet, kvSet, saveSettings } from '../db/settings';
@@ -95,6 +95,7 @@ import {
   projectsList,
   projectView,
   subjectView,
+  exceptionLabels,
 } from './views';
 
 export class BadRequest extends Error {}
@@ -444,12 +445,33 @@ export async function changes(p: any) {
 }
 
 // ---------- export: access matrix ----------
+/**
+ * Access matrix rows. With `projectKey` only that space is built and returned: the space export
+ * (Spaces → space → Export) used to fetch every space with every permission and filter in the
+ * browser, a response that is slow and can pass the 5 MB invoke limit on a real site (E2E 2.2).
+ */
 export async function matrix(p: any) {
-  return withState(p.seq, (state) => {
+  const projectKey =
+    p.projectKey === undefined || p.projectKey === null || p.projectKey === ''
+      ? null
+      : v.id(p.projectKey, 'space key', /^[A-Za-z][A-Za-z0-9_]{0,63}$/);
+  const keyPermissions = Array.isArray(p.keyPermissions)
+    ? p.keyPermissions
+        .slice(0, 200)
+        .map((x: unknown) => v.id(x, 'permission', /^[A-Za-z0-9_:.-]{1,128}$/))
+    : [];
+  const r = await withState(p.seq, (state) => {
+    let projectId: string | undefined;
+    if (projectKey) {
+      const want = projectKey.toUpperCase();
+      projectId = [...state.projects].find(([, x]) => x.key.toUpperCase() === want)?.[0];
+      if (!projectId) return null;
+    }
     const rows: Array<Record<string, string>> = [];
     const tuples = effectiveTuples(
       state,
-      p.allPermissions === true ? null : new Set((p.keyPermissions as string[]) ?? []),
+      p.allPermissions === true ? null : new Set<string>(keyPermissions),
+      projectId,
     );
     for (const t of tuples.values()) {
       const s = subjectView(state, t.subject);
@@ -481,6 +503,8 @@ export async function matrix(p: any) {
         x.permission.localeCompare(y.permission),
     );
   });
+  if (r.snapshot && !r.data) throw new BadRequest('Space not in this snapshot');
+  return r;
 }
 
 // ---------- reviews ----------
@@ -762,7 +786,14 @@ export async function exceptionsList(p: any) {
       ? p.status
       : undefined;
   const page = Number.isInteger(Number(p.page)) ? Number(p.page) : 1;
-  return listExceptions({ status, page });
+  const [list, latest] = await Promise.all([listExceptions({ status, page }), latestCommitted()]);
+  // Names from the latest snapshot: the page shows people, apps, spaces and groups by name, not
+  // by raw account / project / group ids (E2E phase 0 finding 1).
+  const state = list.items.length && latest ? await stateFor(latest.seq) : null;
+  return {
+    ...list,
+    items: list.items.map((e) => ({ ...e, ...exceptionLabels(state, e) })),
+  };
 }
 
 /** Called from the daily privacy consumer; returns how many rows flipped to expired. */
@@ -1197,9 +1228,11 @@ export async function runVerifySnapshotJob(jobId: string): Promise<void> {
   }
   await patchVerifyJob(jobId, { status: 'running', error: null });
 
+  // Always the snapshot bound to the review (job.seq = review.baseSeq), never the latest one.
   const snap = await getSnapshot(job.seq, false);
-  const facts = await loadFacts(job.seq);
-  if (!facts.length && !snap?.contentHash) {
+  // Same function as FINALIZE (sign time): same rows, same line sort, no page cap.
+  const { hash: actualHash, rows } = await recomputeSnapshotHash(job.seq);
+  if (!rows && !snap?.contentHash) {
     await patchVerifyJob(jobId, {
       status: 'purged',
       finishedAt: Date.now(),
@@ -1208,30 +1241,6 @@ export async function runVerifySnapshotJob(jobId: string): Promise<void> {
     await audit('system', 'review.verified', job.reviewId, { mode: 'deep', result: 'purged' });
     return;
   }
-
-  // Stream in pages (same ORDER BY kind,fkey as contentHash sort) with an 800s budget.
-  const deadline = Date.now() + 800_000;
-  let page = await streamContentHashPage(job.seq, null, null);
-  while (!page.done) {
-    if (Date.now() > deadline) {
-      await patchVerifyJob(jobId, {
-        status: 'pending',
-        cursorKind: page.cursorKind,
-        cursorFkey: page.cursorFkey,
-        error: 'Budget exceeded; queued for continuation',
-      });
-      await push({ step: 'VERIFY_SNAPSHOT', jobId }, 0);
-      return;
-    }
-    page = await streamContentHashPage(
-      job.seq,
-      page.cursorKind,
-      page.cursorFkey,
-      page.hash,
-      page.started,
-    );
-  }
-  const actualHash = page.started ? page.hash.digest('hex') : contentHash([]);
   const expected = job.expectedHash ?? snap?.contentHash ?? null;
   const result: 'ok' | 'mismatch' = expected != null && actualHash === expected ? 'ok' : 'mismatch';
   await patchVerifyJob(jobId, {
@@ -1604,6 +1613,18 @@ function assertDelegated(edition: EditionDecision) {
 }
 
 /**
+ * Empty-state descriptions for the project settings page ("No assigned review"). The UI shows them
+ * as the EmptyState description, so they follow R-8.5: one sentence, no em or en dash.
+ */
+export const PROJECT_EMPTY_COPY = {
+  notAssigned:
+    'When a Jira admin runs a campaign, your space is assigned here, with reminders in the app only (AccessRadar sends no email).',
+  noAssignment:
+    'When a Jira admin runs a campaign, the assigned space admin reviews access here, with reminders in the app only (AccessRadar sends no email).',
+  otherAssignee: 'Only the assigned space admin can review access here.',
+} as const;
+
+/**
  * Project page payload. `projectId` must come from Forge extension context (never payload).
  * Caller is already verified as project admin (or site admin) by the project resolver.
  */
@@ -1628,8 +1649,7 @@ export async function projectMyAssignment(
       review: null,
       items: [],
       notices: notices.items,
-      limitation:
-        'When a Jira admin runs a campaign, your space is assigned here. Reminders stay in the app — AccessRadar does not send email.',
+      limitation: PROJECT_EMPTY_COPY.notAssigned,
     };
   }
   const assignment = await findOpenAssignmentForProject(projectId);
@@ -1640,8 +1660,7 @@ export async function projectMyAssignment(
       review: null,
       items: [],
       notices: notices.items,
-      limitation:
-        'When a Jira admin runs a campaign, the assigned space admin reviews access here. Reminders stay in the app — AccessRadar does not send email.',
+      limitation: PROJECT_EMPTY_COPY.noAssignment,
     };
   }
   if (access === 'assignee' && assignment.assignee !== accountId) {
@@ -1651,7 +1670,7 @@ export async function projectMyAssignment(
       review: null,
       items: [],
       notices: notices.items,
-      limitation: 'Only the assigned space admin can review access here.',
+      limitation: PROJECT_EMPTY_COPY.otherAssignee,
     };
   }
   const detail = await reviewDetail({ id: assignment.reviewId });

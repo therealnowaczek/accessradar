@@ -12,7 +12,7 @@ Use this skill when the user asks what changed in access, what was granted or re
 
 1. Resolve the baseline: prefer an explicit `sinceSeq`; otherwise use `sinceDate` (ISO). If neither is given, ask once or use the previous snapshot via the action’s default.
 2. Call `ar-changes-since` with the resolved inputs.
-3. Summarize grants vs revokes in tables. Highlight admin / sensitive permissions first when present.
+3. Summarize grants vs revokes in tables, with the subject type from `subjectType` (apps as apps, not users). Highlight admin / sensitive permissions first when present.
 4. Cite both snapshot sequences and times from the response. Say when results are truncated.
 
 ## Safety

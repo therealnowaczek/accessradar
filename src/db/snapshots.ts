@@ -430,11 +430,14 @@ export async function loadFacts(seq: number): Promise<StoredFact<any>[]> {
 }
 
 /**
- * Content hash of snapshot `seq` from kind/fkey/vhash only. FINALIZE used to load every fact with
- * parsed attrs just to hash three short columns, the largest memory spike of a collection run.
+ * Content hash of snapshot `seq` from kind/fkey/vhash only, plus the number of facts hashed.
+ *
+ * This is THE content-hash definition: FINALIZE stores its result on the snapshot (the value the
+ * review signature binds), and deep verify recomputes it with this same function. Rows are paged
+ * by id (no collation involved) and sorted in JS by `contentHash`, so both sides hash the same
+ * lines in the same order whatever the database collation or page size.
  */
-export async function computeContentHash(seq: number): Promise<string> {
-  invalidateFactCache();
+export async function snapshotContentHash(seq: number): Promise<{ hash: string; rows: number }> {
   const lines: Array<{ kind: string; fkey: string; vhash: string }> = [];
   let after = 0;
   for (;;) {
@@ -448,7 +451,19 @@ export async function computeContentHash(seq: number): Promise<string> {
     if (rows.length < FACT_PAGE) break;
     after = Number(rows[rows.length - 1].id);
   }
-  return contentHash(lines as Array<Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>>);
+  return {
+    hash: contentHash(lines as Array<Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>>),
+    rows: lines.length,
+  };
+}
+
+/**
+ * Content hash of snapshot `seq` (FINALIZE). FINALIZE used to load every fact with parsed attrs
+ * just to hash three short columns, the largest memory spike of a collection run.
+ */
+export async function computeContentHash(seq: number): Promise<string> {
+  invalidateFactCache();
+  return (await snapshotContentHash(seq)).hash;
 }
 
 // ---------- retention ----------

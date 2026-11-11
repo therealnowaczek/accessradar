@@ -5,6 +5,7 @@ import {
   useEffect,
   useId,
   useState,
+  type KeyboardEvent,
   type ReactElement,
   type ReactNode,
 } from 'react';
@@ -12,7 +13,7 @@ import { IconButton } from '@atlaskit/button/new';
 import LinkStyleButton from '@atlaskit/button/standard-button';
 import Breadcrumbs, { BreadcrumbsItem } from '@atlaskit/breadcrumbs';
 import DropdownMenu, { DropdownItem, DropdownItemGroup } from '@atlaskit/dropdown-menu';
-import { HelperMessage, Label } from '@atlaskit/form';
+import { ErrorMessage, HelperMessage, Label } from '@atlaskit/form';
 import Heading from '@atlaskit/heading';
 import LockIcon from '@atlaskit/icon/core/lock-locked';
 import ShowMoreIcon from '@atlaskit/icon/core/show-more-horizontal';
@@ -24,7 +25,15 @@ import Select from '@atlaskit/select';
 import Toggle from '@atlaskit/toggle';
 import Tooltip from '@atlaskit/tooltip';
 import { DatePicker } from '@atlaskit/datetime-picker';
-import { DATE_PICKER_FORMAT, parseDateInput } from './format';
+import {
+  dateError,
+  formatIsoDate,
+  getFormatLocale,
+  isInvalidDateText,
+  parseDateInput,
+} from './format';
+
+export { dateHelper } from './format';
 import { t } from './i18n';
 
 export { BrandHeader, BrandMark } from './brand';
@@ -410,13 +419,12 @@ export function Metric({ label, value, hint }: { label: string; value: ReactNode
   );
 }
 
-/** Helper text for every DateField (the format hint lives here, not in a placeholder). */
-export const DATE_HELPER =
-  'Type a date such as 27 Oct 2026 or 27/10/2026, or pick one from the calendar.';
-
 /**
- * The one date input: ADS DatePicker showing the app's date format ("27 Oct 2026") while the
- * value stays an ISO date (YYYY-MM-DD). Typed input accepts "27 Oct 2026", "27/10/2026" or ISO.
+ * The one date input: ADS DatePicker. The value stays an ISO date (YYYY-MM-DD). Displayed and
+ * typed dates follow the user's Jira locale (owner decision 2026-11-11): "12/1/2026" is
+ * December 1 in en-US and 12 January in en-GB; ISO is always accepted; the calendar works with
+ * the mouse. Text that is not a date shows an ADS field error under the field (the picker itself
+ * keeps the last valid value, which used to be the only feedback: E2E phase 0 finding 3).
  */
 export function DateField({
   id,
@@ -429,17 +437,44 @@ export function DateField({
   onChange: (iso: string) => void;
   describedBy?: string;
 }) {
+  const locale = getFormatLocale();
+  const errorId = `${useId()}-error`;
+  const [invalid, setInvalid] = useState(false);
+  // The raw input text is read when the user leaves the field or presses Enter.
+  const check = (target: EventTarget | null) => {
+    if (target instanceof HTMLInputElement) setInvalid(isInvalidDateText(target.value, locale));
+  };
   return (
-    <DatePicker
-      id={id}
-      value={value}
-      onChange={onChange}
-      locale="en-GB"
-      dateFormat={DATE_PICKER_FORMAT}
-      aria-describedby={describedBy}
-      shouldShowCalendarButton
-      parseInputValue={(text) => parseDateInput(text) ?? new Date(NaN)}
-    />
+    <Stack space="space.050">
+      <Box
+        onKeyDown={(e: KeyboardEvent) => {
+          if (e.key === 'Enter') check(e.target);
+        }}
+      >
+        <DatePicker
+          id={id}
+          value={value}
+          onChange={(iso) => {
+            setInvalid(false);
+            onChange(iso);
+          }}
+          onBlur={(e: { target: EventTarget | null }) => check(e.target)}
+          locale={locale}
+          formatDisplayLabel={(iso) => formatIsoDate(iso, locale)}
+          isInvalid={invalid}
+          aria-describedby={
+            [describedBy, invalid ? errorId : null].filter(Boolean).join(' ') || undefined
+          }
+          shouldShowCalendarButton
+          parseInputValue={(text) => parseDateInput(text, locale) ?? new Date(NaN)}
+        />
+      </Box>
+      {invalid ? (
+        <Box id={errorId}>
+          <ErrorMessage>{dateError(locale)}</ErrorMessage>
+        </Box>
+      ) : null}
+    </Stack>
   );
 }
 

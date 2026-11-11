@@ -22,7 +22,7 @@ import { navItem } from '../routes';
 import { useApp, useRefresh } from '../shared';
 import { useToast } from '../Toast';
 import {
-  DATE_HELPER,
+  dateHelper,
   DateField,
   ErrorState,
   FormField,
@@ -484,7 +484,7 @@ function CampaignForm({
               />
             )}
           </FormField>
-          <FormField label="Start date (UTC)" helper={DATE_HELPER}>
+          <FormField label="Start date (UTC)" helper={dateHelper()}>
             {(id, helperId) => (
               <DateField
                 id={id}

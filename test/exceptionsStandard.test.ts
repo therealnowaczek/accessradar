@@ -13,7 +13,8 @@ const m = vi.hoisted(() => ({
 }));
 
 vi.mock('@forge/api', () => ({ default: {}, route: () => '', getAppContext: () => ({}) }));
-vi.mock('../src/db/sql', () => ({
+vi.mock('../src/db/sql', async (orig) => ({
+  ...(await orig<typeof import('../src/db/sql')>()),
   q: m.q,
   exec: m.exec,
   limitClause: (n: number) => `LIMIT ${n}`,
@@ -155,7 +156,7 @@ describe('exceptions on Standard', () => {
   });
 
   it('Standard can view the exceptions register', async () => {
-    m.q.mockResolvedValueOnce([{ n: 1 }]).mockResolvedValueOnce([
+    const rows = [
       {
         id: 'e1',
         item_key: 'k',
@@ -171,10 +172,19 @@ describe('exceptions on Standard', () => {
         granted_by: 'acc-admin',
         granted_at: 1000,
       },
-    ]);
+    ];
+    m.q.mockImplementation(async (sql: string) =>
+      sql.includes('COUNT(*)') ? [{ n: 1 }] : sql.includes('access_exception') ? rows : [],
+    );
     const list = await exceptionsList({ status: 'active' });
     expect(list.total).toBe(1);
     expect(list.items[0].justification).toBe('Vendor support until the migration ends');
+    // No snapshot yet: readable fallbacks, never the raw ids.
+    expect(list.items[0]).toMatchObject({
+      subjectName: 'Unknown user',
+      scopeLabel: 'Unknown space',
+      grantedByName: 'Jira admin',
+    });
   });
 
   it('exceptions expire on every edition', async () => {

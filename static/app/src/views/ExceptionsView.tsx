@@ -1,6 +1,6 @@
 import EmptyState from '@atlaskit/empty-state';
 import { useState } from 'react';
-import { Box, Stack, Text } from '@atlaskit/primitives';
+import { Box, Inline, Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
 import { useCall } from '../data';
 import { formatLocal, permissionLabel } from '../format';
@@ -35,7 +35,25 @@ type ExceptionRow = {
   reviewId: string;
   grantedBy: string;
   grantedAt: number;
+  /** Display names resolved on the server from the latest snapshot (never raw ids). */
+  subjectName: string;
+  subjectKind: 'user' | 'app' | 'group' | 'conditional' | 'anonymous';
+  scopeLabel: string;
+  grantedByName: string;
 };
+
+/** Subject cell: the name, plus a neutral "App" or "Group" marker so apps never read as people. */
+function subjectCell(e: Pick<ExceptionRow, 'subjectName' | 'subjectKind'>) {
+  const marker = e.subjectKind === 'app' ? 'App' : e.subjectKind === 'group' ? 'Group' : null;
+  return marker ? (
+    <Inline space="space.075" alignBlock="center">
+      <Text>{e.subjectName}</Text>
+      <Pill tone="neutral">{marker}</Pill>
+    </Inline>
+  ) : (
+    e.subjectName
+  );
+}
 
 const STATUS_OPTS = [
   { label: 'Active', value: 'active' },
@@ -128,8 +146,8 @@ export function ExceptionsView() {
             rows={items.map((e) => ({
               key: e.id,
               cells: [
-                { key: 's', content: e.subjectId },
-                { key: 'p', content: e.projectId ?? e.groupId ?? '—' },
+                { key: 's', content: subjectCell(e) },
+                { key: 'p', content: e.scopeLabel },
                 { key: 'perm', content: e.permissions.map(permissionLabel).join(', ') },
                 { key: 'j', content: e.justification },
                 {
@@ -143,7 +161,7 @@ export function ExceptionsView() {
                     </>
                   ),
                 },
-                { key: 'by', content: e.grantedBy },
+                { key: 'by', content: e.grantedByName },
                 {
                   key: 'r',
                   content: (

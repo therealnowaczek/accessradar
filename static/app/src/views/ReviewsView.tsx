@@ -67,7 +67,7 @@ import { navItem } from '../routes';
 import { exportContext, logExport, NoSnapshot, useApp, useExporter, useSnapshots } from '../shared';
 import { useToast } from '../Toast';
 import {
-  DATE_HELPER,
+  dateHelper,
   DateField,
   Details,
   ErrorState,
@@ -442,7 +442,7 @@ function CreateReview({
               />
             )}
           </FormField>
-          <FormField label="Due date (optional)" helper={DATE_HELPER}>
+          <FormField label="Due date (optional)" helper={dateHelper()}>
             {(id, helperId) => (
               <DateField id={id} describedBy={helperId} value={due} onChange={(v) => setDue(v)} />
             )}
@@ -1128,7 +1128,7 @@ function ItemDrawer({
             {value === 'exception' ? (
               <FormField
                 label="Expires on"
-                helper={`${DATE_HELPER} Date-only · stored as end of that day in your timezone. ${t('exceptions.registeredOnSave')}`}
+                helper={`${dateHelper()} Date-only · stored as end of that day in your timezone. ${t('exceptions.registeredOnSave')}`}
               >
                 {(fid, helperId) => (
                   <DateField

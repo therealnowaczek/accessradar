@@ -28,7 +28,7 @@ vi.mock('../src/db/verify', () => ({
   getVerifyJob: m.getVerifyJob,
   insertVerifyJob: m.insertVerifyJob,
   patchVerifyJob: m.patchVerifyJob,
-  streamContentHashPage: vi.fn(),
+  recomputeSnapshotHash: vi.fn(),
 }));
 vi.mock('../src/lib/queue', () => ({ push: m.push }));
 vi.mock('../src/db/audit', () => ({ audit: m.audit, listAudit: vi.fn() }));

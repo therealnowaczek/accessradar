@@ -101,7 +101,12 @@ const TOOLS: Array<[string, Record<string, unknown>, (r: any) => void]> = [
   [
     'ar-who-can-access',
     { projectKey: 'pay', permission: 'ADMINISTER_PROJECTS' },
-    (r) => expect(r.rows[0]).toMatchObject({ subject: 'Dana Kowal', project: 'PAY' }),
+    (r) =>
+      expect(r.rows[0]).toMatchObject({
+        subject: 'Dana Kowal',
+        subjectType: 'user',
+        project: 'PAY',
+      }),
   ],
   [
     'ar-why',
@@ -124,6 +129,13 @@ const TOOLS: Array<[string, Record<string, unknown>, (r: any) => void]> = [
     (r) => {
       expect(r.rows).toHaveLength(50);
       expect(r.note).toMatch(/first 50 of 60/);
+      // Rows are reviews, never labelled as campaigns (E2E phase 0 finding 2).
+      expect(Object.keys(r.rows[0]).sort()).toEqual(
+        ['chain', 'decided', 'due', 'fromCampaign', 'overdue', 'review', 'status'].sort(),
+      );
+      expect(r.rows[0]).toMatchObject({ review: 'Review 0', fromCampaign: null });
+      expect(r.note).toMatch(/^Each row is an access review\./);
+      expect(r.openIn).toBe('AccessRadar → Reviews');
     },
   ],
 ];

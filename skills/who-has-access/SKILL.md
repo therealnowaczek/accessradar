@@ -14,7 +14,7 @@ Use this skill when the user asks who can access a space, why someone has a perm
 2. For space membership / permission holders → call `ar-who-can-access`.
 3. For “why does X have Y?” → call `ar-why` with the same space (and permission if known).
 4. For “what can this person access?” across spaces → call `ar-person-access`.
-5. Prefer tables. Cap at the rows the action returns. Cite snapshot sequence and time. Mention coverage/limitation notes from the response.
+5. Prefer tables. Show the subject type from `subjectType` (`user` = person, `app` = app or integration, `group`, `conditional`, `anonymous`); never label an app as a user. Cap at the rows the action returns. Cite snapshot sequence and time. Mention coverage/limitation notes from the response.
 
 ## Safety
 

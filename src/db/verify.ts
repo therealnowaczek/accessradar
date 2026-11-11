@@ -1,6 +1,5 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { contentHashUpdate, type FactKind } from '../engine/facts';
-import { exec, limitClause, q } from './sql';
+import { randomUUID } from 'node:crypto';
+import { exec, q } from './sql';
 
 export type VerifyJobStatus = 'pending' | 'running' | 'ok' | 'mismatch' | 'purged' | 'error';
 
@@ -98,65 +97,11 @@ export async function patchVerifyJob(
   await exec(`UPDATE verify_job SET ${sets.join(', ')} WHERE id = ?`, ...params);
 }
 
-const PAGE = 3000;
-
-/** Stream facts at seq ordered by (kind, fkey); returns whether more pages remain and next cursor. */
-export async function streamContentHashPage(
-  seq: number,
-  cursorKind: string | null,
-  cursorFkey: string | null,
-  hash = createHash('sha256'),
-  started = false,
-): Promise<{
-  hash: ReturnType<typeof createHash>;
-  started: boolean;
-  done: boolean;
-  cursorKind: string | null;
-  cursorFkey: string | null;
-  rows: number;
-}> {
-  const lim = limitClause(PAGE);
-  const rows = cursorKind
-    ? await q<{ kind: FactKind; fkey: string; vhash: string }>(
-        `SELECT kind, fkey, vhash FROM fact
-         WHERE first_seen <= ? AND last_seen >= ?
-           AND (kind > ? OR (kind = ? AND fkey > ?))
-         ORDER BY kind, fkey ${lim}`,
-        seq,
-        seq,
-        cursorKind,
-        cursorKind,
-        cursorFkey ?? '',
-      )
-    : await q<{ kind: FactKind; fkey: string; vhash: string }>(
-        `SELECT kind, fkey, vhash FROM fact
-         WHERE first_seen <= ? AND last_seen >= ?
-         ORDER BY kind, fkey ${lim}`,
-        seq,
-        seq,
-      );
-  const nextStarted = contentHashUpdate(
-    hash,
-    rows.map((r) => ({ kind: r.kind, fkey: r.fkey, vhash: r.vhash })),
-    started,
-  );
-  if (rows.length < PAGE) {
-    return {
-      hash,
-      started: nextStarted,
-      done: true,
-      cursorKind: null,
-      cursorFkey: null,
-      rows: rows.length,
-    };
-  }
-  const last = rows[rows.length - 1];
-  return {
-    hash,
-    started: nextStarted,
-    done: false,
-    cursorKind: last.kind,
-    cursorFkey: last.fkey,
-    rows: rows.length,
-  };
-}
+/**
+ * Deep verify recomputes the snapshot hash with the exact function FINALIZE used when the snapshot
+ * (and so the signed review) got its hash. It used to stream `ORDER BY kind, fkey` pages through
+ * `limitClause(3000)`, which clamps to 1000 rows: every snapshot with more than 1000 facts hashed
+ * only its first page and reported a false "Mismatch". The SQL order also depended on the column
+ * collation, while FINALIZE sorts the lines in JS.
+ */
+export { snapshotContentHash as recomputeSnapshotHash } from './snapshots';

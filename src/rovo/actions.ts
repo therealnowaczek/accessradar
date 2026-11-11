@@ -5,6 +5,7 @@ import { latestCommitted, listSnapshots, previousCommitted } from '../db/snapsho
 import { getSettings } from '../db/settings';
 import type { AccessState } from '../engine/state';
 import { BadRequest, changes, personInfo, projectDetail, stateFor } from '../api/service';
+import { subjectKind } from '../api/views';
 
 const MAX_ROWS = 50;
 
@@ -70,7 +71,8 @@ export async function whoCanAccess(p: {
     if (!matched.length) continue;
     rows.push({
       subject: r.subject.name,
-      subjectType: r.subject.type,
+      // "app" for app integrations: they are not people (E2E phase 0 finding 2).
+      subjectType: subjectKind(r.subject),
       permissions: matched.join(', '),
       project: data.project.key,
     });
@@ -116,6 +118,7 @@ export async function whyAccess(p: {
       const path = reasons.map((x) => x.text).filter(Boolean);
       rows.push({
         subject: r.subject.name,
+        subjectType: subjectKind(r.subject),
         permission: perm,
         why: path.join(' · ') || 'path unavailable',
         project: data.project.key,
@@ -162,12 +165,14 @@ export async function changesSince(p: {
     ...diff.granted.map((g) => ({
       change: 'granted',
       subject: g.subject.name,
+      subjectType: subjectKind(g.subject),
       project: g.project?.key ?? '',
       permission: g.permission,
     })),
     ...diff.revoked.map((g) => ({
       change: 'revoked',
       subject: g.subject.name,
+      subjectType: subjectKind(g.subject),
       project: g.project?.key ?? '',
       permission: g.permission,
     })),
@@ -218,17 +223,26 @@ function reviewsForCampaigns<R extends Pick<ReviewRow, 'campaignRunId'>>(
   return out;
 }
 
+/**
+ * One access review (a review session with decisions and a sign-off). `fromCampaign` names the
+ * recurring campaign whose run created it, or is null for a review started by hand. The key is
+ * `review`, not `name`, so answers do not call reviews "campaigns" (E2E phase 0 finding 2).
+ */
 function reviewRow(r: ReviewRow & { decided?: number }, now: number, campaign: string | null) {
   return {
-    name: r.name,
-    campaign,
+    review: r.name,
     status: r.status,
     due: r.dueAt ? new Date(r.dueAt).toISOString() : null,
     overdue: r.status !== 'signed' && r.dueAt != null && r.dueAt < now ? 'yes' : 'no',
     decided: `${r.decided ?? 0}/${r.itemCount}`,
     chain: r.chainSeq != null ? String(r.chainSeq) : r.status === 'signed' ? 'pre-chain' : null,
+    fromCampaign: campaign,
   };
 }
+
+/** Says what the rows are: reviews, not campaigns (campaigns only schedule reviews). */
+export const REVIEW_ROWS_NOTE =
+  'Each row is an access review. Campaigns are recurring schedules that start reviews; fromCampaign names the campaign that started a review, or is empty for a review started by hand.';
 
 export async function reviewStatus(p: { campaign?: unknown } = {}): Promise<RovoResult> {
   const filter = typeof p.campaign === 'string' ? p.campaign.trim() : '';
@@ -244,12 +258,12 @@ export async function reviewStatus(p: { campaign?: unknown } = {}): Promise<Rovo
       throw new BadRequest(
         known.length
           ? `No campaign matches "${filter}". Campaigns: ${known.join(', ')}.`
-          : `No campaign matches "${filter}". No review campaigns are configured.`,
+          : `No campaign matches "${filter}". No campaigns are configured.`,
       );
     }
     const found = reviewsForCampaigns(reviews, matched, await campaignIdByRun());
     rows = found.map(({ review, campaign }) => reviewRow(review, now, campaign));
-    note = `Campaign: ${matched.map((c) => c.name).join(', ')} (${found.length} review(s)).`;
+    note = `Reviews started by campaign ${matched.map((c) => c.name).join(', ')}: ${found.length}.`;
   } else {
     let runToCampaign = new Map<string, string>();
     let names = new Map<string, string>();
@@ -257,7 +271,8 @@ export async function reviewStatus(p: { campaign?: unknown } = {}): Promise<Rovo
       const campaigns = await listCampaigns();
       names = new Map(campaigns.map((c) => [c.id, c.name]));
       const active = campaigns.filter((c) => c.status === 'active' || c.status === 'paused');
-      if (active.length) note = `${active.length} campaign(s) configured (see Campaigns).`;
+      if (active.length)
+        note = `${active.length} recurring campaign(s) scheduled (see Campaigns); their state is not listed here.`;
       if (reviews.some((r) => r.campaignRunId)) runToCampaign = await campaignIdByRun();
     } catch {
       /* campaigns unavailable */
@@ -273,9 +288,9 @@ export async function reviewStatus(p: { campaign?: unknown } = {}): Promise<Rovo
     action: 'ar-review-status',
     snapshotSeq: snap?.seq ?? null,
     snapshotAt: snap ? (snap.finishedAt ?? snap.startedAt) : null,
-    note: [note, t.note].filter(Boolean).join(' · ') || undefined,
+    note: [REVIEW_ROWS_NOTE, note, t.note].filter(Boolean).join(' · '),
     rows: t.rows,
-    openIn: 'AccessRadar → Reviews / Campaigns',
+    openIn: 'AccessRadar → Reviews',
   };
 }
 
@@ -352,5 +367,6 @@ export const _test = {
   findAccountId,
   matchCampaigns,
   reviewsForCampaigns,
+  reviewRow,
   MAX_ROWS,
 };

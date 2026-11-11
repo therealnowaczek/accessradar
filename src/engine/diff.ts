@@ -50,9 +50,12 @@ export interface AccessTuple {
 export function effectiveTuples(
   state: AccessState,
   permissions: ReadonlySet<string> | null,
+  /** Only this space (id). Skips describing every other space's paths. */
+  projectId?: string,
 ): Map<string, AccessTuple> {
   const out = new Map<string, AccessTuple>();
   for (const row of aggregate(resolveAll(state))) {
+    if (projectId !== undefined && row.projectId !== projectId) continue;
     for (const [permission, paths] of row.perms) {
       if (permissions && !permissions.has(permission)) continue;
       out.set(`${subjectKey(row.subject)}|${row.projectId}|${permission}`, {

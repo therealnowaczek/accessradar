@@ -108,7 +108,8 @@ export async function markRemediationAccepted(
 
 /** Rows still open for checking (not verified/accepted), optionally not yet checked at seq. */
 export async function openRemediations(seq?: number): Promise<RemediationRow[]> {
-  const lim = limitClause(2000);
+  // limitClause clamps to 1000 by default; this query really wants up to 2000 open rows.
+  const lim = limitClause(2000, 2000);
   if (seq === undefined) {
     const rows = await q(
       `SELECT * FROM remediation WHERE status IN ('pending', 'still_present', 'inconclusive')

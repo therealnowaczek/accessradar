@@ -46,7 +46,12 @@ export function chunk<T>(list: T[], size: number): T[][] {
 export const num = (v: unknown): number | null =>
   v === null || v === undefined ? null : Number(v);
 
-/** LIMIT cannot be a bound parameter in Forge SQL prepared statements; clamp to a safe integer literal. */
+/**
+ * LIMIT cannot be a bound parameter in Forge SQL prepared statements; clamp to a safe integer literal.
+ * The result is at most `max` (default 1000): a caller that pages must compare the page length with
+ * the clamped value, never with the requested one (deep verify once asked for 3000, got 1000 and
+ * stopped after the first page).
+ */
 export function limitClause(limit: number, max = 1000): string {
   const n = Math.max(1, Math.min(max, Math.floor(Number(limit)) || 1));
   return `LIMIT ${n}`;

@@ -440,3 +440,71 @@ export function describeFactChange(b: AccessState, a: AccessState, c: FactChange
       return { ...base, label: c.fkey, detail: c.change };
   }
 }
+
+// ---------- Exceptions: display names ----------
+export type SubjectKind = 'user' | 'app' | 'group' | 'conditional' | 'anonymous';
+
+/** "app" for app/integration accounts (Jira accountType "app"), otherwise the subject type. */
+export function subjectKind(view: Pick<SubjectView, 'type' | 'accountType'>): SubjectKind {
+  if (view.type === 'user') return view.accountType === 'app' ? 'app' : 'user';
+  return view.type as SubjectKind;
+}
+
+export interface ExceptionLabels {
+  subjectName: string;
+  subjectKind: SubjectKind;
+  scopeLabel: string;
+  grantedByName: string;
+}
+
+/**
+ * Names for an exception row (Exceptions page): subject, space or group, and who granted it.
+ * Resolved from the latest snapshot; raw account, project and group ids never become the label.
+ * `state` is null before the first snapshot.
+ */
+export function exceptionLabels(
+  state: AccessState | null,
+  e: {
+    subjectType: string;
+    subjectId: string;
+    projectId: string | null;
+    groupId: string | null;
+    grantedBy: string;
+  },
+): ExceptionLabels {
+  const person = (id: string) => state?.persons.get(id);
+  let subjectName: string;
+  let kind: SubjectKind;
+  switch (e.subjectType) {
+    case 'user': {
+      const p = person(e.subjectId);
+      subjectName = p?.displayName || 'Unknown user';
+      kind = p?.accountType === 'app' ? 'app' : 'user';
+      break;
+    }
+    case 'group':
+      subjectName = state?.groups.get(e.subjectId)?.name || 'Unknown group';
+      kind = 'group';
+      break;
+    case 'conditional':
+      subjectName = CONDITIONAL_LABELS[e.subjectId] ?? 'Work item role';
+      kind = 'conditional';
+      break;
+    default:
+      subjectName = 'Anyone (anonymous)';
+      kind = 'anonymous';
+  }
+  let scopeLabel = '—';
+  if (e.projectId) {
+    const p = state?.projects.get(e.projectId);
+    scopeLabel = p ? `${p.key} · ${p.name}` : 'Unknown space';
+  } else if (e.groupId) {
+    scopeLabel = state?.groups.get(e.groupId)?.name || 'Unknown group';
+  }
+  return {
+    subjectName,
+    subjectKind: kind,
+    scopeLabel,
+    grantedByName: person(e.grantedBy)?.displayName || 'Jira admin',
+  };
+}
