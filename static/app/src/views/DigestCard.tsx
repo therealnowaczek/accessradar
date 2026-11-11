@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
-import SectionMessage from '@atlaskit/section-message';
+import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import { Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
 import { call, errorText, type DigestRule, type WeeklyDigest } from '../api';
@@ -8,10 +8,10 @@ import { Section } from '../components';
 import { useCall } from '../data';
 import { formatLocal } from '../format';
 import { t, type MessageKey } from '../i18n';
-import { MetricGridPhantom } from '../skeletons';
+import { MetricGridPhantom, Phantom } from '../skeletons';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
-import { Metric, MetricGrid, Pill, PlanNote } from '../ui';
+import { Metric, MetricGrid, Pill, PlanNote, staleNotice } from '../ui';
 
 const RULES: DigestRule[] = [
   'new-admin',
@@ -22,6 +22,29 @@ const RULES: DigestRule[] = [
 ];
 
 const ruleLabel = (rule: DigestRule) => t(`digest.rule.${rule}` as MessageKey);
+
+/** Digest body while it loads: the period line and one tile per rule, as in the loaded card. */
+function DigestPhantom() {
+  return (
+    <Stack space="space.200">
+      <Phantom width="60%" />
+      <MetricGridPhantom count={RULES.length} hints={false} />
+    </Stack>
+  );
+}
+
+/** The whole digest section for page skeletons (Overview): real title, description and body. */
+export function DigestSectionPhantom() {
+  return (
+    <Section
+      title={t('digest.title')}
+      description={t('digest.description')}
+      action={<Phantom width={112} height={32} />}
+    >
+      <DigestPhantom />
+    </Section>
+  );
+}
 
 /**
  * Weekly digest (Standard and Advanced): one in-app summary of the access changes over the last
@@ -52,13 +75,22 @@ export function DigestCard({ planNote = true }: { planNote?: boolean }) {
   const d = res.data?.digest ?? null;
   let body;
   if (res.error && !res.data) {
+    // R-10.13: a load error always has a retry.
     body = (
-      <SectionMessage appearance="warning" title={t('digest.unavailable')} headingLevel="h3">
+      <SectionMessage
+        appearance="warning"
+        title={t('digest.unavailable')}
+        headingLevel="h3"
+        actions={
+          <SectionMessageAction onClick={() => void res.reload()}>Try again</SectionMessageAction>
+        }
+      >
         <Text as="p">{res.error}</Text>
       </SectionMessage>
     );
   } else if (!res.data) {
-    body = <MetricGridPhantom count={3} />;
+    // Same tile count as the loaded card (one per rule), so nothing moves (R-10.1).
+    body = <DigestPhantom />;
   } else if (!d) {
     body = (
       <Text as="p" color="color.text.subtle">
@@ -153,11 +185,12 @@ export function DigestCard({ planNote = true }: { planNote?: boolean }) {
       title={t('digest.title')}
       description={t('digest.description')}
       action={
-        <Button onClick={refresh} isDisabled={busy}>
+        <Button onClick={refresh} isLoading={busy}>
           {t('digest.refresh')}
         </Button>
       }
     >
+      {staleNotice(res)}
       {body}
       {planNote && realtimeLocked ? <PlanNote benefit={t('planGate.realtimeAlerts')} /> : null}
     </Section>

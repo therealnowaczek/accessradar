@@ -272,11 +272,12 @@ export function ChangesView() {
               <SkeletonTable columns={['Space', 'Who', 'Permission', 'Why']} />
             </SkeletonRoot>
           ) : !d.b ? (
-            <NoSnapshot what="what changed" />
+            <NoSnapshot what="what changed" headingSize="xsmall" />
           ) : (
             <EmptyState
+              headingSize="xsmall"
               header="One snapshot so far"
-              description="Changes compare two snapshots. The next scheduled or manual snapshot will show what changed since this one."
+              description="Changes compare two snapshots, so the next scheduled or manual snapshot will show what changed since this one."
             />
           )}
         </Stack>

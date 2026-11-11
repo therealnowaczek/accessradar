@@ -105,8 +105,13 @@ export function ExceptionsView() {
             onChange={(o) => setStatus(o?.value ?? 'active')}
           />
         </FilterBar>
-        {!items.length ? (
-          <EmptyState header="No exceptions yet" description={t('exceptions.emptyDescription')} />
+        {/* The default filter shows the first-run empty state; other filters say "No exceptions". */}
+        {!items.length && status === 'active' ? (
+          <EmptyState
+            headingSize="xsmall"
+            header="No exceptions yet"
+            description={t('exceptions.emptyDescription')}
+          />
         ) : (
           <DynamicTable
             head={{

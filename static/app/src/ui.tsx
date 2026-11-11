@@ -49,8 +49,9 @@ export function useMaxWidth(px: number): boolean {
 }
 
 /**
- * App shell. Wide screens: fixed-width sidebar + content pane. Narrow screens (≤768px, CSS):
- * the sidebar is replaced by `mobileNav` at the top and the whole page scrolls as one.
+ * App shell. ≥1024px: 240px sidebar + content pane. ≤1023px (CSS): the sidebar leaves the layout
+ * and a top bar opens the same navigation as an overlay (AdminNav). ≤768px: the whole page
+ * scrolls as one.
  */
 export function SplitLayout({ sidebar, children }: { sidebar: ReactNode; children: ReactNode }) {
   return (
@@ -162,7 +163,7 @@ const pageHeaderTightenStyles = xcss({ marginBlockEnd: 'space.negative.300' });
 const pageHeaderWithMetaStyles = xcss({ paddingBlockEnd: 'space.200' });
 
 /**
- * Collapse header actions: max 2 visible (primary last + one secondary). Under ~900px only
+ * Collapse header actions: max 2 visible (primary last + one secondary). At ≤900px only
  * primary stays visible. Overflow goes in Atlaskit DropdownMenu "More".
  */
 function collapseHeaderActions(actions: ReactNode, compact: boolean): ReactNode {
@@ -280,8 +281,8 @@ export function PageHeader({
   /** Pages with tabs: the tab bar replaces the separator under the header. */
   flush?: boolean;
 }) {
-  // ~900px: actions below title + only primary outside More (R-3.11, R-3.12).
-  const stackActions = useMaxWidth(899);
+  // ≤900px (shared breakpoint, R-1.16): actions below the title, only the primary outside More.
+  const stackActions = useMaxWidth(900);
   const actionRow = actions ? (
     <div className="page-header-actions">{collapseHeaderActions(actions, stackActions)}</div>
   ) : null;

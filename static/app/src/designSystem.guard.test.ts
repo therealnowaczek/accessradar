@@ -21,7 +21,19 @@ import { describe, expect, it } from 'vitest';
  * 12. own empty-state components or ad-hoc panels (only @atlaskit/empty-state and the shared
  *     LevelSidePanel in Drawer.tsx). `@atlaskit/drawer` width "wide" is forbidden; "narrow" only
  *     for the navigation overlay (AdminNav).
- * Rules 7-9 have exported detectors and a self-test, so the guard cannot pass by mistake.
+ * Layout-conformance additions (docs/layout-conformance.md):
+ * 13. button order: ModalFooter = Cancel (subtle) then the primary/danger LAST (R-7.1);
+ *     DrawerFooter = the primary FIRST and Cancel only through `onCancel` (R-7.4), and
+ *     Drawer.tsx renders the children before the Cancel button;
+ * 14. JS breakpoints (useMaxWidth / matchMedia) use the shared widths too (R-1.16);
+ * 15. tables only through Table.tsx (DynamicTable in the horizontal-scroll wrapper; R-8.3, R-1.18);
+ * 16. every EmptyState has a header and a description (R-8.5);
+ * 17. no positive tabIndex (R-11.2); every <form> has noValidate (R-9.1);
+ * 18. @atlaskit/badge only for counters (allowlist, none today) and Heading size="large" only
+ *     for the page title in ui.tsx (R-8.10, R-3.3);
+ * 19. date formatting only in format.ts (no Intl.DateTimeFormat / toLocaleDateString /
+ *     toLocaleTimeString in views, no slicing formatted dates; R-6.1, R-6.3).
+ * Rules 7-19 have exported detectors and a self-test, so the guard cannot pass by mistake.
  * Allowlists are counted per file and every entry says why.
  */
 const ROOT = __dirname;
@@ -163,6 +175,119 @@ export function findOwnSurfaces(list: Source[]): string[] {
   ]);
 }
 
+const APPEARANCE = /appearance=["'](\w+)["']/g;
+const PRIMARY_LIKE = new Set(['primary', 'danger', 'warning']);
+const MODAL_FOOTER = /<ModalFooter\b[^>]*>([\s\S]*?)<\/ModalFooter>/g;
+const DRAWER_FOOTER = /<DrawerFooter\b([\s\S]*?)<\/DrawerFooter>/g;
+const CANCEL_CHILD = />\s*Cancel\s*</;
+const appearances = (block: string) => [...block.matchAll(APPEARANCE)].map((m) => m[1]);
+
+/** Rule 13: footer button order (modal: primary last; drawer: primary first, Cancel via onCancel). */
+export function findFooterOrder(list: Source[]): string[] {
+  return list
+    .filter((s) => s.path.endsWith('.tsx'))
+    .flatMap((s) => {
+      const found: string[] = [];
+      for (const m of s.text.matchAll(MODAL_FOOTER)) {
+        const order = appearances(m[1]);
+        const last = order[order.length - 1];
+        if (order.some((a) => PRIMARY_LIKE.has(a)) && !PRIMARY_LIKE.has(last ?? ''))
+          found.push(`${s.path}: ModalFooter primary is not last (${order.join(', ')})`);
+      }
+      for (const m of s.text.matchAll(DRAWER_FOOTER)) {
+        const order = appearances(m[1]);
+        if (order.some((a) => PRIMARY_LIKE.has(a)) && !PRIMARY_LIKE.has(order[0]))
+          found.push(`${s.path}: DrawerFooter primary is not first (${order.join(', ')})`);
+        if (CANCEL_CHILD.test(m[1]))
+          found.push(`${s.path}: DrawerFooter Cancel passed as a child (use onCancel)`);
+      }
+      if (s.path === SIDE_PANEL_FILE) {
+        const footer = s.text.slice(s.text.indexOf('export function DrawerFooter'));
+        const children = footer.indexOf('{children}');
+        const cancel = footer.indexOf('{onCancel ?');
+        if (children < 0 || cancel < 0 || children > cancel)
+          found.push(`${s.path}: DrawerFooter must render children before Cancel`);
+      }
+      return found;
+    });
+}
+
+const JS_BREAKPOINT =
+  /useMaxWidth\(\s*(\d+)\s*\)|matchMedia\??\.?\(\s*['"`]\((?:max|min)-width:\s*(\d+)px\)/g;
+
+/** Rule 14: breakpoints in TS/TSX (useMaxWidth, matchMedia) outside table 1.7. */
+export function findJsBreakpoints(list: Source[]): string[] {
+  return list
+    .filter((s) => /\.tsx?$/.test(s.path))
+    .flatMap((s) =>
+      [...s.text.matchAll(JS_BREAKPOINT)]
+        .filter((m) => !ALLOWED_BREAKPOINTS.has(m[1] ?? m[2]))
+        .map((m) => `${s.path}: ${m[0]}`),
+    );
+}
+
+const DYNAMIC_TABLE_IMPORT = /from ['"]@atlaskit\/dynamic-table['"]/;
+
+/** Rule 15: DynamicTable is imported only by Table.tsx (the horizontal-scroll wrapper). */
+export function findDirectTables(list: Source[]): string[] {
+  return list
+    .filter((s) => /\.tsx?$/.test(s.path) && s.path !== 'Table.tsx')
+    .flatMap((s) => lines(s, DYNAMIC_TABLE_IMPORT));
+}
+
+const EMPTY_STATE = /<EmptyState\b([\s\S]*?)\/>/g;
+
+/** Rule 16: every EmptyState has a header and a description (R-8.5). */
+export function findIncompleteEmptyStates(list: Source[]): string[] {
+  return list
+    .filter((s) => s.path.endsWith('.tsx'))
+    .flatMap((s) =>
+      [...s.text.matchAll(EMPTY_STATE)]
+        .filter((m) => !/\bheader=/.test(m[1]) || !/\bdescription=/.test(m[1]))
+        .map(() => `${s.path}: EmptyState without header or description`),
+    );
+}
+
+const POSITIVE_TAB_INDEX = /tabIndex=\{?\s*["']?[1-9]/;
+const FORM_TAG = /<form\b[^>]*>/g;
+
+/** Rule 17: no positive tabIndex; every <form> has noValidate. */
+export function findFocusAndFormIssues(list: Source[]): string[] {
+  return list
+    .filter((s) => s.path.endsWith('.tsx'))
+    .flatMap((s) => [
+      ...lines(s, POSITIVE_TAB_INDEX),
+      ...(s.text.match(FORM_TAG) ?? [])
+        .filter((tag) => !/\bnoValidate\b/.test(tag))
+        .map((tag) => `${s.path}: ${tag} without noValidate`),
+    ]);
+}
+
+/** Badge is for counters only (R-8.10). Per-file allowlist; none today. */
+const BADGE_ALLOWLIST: Record<string, Allow> = {};
+const BADGE_IMPORT = /from ['"]@atlaskit\/badge['"]/;
+const LARGE_HEADING = /<Heading\b[^>]*\bsize=["'](?:large|xlarge|xxlarge)["']/;
+
+/** Rule 18: Badge only from the allowlist; large headings only for the page title (ui.tsx). */
+export function findBadgeAndHeadingIssues(list: Source[]): string[] {
+  return list
+    .filter((s) => s.path.endsWith('.tsx'))
+    .flatMap((s) => [
+      ...(BADGE_ALLOWLIST[s.path] ? [] : lines(s, BADGE_IMPORT)),
+      ...(s.path === 'ui.tsx' ? [] : lines(s, LARGE_HEADING)),
+    ]);
+}
+
+const AD_HOC_DATE =
+  /\bIntl\.DateTimeFormat\s*\(|\.toLocale(?:Date|Time)String\s*\(|formatLocal\([^)]*\)\s*\.\s*(?:split|slice|substring)\b/;
+
+/** Rule 19: dates are formatted only by the helpers in format.ts (Jira locale and time zone). */
+export function findAdHocDates(list: Source[]): string[] {
+  return list
+    .filter((s) => /\.tsx?$/.test(s.path) && s.path !== 'format.ts')
+    .flatMap((s) => lines(s, AD_HOC_DATE));
+}
+
 const count = (text: string, pattern: RegExp) => (text.match(pattern) ?? []).length;
 
 const hits = (filter: (path: string) => boolean, pattern: RegExp) =>
@@ -264,6 +389,119 @@ describe('design system guard (Radrly layout standard)', () => {
 
   it('12. has no own empty states or ad-hoc panels; SidePanel only; Drawer narrow for nav', () => {
     expect(findOwnSurfaces(sources)).toEqual([]);
+  });
+
+  it('13. orders footer buttons: modal primary last, drawer primary first + Cancel via onCancel', () => {
+    expect(findFooterOrder(sources)).toEqual([]);
+  });
+
+  it('14. uses only the shared breakpoints in JS media queries too', () => {
+    expect(findJsBreakpoints(sources)).toEqual([]);
+  });
+
+  it('15. renders tables only through Table.tsx (horizontal-scroll wrapper)', () => {
+    expect(findDirectTables(sources)).toEqual([]);
+  });
+
+  it('16. gives every EmptyState a header and a description', () => {
+    expect(findIncompleteEmptyStates(sources)).toEqual([]);
+  });
+
+  it('17. has no positive tabIndex and every form has noValidate', () => {
+    expect(findFocusAndFormIssues(sources)).toEqual([]);
+  });
+
+  it('18. uses Badge only for counters and Heading large only for the page title', () => {
+    expect(findBadgeAndHeadingIssues(sources)).toEqual([]);
+    for (const [path, allow] of Object.entries(BADGE_ALLOWLIST)) {
+      const s = sources.find((x) => x.path === path);
+      expect(s && BADGE_IMPORT.test(s.text) && allow.why ? path : `stale ${path}`).toBe(path);
+    }
+  });
+
+  it('19. formats dates only through format.ts (Jira locale and time zone)', () => {
+    expect(findAdHocDates(sources)).toEqual([]);
+  });
+
+  it('detects the patterns it guards against (rules 13-19)', () => {
+    const src = (path: string, text: string) => [{ path, text }];
+    const modal = (body: string) => src('a.tsx', `<ModalFooter>${body}</ModalFooter>`);
+    expect(
+      findFooterOrder(
+        modal(
+          '<Button appearance="subtle">Cancel</Button><Button appearance="primary">Save</Button>',
+        ),
+      ),
+    ).toHaveLength(0);
+    expect(
+      findFooterOrder(
+        modal(
+          '<Button appearance="primary">Save</Button><Button appearance="subtle">Cancel</Button>',
+        ),
+      ),
+    ).toHaveLength(1);
+    const drawer = (attrs: string, body: string) =>
+      src('a.tsx', `<DrawerFooter${attrs}>${body}</DrawerFooter>`);
+    expect(
+      findFooterOrder(
+        drawer(' onCancel={() => close()}', '<Button appearance="primary">Save</Button>'),
+      ),
+    ).toHaveLength(0);
+    expect(
+      findFooterOrder(
+        drawer(
+          '',
+          '<Button appearance="subtle">Back</Button><Button appearance="primary">Save</Button>',
+        ),
+      ),
+    ).toHaveLength(1);
+    expect(
+      findFooterOrder(
+        drawer('', '<Button appearance="primary">Save</Button><Button onClick={x}>Cancel</Button>'),
+      ),
+    ).toHaveLength(1);
+    expect(
+      findFooterOrder(
+        src(
+          'Drawer.tsx',
+          'export function DrawerFooter() { {onCancel ? (<B/>) : null} {children} }',
+        ),
+      ),
+    ).toHaveLength(1);
+    expect(findJsBreakpoints(src('a.tsx', 'useMaxWidth(899)'))).toHaveLength(1);
+    expect(findJsBreakpoints(src('a.tsx', 'useMaxWidth(900)'))).toHaveLength(0);
+    expect(findJsBreakpoints(src('a.ts', "window.matchMedia('(max-width: 700px)')"))).toHaveLength(
+      1,
+    );
+    expect(
+      findJsBreakpoints(src('a.ts', "matchMedia?.('(prefers-reduced-motion: reduce)')")),
+    ).toHaveLength(0);
+    expect(findDirectTables(src('a.tsx', "import T from '@atlaskit/dynamic-table';"))).toHaveLength(
+      1,
+    );
+    expect(
+      findDirectTables(src('Table.tsx', "import T from '@atlaskit/dynamic-table';")),
+    ).toHaveLength(0);
+    expect(findIncompleteEmptyStates(src('a.tsx', '<EmptyState header="x" />'))).toHaveLength(1);
+    expect(
+      findIncompleteEmptyStates(src('a.tsx', '<EmptyState header="x" description="y." />')),
+    ).toHaveLength(0);
+    expect(findFocusAndFormIssues(src('a.tsx', '<Box tabIndex={2}>'))).toHaveLength(1);
+    expect(findFocusAndFormIssues(src('a.tsx', '<div tabIndex={-1}>'))).toHaveLength(0);
+    expect(findFocusAndFormIssues(src('a.tsx', '<form onSubmit={x}>'))).toHaveLength(1);
+    expect(findFocusAndFormIssues(src('a.tsx', '<form {...p} noValidate>'))).toHaveLength(0);
+    expect(
+      findBadgeAndHeadingIssues(src('a.tsx', "import Badge from '@atlaskit/badge';")),
+    ).toHaveLength(1);
+    expect(findBadgeAndHeadingIssues(src('a.tsx', '<Heading size="large">'))).toHaveLength(1);
+    expect(findBadgeAndHeadingIssues(src('ui.tsx', '<Heading size="large" as="h1">'))).toHaveLength(
+      0,
+    );
+    expect(findAdHocDates(src('a.tsx', "new Intl.DateTimeFormat('en-GB')"))).toHaveLength(1);
+    expect(findAdHocDates(src('a.tsx', "formatLocal(x).split(',')[0]"))).toHaveLength(1);
+    expect(findAdHocDates(src('a.tsx', 'd.toLocaleDateString()'))).toHaveLength(1);
+    expect(findAdHocDates(src('a.tsx', 'n.toLocaleString()'))).toHaveLength(0);
+    expect(findAdHocDates(src('format.ts', "new Intl.DateTimeFormat('en-GB')"))).toHaveLength(0);
   });
 
   it('detects violations (self-check)', () => {

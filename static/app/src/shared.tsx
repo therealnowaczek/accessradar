@@ -125,16 +125,20 @@ export function SnapshotProgress({ active }: { active: Snapshot }) {
   );
 }
 
-/** Shown wherever a view needs data and no snapshot exists yet. */
-export function NoSnapshot({ what }: { what: string }) {
+/**
+ * Shown wherever a view needs data and no snapshot exists yet. Pass `headingSize="xsmall"` when it
+ * sits among other sections or under pickers (R-8.6); alone on a page it keeps the default size.
+ */
+export function NoSnapshot({ what, headingSize }: { what: string; headingSize?: 'xsmall' }) {
   const { status } = useApp();
   const take = useTakeSnapshot();
   const active = status.data?.active;
   if (active) return <SnapshotProgress active={active} />;
   return (
     <EmptyState
+      headingSize={headingSize}
       header="No snapshot yet"
-      description={`Take the first snapshot to see ${what}. It reads permission schemes, roles, groups and application access; nothing in Jira changes.`}
+      description={`Take the first snapshot to see ${what}; it reads permission schemes, roles, groups and application access, and nothing in Jira changes.`}
       primaryAction={
         <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>
           Take snapshot now

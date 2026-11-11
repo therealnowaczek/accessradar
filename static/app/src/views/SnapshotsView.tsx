@@ -23,7 +23,7 @@ import {
   useTakeSnapshot,
 } from '../shared';
 import { Details, ErrorState, LinkButton, PageFrame, PageHeader, staleNotice } from '../ui';
-import { DrawerPhantom, SkeletonRoot } from '../skeletons';
+import { DetailsPhantom, SkeletonRoot } from '../skeletons';
 import { SkeletonTable } from '../skeletonTable';
 
 const STAT_LABEL: Record<string, string> = {
@@ -124,10 +124,13 @@ export function SnapshotsView() {
           <EmptyState
             header="No snapshots yet"
             description="A snapshot records permission schemes, roles, groups and application access at one point in time."
+            // R-3.2: while a snapshot runs the header keeps its (disabled) button; no second CTA.
             primaryAction={
-              <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>
-                Take snapshot now
-              </Button>
+              active ? undefined : (
+                <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>
+                  Take snapshot now
+                </Button>
+              )
             }
           />
         ) : (
@@ -214,7 +217,21 @@ function SnapshotDrawer({ seq }: { seq: number }) {
   if (!s)
     return (
       <DrawerBody>
-        <DrawerPhantom />
+        {/* The loaded level starts with these Details terms (R-10.1). */}
+        <SkeletonRoot>
+          <DetailsPhantom
+            terms={[
+              'Status',
+              'Started',
+              'Finished',
+              'Trigger',
+              'Identity',
+              'API cost',
+              'Engine version',
+              'Content hash (SHA-256)',
+            ]}
+          />
+        </SkeletonRoot>
       </DrawerBody>
     );
   const committed = s.status === 'complete' || s.status === 'partial';

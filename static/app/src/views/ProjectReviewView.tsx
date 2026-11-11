@@ -137,7 +137,8 @@ export function ProjectReviewView() {
       <PageFrame header={header}>
         <SkeletonRoot>
           <Phantom height={72} />
-          <MetricGridPhantom count={4} hints={false} />
+          {/* The "Decided" tile has a hint, which sets the row height of every tile. */}
+          <MetricGridPhantom count={4} />
           <SkeletonTable columns={['Who', 'Permissions', 'Decision', <ActionsHeader key="a" />]} />
         </SkeletonRoot>
       </PageFrame>
@@ -167,7 +168,7 @@ export function ProjectReviewView() {
             header="No assigned review"
             description={
               d.limitation ??
-              'When a Jira admin runs a campaign, the assigned space admin reviews access here. Reminders stay in the app — AccessRadar does not send email.'
+              'When a Jira admin runs a campaign, the assigned space admin reviews access here, with reminders in the app only (AccessRadar sends no email).'
             }
           />
         ) : (

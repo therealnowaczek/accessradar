@@ -1,20 +1,30 @@
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
-import DynamicTable from '@atlaskit/dynamic-table';
+import { Code } from '@atlaskit/code';
+import { Inline, Stack, Text } from '@atlaskit/primitives';
 import SectionMessage from '@atlaskit/section-message';
+import Tooltip from '@atlaskit/tooltip';
 import { call, errorText, type Probe, type SpikeResult } from '../api';
+import DynamicTable from '../Table';
 import { useToast } from '../Toast';
-import { Pill, SectionHeader } from '../ui';
+import { ErrorState, Pill, SectionHeader } from '../ui';
 
 /** Shown only when the backend reports ACCESSRADAR_SPIKE=1 (development). */
-function Code({ probe }: { probe?: Probe }) {
-  if (!probe) return <span className="subtle">—</span>;
+function ProbeCell({ probe }: { probe?: Probe }) {
+  if (!probe) return <Text color="color.text.subtle">—</Text>;
   const ok = probe.status >= 200 && probe.status < 300;
-  return (
-    <span className="status-row" title={probe.error}>
+  const cell = (
+    <Inline as="span" space="space.100" alignBlock="center">
       <Pill tone={ok ? 'success' : 'danger'}>{probe.status < 0 ? 'Error' : probe.status}</Pill>
-      {probe.count !== undefined ? <span className="subtle">{probe.count}</span> : null}
-    </span>
+      {probe.count !== undefined ? <Text color="color.text.subtle">{probe.count}</Text> : null}
+    </Inline>
+  );
+  return probe.error ? (
+    <Tooltip content={probe.error}>
+      {(tooltipProps) => <span {...tooltipProps}>{cell}</span>}
+    </Tooltip>
+  ) : (
+    cell
   );
 }
 
@@ -50,13 +60,13 @@ export function SpikePanel() {
   const rows = (result?.asUser ?? []).map((probe, i) => ({
     key: `${i}-${probe.name}`,
     cells: [
-      { key: 'endpoint', content: <code>{probe.name}</code> },
-      { key: 'user', content: <Code probe={probe} /> },
-      { key: 'app', content: <Code probe={result?.asApp[i]} /> },
+      { key: 'endpoint', content: <Code>{probe.name}</Code> },
+      { key: 'user', content: <ProbeCell probe={probe} /> },
+      { key: 'app', content: <ProbeCell probe={result?.asApp[i]} /> },
     ],
   }));
   return (
-    <div className="section-stack">
+    <Stack space="space.200">
       <SectionHeader
         title="Developer spike"
         description="Which Jira read endpoints work for each call identity. Development only."
@@ -67,20 +77,13 @@ export function SpikePanel() {
         }
       />
       <SectionMessage appearance="discovery">
-        <p>
-          Visible because <code>ACCESSRADAR_SPIKE=1</code>. Results contain status codes and counts
+        <Text as="p">
+          Visible because <Code>ACCESSRADAR_SPIKE=1</Code>. Results contain status codes and counts
           only, no user data.
-        </p>
+        </Text>
       </SectionMessage>
-      {error ? (
-        <SectionMessage appearance="error" title="Probes failed">
-          <div className="section-stack">
-            <p>{error}</p>
-            <Button onClick={run}>Try again</Button>
-          </div>
-        </SectionMessage>
-      ) : null}
+      {error ? <ErrorState title="Probes failed" message={error} retry={() => void run()} /> : null}
       {result ? <DynamicTable label="Probe results" head={head} rows={rows} /> : null}
-    </div>
+    </Stack>
   );
 }

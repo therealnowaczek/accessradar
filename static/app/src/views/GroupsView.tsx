@@ -20,7 +20,7 @@ import {
   DividedList,
   staleNotice,
 } from '../ui';
-import { DrawerPhantom, FilterBarPhantom, SkeletonRoot } from '../skeletons';
+import { FilterBarPhantom, LinesPhantom, Phantom, SkeletonRoot } from '../skeletons';
 import { SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
@@ -87,7 +87,7 @@ export function GroupsView() {
           <ErrorState title="Groups unavailable" message={list.error} retry={list.reload} />
         ) : !list.data ? (
           <SkeletonRoot>
-            <FilterBarPhantom controls={2} />
+            <FilterBarPhantom controls={3} />
             <SkeletonTable
               columns={['Group', 'Members', 'Access', 'Spaces reached', 'Direct grants']}
             />
@@ -208,7 +208,21 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
   if (!g)
     return (
       <DrawerBody>
-        <DrawerPhantom />
+        {/* The loaded level's own sections with placeholder content (R-10.1). */}
+        <SkeletonRoot>
+          <Section
+            title="Access"
+            description="Application and administration access from this group."
+          >
+            <Phantom width={160} height={20} radius="full" />
+          </Section>
+          <Section title="Spaces" description="Where membership of this group grants access.">
+            <LinesPhantom lines={4} />
+          </Section>
+          <Section title="Members">
+            <LinesPhantom lines={4} />
+          </Section>
+        </SkeletonRoot>
       </DrawerBody>
     );
   return (
