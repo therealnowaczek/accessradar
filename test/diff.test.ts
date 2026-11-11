@@ -87,3 +87,16 @@ describe('hashing', () => {
     expect(contentHash(a)).toMatch(/^[0-9a-f]{64}$/);
   });
 });
+
+describe('effectiveTuples for one space (space export)', () => {
+  it('returns only the requested space and the same tuples as the site-wide filter', () => {
+    const state = buildState(siteFacts());
+    const all = [...effectiveTuples(state, null).values()];
+    const projectId = all[0].projectId;
+    const one = [...effectiveTuples(state, null, projectId).values()];
+    expect(one.length).toBeGreaterThan(0);
+    expect(one.every((t) => t.projectId === projectId)).toBe(true);
+    expect(one).toEqual(all.filter((t) => t.projectId === projectId));
+    expect(effectiveTuples(state, null, 'no-such-space').size).toBe(0);
+  });
+});

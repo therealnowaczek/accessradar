@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { _test } from '../src/rovo/actions';
+import { subjectKind } from '../src/api/views';
 import type { AccessState } from '../src/engine/state';
 
 describe('rovo helpers', () => {
@@ -65,5 +66,39 @@ describe('ar-review-status campaign filter', () => {
     ]);
     const out = _test.reviewsForCampaigns(reviews, [campaigns[0]], runs);
     expect(out.map((x) => [x.review.id, x.campaign])).toEqual([['r1', 'Quarterly admins']]);
+  });
+});
+
+describe('rovo payload wording (E2E phase 0 finding 2)', () => {
+  it('a review row says review, with the campaign only as its origin', () => {
+    const row = _test.reviewRow(
+      {
+        name: 'E2E 2026-11-11 review',
+        status: 'signed',
+        dueAt: Date.UTC(2026, 11, 28),
+        itemCount: 26,
+        decided: 26,
+        chainSeq: 2,
+      } as never,
+      Date.UTC(2026, 10, 11),
+      'E2E 2026-11-11 phase 1',
+    );
+    expect(row).toEqual({
+      review: 'E2E 2026-11-11 review',
+      status: 'signed',
+      due: '2026-12-28T00:00:00.000Z',
+      overdue: 'no',
+      decided: '26/26',
+      chain: '2',
+      fromCampaign: 'E2E 2026-11-11 phase 1',
+    });
+    expect(row).not.toHaveProperty('name');
+    expect(row).not.toHaveProperty('campaign');
+  });
+
+  it('labels app integrations as app in subject tables', () => {
+    expect(subjectKind({ type: 'user', accountType: 'app' })).toBe('app');
+    expect(subjectKind({ type: 'user', accountType: 'atlassian' })).toBe('user');
+    expect(subjectKind({ type: 'group' })).toBe('group');
   });
 });

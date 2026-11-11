@@ -22,19 +22,25 @@ export async function exportMatrix(
 ): Promise<number> {
   const keyPermissions =
     format === 'pdf' ? (await call<SettingsView>('getSettings')).settings.keyPermissions : [];
+  // A space export asks the server for that space only (E2E 2.2: the whole-site matrix with every
+  // permission was fetched and filtered here, slow enough that no file arrived).
   const m = await call<Matrix>('accessMatrix', {
     seq,
     allPermissions: format !== 'pdf',
     keyPermissions,
+    ...(projectKey ? { projectKey } : {}),
   });
   if (!m.snapshot || !m.data) throw new Error('No snapshot to export');
   const rows = projectKey ? m.data.filter((r) => r.project_key === projectKey) : m.data;
   const suffix = projectKey ? `_${projectKey}` : '';
-  const detail = await call<
-    Snapshot & { coverage: Coverage[]; limitations?: import('../api').Limitations }
-  >('getSnapshot', { seq: m.snapshot.seq });
+  const [detail, overview] = await Promise.all([
+    call<Snapshot & { coverage: Coverage[]; limitations?: import('../api').Limitations }>(
+      'getSnapshot',
+      { seq: m.snapshot.seq },
+    ),
+    format === 'pdf' ? null : call<Overview>('getOverview', {}).catch(() => null),
+  ]);
   if (format === 'csv') {
-    const overview = await call<Overview>('getOverview', {}).catch(() => null);
     downloadCsv(
       matrixFileName(m.snapshot, 'csv').replace('.csv', `${suffix}.csv`),
       matrixCsv(
@@ -47,7 +53,6 @@ export async function exportMatrix(
       ),
     );
   } else if (format === 'md') {
-    const overview = await call<Overview>('getOverview', {}).catch(() => null);
     downloadMarkdown(
       matrixFileName(m.snapshot, 'md').replace('.md', `${suffix}.md`),
       matrixMarkdown(

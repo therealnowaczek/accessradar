@@ -33,7 +33,10 @@ import { describe, expect, it } from 'vitest';
  *     for the page title in ui.tsx (R-8.10, R-3.3);
  * 19. date formatting only in format.ts (no Intl.DateTimeFormat / toLocaleDateString /
  *     toLocaleTimeString in views, no slicing formatted dates; R-6.1, R-6.3).
- * Rules 7-19 have exported detectors and a self-test, so the guard cannot pass by mistake.
+ * 20. the single-scroll layout (header not pinned, no fade, line stays) covers ≤768px AND the 200%
+ *     zoom shape (compact ≤1023px with a short viewport): R-1.17, R-1.18, R-3.6; height
+ *     breakpoints use the table 1.7 values too.
+ * Rules 7-20 have exported detectors and a self-test, so the guard cannot pass by mistake.
  * Allowlists are counted per file and every entry says why.
  */
 const ROOT = __dirname;
@@ -288,6 +291,43 @@ export function findAdHocDates(list: Source[]): string[] {
     .flatMap((s) => lines(s, AD_HOC_DATE));
 }
 
+/** The one media query of the single-scroll block in styles.css (≤768px or 200% zoom). */
+export const SINGLE_SCROLL_MEDIA =
+  '@media (max-width: 768px), (max-width: 1023px) and (max-height: 600px)';
+const MEDIA_HEIGHT = /\((?:max|min)-height:\s*(\d+)px\)/g;
+/** What the single-scroll block must switch off: the pinned frame, nested scrolls and the fades. */
+const SINGLE_SCROLL_NEEDS: Array<[string, RegExp]> = [
+  ['frame height auto', /\.page-frame[^{]*\{[^}]*height:\s*auto/],
+  ['header fade off', /\.page-header::after[^{]*\{[^}]*content:\s*none/],
+  ['tab fade off', /\.page-tabs \[role='tablist'\]::after[^{]*\{[^}]*content:\s*none/],
+  ['one scroll', /\.page-scroll[^{]*\{[^}]*overflow:\s*visible/],
+];
+
+/** Body of the `@media … {` block that starts at `start` (brace counting). */
+function blockAt(text: string, start: number): string {
+  let depth = 0;
+  for (let i = text.indexOf('{', start); i < text.length; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}' && --depth === 0) return text.slice(start, i + 1);
+  }
+  return text.slice(start);
+}
+
+/** Rule 20: single scroll at ≤768px and at 200% zoom; height breakpoints from table 1.7. */
+export function findSingleScrollIssues(list: Source[]): string[] {
+  const css = list.find((s) => s.path === 'styles.css');
+  if (!css) return ['styles.css: missing'];
+  const found = [...css.text.matchAll(MEDIA_HEIGHT)]
+    .filter((m) => !ALLOWED_BREAKPOINTS.has(m[1]))
+    .map((m) => `styles.css: ${m[0]}`);
+  const start = css.text.indexOf(`${SINGLE_SCROLL_MEDIA} {`);
+  if (start < 0) return [...found, `styles.css: no "${SINGLE_SCROLL_MEDIA}" block`];
+  const block = blockAt(css.text, start);
+  for (const [what, pattern] of SINGLE_SCROLL_NEEDS)
+    if (!pattern.test(block)) found.push(`styles.css: single-scroll block lacks ${what}`);
+  return found;
+}
+
 const count = (text: string, pattern: RegExp) => (text.match(pattern) ?? []).length;
 
 const hits = (filter: (path: string) => boolean, pattern: RegExp) =>
@@ -423,7 +463,11 @@ describe('design system guard (Radrly layout standard)', () => {
     expect(findAdHocDates(sources)).toEqual([]);
   });
 
-  it('detects the patterns it guards against (rules 13-19)', () => {
+  it('20. unpins the header (line stays, no fade) at ≤768px and at 200% zoom', () => {
+    expect(findSingleScrollIssues(sources)).toEqual([]);
+  });
+
+  it('detects the patterns it guards against (rules 13-20)', () => {
     const src = (path: string, text: string) => [{ path, text }];
     const modal = (body: string) => src('a.tsx', `<ModalFooter>${body}</ModalFooter>`);
     expect(
@@ -502,6 +546,24 @@ describe('design system guard (Radrly layout standard)', () => {
     expect(findAdHocDates(src('a.tsx', 'd.toLocaleDateString()'))).toHaveLength(1);
     expect(findAdHocDates(src('a.tsx', 'n.toLocaleString()'))).toHaveLength(0);
     expect(findAdHocDates(src('format.ts', "new Intl.DateTimeFormat('en-GB')"))).toHaveLength(0);
+    const unpin = `{ .page-frame { height: auto; } .page-header::after, .page-tabs [role='tablist']::after { content: none; } .page-scroll { overflow: visible; } }`;
+    expect(findSingleScrollIssues(src('styles.css', `${SINGLE_SCROLL_MEDIA} ${unpin}`))).toEqual(
+      [],
+    );
+    // Width only (the E2E 1.9 bug): the 200% zoom shape on a 1920px screen stays pinned.
+    expect(
+      findSingleScrollIssues(src('styles.css', `@media (max-width: 768px) ${unpin}`)),
+    ).toHaveLength(1);
+    expect(
+      findSingleScrollIssues(
+        src('styles.css', `${SINGLE_SCROLL_MEDIA} { .page-frame { height: auto; } }`),
+      ),
+    ).toHaveLength(3);
+    expect(
+      findSingleScrollIssues(
+        src('styles.css', `${SINGLE_SCROLL_MEDIA} ${unpin} @media (max-height: 700px) {}`),
+      ),
+    ).toEqual(['styles.css: (max-height: 700px)']);
   });
 
   it('detects violations (self-check)', () => {

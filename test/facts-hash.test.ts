@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { contentHash, contentHashUpdate, coverageHash, type StoredFact } from '../src/engine/facts';
+import { contentHash, coverageHash, type StoredFact } from '../src/engine/facts';
 
-describe('contentHash stream', () => {
+describe('contentHash', () => {
   const facts: Array<Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>> = [
     { kind: 'role', fkey: 'r2', vhash: 'bb' },
     { kind: 'group', fkey: 'g1', vhash: 'aa' },
@@ -10,18 +10,24 @@ describe('contentHash stream', () => {
     { kind: 'project', fkey: 'p1', vhash: 'dd' },
   ];
 
-  it('matches incremental update when facts are ordered by kind,fkey', () => {
-    const ordered = [...facts].sort(
-      (a, b) => a.kind.localeCompare(b.kind) || a.fkey.localeCompare(b.fkey),
-    );
-    const full = contentHash(facts);
-    const hash = createHash('sha256');
-    let started = false;
-    // Two pages
-    started = contentHashUpdate(hash, ordered.slice(0, 2), started);
-    started = contentHashUpdate(hash, ordered.slice(2), started);
-    expect(started).toBe(true);
-    expect(hash.digest('hex')).toBe(full);
+  it('is independent of input order', () => {
+    expect(contentHash(facts)).toBe(contentHash([...facts].reverse()));
+  });
+
+  it('sorts whole lines in JS, not by a SQL collation (":" vs digits, case, "_")', () => {
+    // A case-insensitive or UCA collation orders these differently from JS; the hash must not.
+    const tricky: Array<Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>> = [
+      { kind: 'grant', fkey: '10000:10001', vhash: '01' },
+      { kind: 'grant', fkey: '100001:5', vhash: '02' },
+      { kind: 'person', fkey: 'B-account', vhash: '03' },
+      { kind: 'person', fkey: 'a-account', vhash: '04' },
+      { kind: 'group_member', fkey: 'g_1:x', vhash: '05' },
+      { kind: 'group_member', fkey: 'ga:x', vhash: '06' },
+    ];
+    const lines = tricky.map((f) => `${f.kind}\t${f.fkey}\t${f.vhash}`).sort();
+    const expected = createHash('sha256').update(lines.join('\n'), 'utf8').digest('hex');
+    expect(contentHash(tricky)).toBe(expected);
+    expect(contentHash([...tricky].reverse())).toBe(expected);
   });
 
   it('empty set hashes to sha256 of empty string', () => {

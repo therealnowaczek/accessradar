@@ -26,7 +26,7 @@ Phase 0 has no feature code. The planned code change (item C, MCP surface detect
 
 ## A. Date-picker smoke test (`@atlaskit/datetime-picker` 14 to 19)
 
-All date inputs use the shared `DateField` (`static/app/src/ui.tsx`, ADS `DatePicker`, display format "27 Oct 2026", value stored as ISO). There are three screens:
+All date inputs use the shared `DateField` (`static/app/src/ui.tsx`, ADS `DatePicker`, value stored as ISO). Displayed and typed dates follow the Jira profile language (decision 2026-11-11; fallback en-US). The expectations below are for English (United States); for a day-first language (English (UK), Polski) the numeric order flips: `12/1/2026` is 12 January there. There are three screens:
 
 | Id | Screen | Path | Field |
 |---|---|---|---|
@@ -36,13 +36,13 @@ All date inputs use the shared `DateField` (`static/app/src/ui.tsx`, ADS `DatePi
 
 For each of A1, A2, A3, in Light and then Dark theme:
 
-1. Open the drawer. Expect the field with the helper text "Type a date such as 27 Oct 2026 or 27/10/2026, or pick one from the calendar." and a calendar button.
-2. Mouse: click the calendar button, pick a date 7 days from today. Expect the field to show it as "D Mon YYYY" (for example "18 Nov 2026"). The calendar closes.
-3. Keyboard: focus the field, clear it (select all, Backspace), type `27/12/2026`, press Enter. Expect "27 Dec 2026". Then type `2026-12-28`, Enter, expect "28 Dec 2026". Open the calendar with the keyboard (Down arrow), move with arrow keys, Enter. Expect the chosen date in the field.
-4. Invalid input: type `31 Feb 2026` and Tab away. Expect no date accepted (field empty or previous value kept), no crash.
+1. Open the drawer. Expect the field with the helper text "Type a date such as 10/27/2026 or Oct 27, 2026, or pick one from the calendar." and a calendar button.
+2. Mouse: click the calendar button, pick a date 7 days from today. Expect the field to show it in the locale format (for example "Nov 18, 2026"). The calendar closes.
+3. Keyboard: focus the field, clear it (select all, Backspace), type `12/1/2026`, press Enter. Expect "Dec 1, 2026". Then type `2026-12-28`, Enter, expect "Dec 28, 2026". Open the calendar with the keyboard (Down arrow), move with arrow keys, Enter. Expect the chosen date in the field.
+4. Invalid input: type `31 Feb 2026` (or `27/12/2026` in en-US) and press Enter or Tab away. Expect no date accepted (previous value kept), a red field error "Enter a valid date, for example 10/27/2026." directly under the field, and no crash. Picking a valid date clears the error.
 5. Clear the field (clear button or select all + Backspace). Expect an empty field and, for A1 only, the drawer still allows "Start review" (the date is optional). A2: the exception needs an expiry, expect the save button disabled or a validation message.
 6. Set a valid date again and save with the drawer's primary button (A1 "Start review", A2 the decision save button, A3 "Create campaign"). Name items `E2E 2026-11-11 ...` and pick ARTEST as scope where the drawer asks for spaces or categories.
-7. Reload the page (browser reload), reopen the saved item. Expect the same date, shown in the app date format ("D Mon YYYY"). A2: the Exceptions screen lists the exception with that expiry. A3: the campaign shows the start date (UTC).
+7. Reload the page (browser reload), reopen the saved item. Expect the same date, shown in the locale format ("Mon D, YYYY" in en-US). A2: the Exceptions screen lists the exception with that expiry. A3: the campaign shows the start date (UTC).
 8. DevTools console: no errors or React warnings from the date picker during steps 1 to 7.
 9. Dark theme: calendar popup, selected day and field text readable (tokens), no white blocks.
 

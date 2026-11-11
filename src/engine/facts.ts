@@ -142,27 +142,14 @@ export function contentHashLine(f: Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>):
   return `${f.kind}\t${f.fkey}\t${f.vhash}`;
 }
 
-/** Content hash of a snapshot: SHA-256 over sorted kind/key/version lines. */
+/**
+ * Content hash of a snapshot: SHA-256 over kind/key/version lines sorted in JS (UTF-16 order).
+ * Sign time (FINALIZE) and deep verify both call this through `snapshotContentHash`; never
+ * rebuild it from a SQL `ORDER BY`, whose order depends on the column collation.
+ */
 export function contentHash(facts: Array<Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>>): string {
   const lines = facts.map(contentHashLine).sort();
   return sha256(lines.join('\n'));
-}
-
-/**
- * Incremental content hash for facts already ordered by (kind, fkey).
- * Must match `contentHash` for the same set (ordering by kind,fkey ≡ sorting full lines).
- */
-export function contentHashUpdate(
-  hash: ReturnType<typeof createHash>,
-  facts: Array<Pick<StoredFact, 'kind' | 'fkey' | 'vhash'>>,
-  started: boolean,
-): boolean {
-  for (const f of facts) {
-    if (started) hash.update('\n', 'utf8');
-    hash.update(contentHashLine(f), 'utf8');
-    started = true;
-  }
-  return started;
 }
 
 export function coverageHash(coverage: unknown[]): string {
