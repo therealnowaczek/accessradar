@@ -213,3 +213,21 @@ The browser agent run will produce the first tick/resolver lines; paste them in 
 ## Result
 
 The phase is **not done** until the browser agent reports PASS for every step above, with screenshots.
+
+## Retest after `fix/phase-1-e2e`
+
+The four FAIL rows and the phase 0 findings were fixed on `fix/phase-1-e2e` (root causes in
+`docs/layout-conformance.md`, "Phase 1 E2E fixes"). Retest on development:
+
+- **2.6**: open the signed "E2E phase 1 review" (snapshot #34) → Verify → Check snapshot integrity. Expected: OK,
+  actual hash = expected `c5a5180d…250e3`. No data repair is needed: the stored hash was right, the old check
+  hashed only the first 1000 facts.
+- **1.9**: native 200% zoom, Overview and the signed ARTEST review detail: the title scrolls away with the page, the
+  line under it stays, no fade. Also at 1280x800.
+- **1.4.5**: ARTEST space settings → AccessRadar: "When a Jira admin runs a campaign, the assigned space admin reviews
+  access here, with reminders in the app only (AccessRadar sends no email)."
+- **2.2**: Spaces → ARTEST → Export → CSV downloads `…_ARTEST.csv` with only ARTEST rows (and a "downloaded" toast).
+- **Exceptions**: Subject, Space/Group and Granted by show names (`ARTEST · AccessRadar E2E`), apps carry an "App"
+  marker.
+- **Rovo**: "What is the status of access reviews?" answers with reviews (not campaigns); app integrations are
+  labelled as apps.
