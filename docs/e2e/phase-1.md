@@ -1,7 +1,7 @@
 # E2E checklist: phase 1, layout standard conformance
 
-- Dev version: `DEV_VERSION_TBD`
-- Commit: `COMMIT_TBD`
+- Dev version: `2.92.0` (deployed 11.11 ~19:50 Europe/Warsaw, Runs on Atlassian eligible)
+- Commit: `3dc9d79` (squash of #58 on main)
 - Branch: `ui/layout-standard-conformance`
 - Site: marginradar.atlassian.net, **development** install. The app shows a "Dev" label. Do not use the production
   install.
@@ -206,7 +206,8 @@ With the override on Standard:
 `sql` counts.
 
 ```
-LOGS_TBD
+forge logs -e development --since 15m right after the 2.92.0 deploy: no lines (no invocations yet, 0 errors).
+The browser agent run will produce the first tick/resolver lines; paste them in the PR #58 comment.
 ```
 
 ## Result

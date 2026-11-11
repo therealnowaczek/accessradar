@@ -1,7 +1,7 @@
 # Phase 0 E2E: close this week's verifications
 
-- Dev version: DEV_VERSION_TBD (environment `development`, env id `b98d505b-afb5-4c8d-a8f9-5306b85e352d`)
-- Commit: COMMIT_TBD
+- Dev version: 2.92.0 (environment `development`, env id `b98d505b-afb5-4c8d-a8f9-5306b85e352d`)
+- Commit: 3dc9d79 (main, includes phase 0 #57 bd6b159 and phase 1 #58)
 - Site: marginradar.atlassian.net (dev install `ef61e0be-f952-4dd6-8611-ef3d1cdce8e8`, app name shows "Dev")
 - Dev app URL: `https://marginradar.atlassian.net/jira/settings/apps/026c4f6a-266d-4c42-aec5-7394371ad05d/b98d505b-afb5-4c8d-a8f9-5306b85e352d`
 - Evidence folder: `/workspace/radrly/accessradar/e2e/2026-11-11-phase-0/` (one screenshot per step, named `<step>-<edition>-<theme>.png`)
@@ -77,7 +77,7 @@ Also for Marcin: one Rovo or MCP call against the **production** app on marginra
 8. Alerts: loads.
 9. Campaigns: the A3 campaign is listed.
 10. Snapshots: take a snapshot, expect a new row and the run to finish.
-11. Settings: loads; set Override back to **Advanced** at the end (the dev default for other agents).
+11. Settings: loads; set Override back to **Use the license** at the end (development default = Advanced).
 12. Get started: Jira Settings > Apps > "Get started with AccessRadar" (Dev) loads.
 13. Project settings page: ARTEST > Project settings > AccessRadar (Dev): page loads with the delegated review view.
 14. Rovo: one AccessRadar agent question (B1 counts).
