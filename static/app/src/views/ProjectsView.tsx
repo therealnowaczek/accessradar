@@ -360,8 +360,15 @@ function ProjectDetail({
         ) : !d ? (
           <SkeletonRoot>
             <FilterBarPhantom controls={2} />
+            {/* Same columns as the loaded table, key permissions included (R-10.1). */}
             <SkeletonTable
-              columns={['Who', 'All permissions', 'Through', <ActionsHeader key="w" label="Why" />]}
+              columns={[
+                'Who',
+                ...keyPerms.map(permissionLabel),
+                'All permissions',
+                'Through',
+                <ActionsHeader key="w" label="Why" />,
+              ]}
             />
           </SkeletonRoot>
         ) : (

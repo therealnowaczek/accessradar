@@ -77,6 +77,36 @@ export function permissionLabel(key: string): string {
 
 let contextTimeZone: string | null = null;
 
+/** English fallback for a missing or invalid Jira locale (the app's historic date format). */
+export const FALLBACK_FORMAT_LOCALE = 'en-GB';
+let formatLocale = FALLBACK_FORMAT_LOCALE;
+
+/**
+ * Canonical BCP 47 tag from the Jira user locale (`context.locale`, e.g. "pl_PL" -> "pl-PL").
+ * Missing or invalid values fall back to English.
+ */
+export function resolveFormatLocale(raw: string | null | undefined): string {
+  if (!raw) return FALLBACK_FORMAT_LOCALE;
+  try {
+    const tag = Intl.getCanonicalLocales(raw.replace(/_/g, '-'))[0];
+    return tag && Intl.DateTimeFormat.supportedLocalesOf(tag).length ? tag : FALLBACK_FORMAT_LOCALE;
+  } catch {
+    return FALLBACK_FORMAT_LOCALE;
+  }
+}
+
+/**
+ * The one place that sets the locale of displayed dates (layout standard R-6.1): called once
+ * with `context.locale` when the Forge context arrives. Exports keep their fixed ISO formats.
+ */
+export function setFormatLocale(raw: string | null | undefined): void {
+  formatLocale = resolveFormatLocale(raw);
+}
+
+export function getFormatLocale(): string {
+  return formatLocale;
+}
+
 /** Valid IANA zone, or null (Intl throws a RangeError on unknown zones). */
 function validZone(tz: string | null | undefined): string | null {
   if (!tz) return null;
@@ -106,14 +136,37 @@ export function timeZone(): string {
   }
 }
 
-/** Local date-time in the viewer's zone, e.g. "9 Oct 2026, 18:30". */
+/**
+ * Local date-time in the viewer's zone and Jira locale, e.g. "9 Oct 2026, 18:30" (en-GB) or
+ * "9 paź 2026, 18:30" (pl-PL).
+ */
 export function formatLocal(ms: number | null | undefined, tz = timeZone()): string {
   if (!ms) return '—';
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getFormatLocale(), {
     timeZone: tz,
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(ms));
+}
+
+/** Local calendar date in the viewer's zone and Jira locale, e.g. "9 Oct 2026" (en-GB). */
+export function formatLocalDate(ms: number | null | undefined, tz = timeZone()): string {
+  if (!ms) return '—';
+  return new Intl.DateTimeFormat(getFormatLocale(), {
+    timeZone: tz,
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(ms));
+}
+
+/** Local wall-clock time in the viewer's zone and Jira locale, e.g. "18:30" (en-GB). */
+export function formatLocalTime(ms: number, tz = timeZone()): string {
+  return new Intl.DateTimeFormat(getFormatLocale(), {
+    timeZone: tz,
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(ms));
@@ -192,7 +245,11 @@ export function humanizePermissionKeys(text: string): string {
   return text.replace(PERMISSION_TOKEN, (key) => PERMISSION_LABELS[key] ?? key);
 }
 
-/** DatePicker display format (date-fns tokens via ADS): "27 Oct 2026", same as formatLocal. */
+/**
+ * DatePicker input format (date-fns tokens via ADS): "27 Oct 2026". The typed format stays fixed
+ * because parseDateInput (and DATE_HELPER) are day-first English; displayed dates follow the Jira
+ * locale through formatLocal / formatIsoDate.
+ */
 export const DATE_PICKER_FORMAT = 'D MMM YYYY';
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -222,11 +279,16 @@ export function parseDateInput(text: string): Date | null {
   return null;
 }
 
-/** ISO date (YYYY-MM-DD) in the app's format: "27 Oct 2026". */
+/** ISO date (YYYY-MM-DD) in the Jira locale: "27 Oct 2026" (en-GB). A calendar day, no zone shift. */
 export function formatIsoDate(iso: string | null | undefined): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
   if (!m) return '—';
-  const month = MONTHS[Number(m[2]) - 1];
-  if (!month) return '—';
-  return `${Number(m[3])} ${month[0].toUpperCase()}${month.slice(1)} ${m[1]}`;
+  const date = validDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (!date) return '—';
+  return new Intl.DateTimeFormat(getFormatLocale(), {
+    timeZone: 'UTC',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
 }

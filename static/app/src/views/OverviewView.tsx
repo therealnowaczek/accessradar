@@ -7,7 +7,7 @@ import RefreshIcon from '@atlaskit/icon/core/refresh';
 import SectionMessage from '@atlaskit/section-message';
 import type { Overview, Risk } from '../api';
 import { CoverageList, Section, SnapshotLozenge } from '../components';
-import { DigestCard } from './DigestCard';
+import { DigestCard, DigestSectionPhantom } from './DigestCard';
 import { useCall } from '../data';
 import { LevelDrawer, DrawerBody, type DrawerLevel } from '../Drawer';
 import { formatLocal, plural, relative } from '../format';
@@ -121,6 +121,7 @@ export function OverviewView() {
           >
             <MetricGridPhantom count={2} />
           </Section>
+          <DigestSectionPhantom />
           <Section
             title="Access reviews"
             description="Periodic reviews with sign-off and evidence export."
@@ -206,7 +207,7 @@ export function OverviewView() {
         ) : null}
         {!d.snapshot ? (
           active ? null : (
-            <NoSnapshot what="who has access to what" />
+            <NoSnapshot what="who has access to what" headingSize="xsmall" />
           )
         ) : (
           <>

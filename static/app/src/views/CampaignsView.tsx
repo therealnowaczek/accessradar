@@ -33,7 +33,7 @@ import {
   RadioField,
   staleNotice,
 } from '../ui';
-import { DrawerPhantom, SkeletonRoot } from '../skeletons';
+import { Phantom, SkeletonRoot } from '../skeletons';
 import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Campaign = {
@@ -189,49 +189,38 @@ export function CampaignsView() {
                       projects={projectOpts}
                       categories={categoryOpts}
                       onCancel={() => setDrawer([])}
+                      // Errors are thrown back to the form level, which shows them inline (R-8.7).
                       onPreview={async (draft) => {
-                        try {
-                          const preview = await call<{
-                            projects: Array<{
-                              id: string;
-                              key: string;
-                              assignee: string | null;
-                              items: number;
-                            }>;
-                            warnings: string[];
-                            totalProjects: number;
-                          }>('previewCampaign', draftToPayload(draft));
-                          setDrawer((levels) => [
-                            ...levels,
-                            {
-                              key: 'preview',
-                              title: 'Preview campaign',
-                              description: `${preview.totalProjects} space(s) will get a review.`,
-                              content: (
-                                <PreviewBody
-                                  preview={preview}
-                                  busy={busy}
-                                  onBack={() => setDrawer((l) => l.slice(0, -1))}
-                                  onCreate={async () => {
-                                    setBusy(true);
-                                    try {
-                                      await call('saveCampaign', draftToPayload(draft));
-                                      toast.success('Campaign created');
-                                      setDrawer([]);
-                                      list.reload();
-                                    } catch (e) {
-                                      toast.error('Could not create campaign', errorText(e));
-                                    } finally {
-                                      setBusy(false);
-                                    }
-                                  }}
-                                />
-                              ),
-                            },
-                          ]);
-                        } catch (e) {
-                          toast.error('Preview failed', errorText(e));
-                        }
+                        const preview = await call<{
+                          projects: Array<{
+                            id: string;
+                            key: string;
+                            assignee: string | null;
+                            items: number;
+                          }>;
+                          warnings: string[];
+                          totalProjects: number;
+                        }>('previewCampaign', draftToPayload(draft));
+                        setDrawer((levels) => [
+                          ...levels,
+                          {
+                            key: 'preview',
+                            title: 'Preview campaign',
+                            description: `${preview.totalProjects} space(s) will get a review.`,
+                            content: (
+                              <PreviewBody
+                                preview={preview}
+                                onBack={() => setDrawer((l) => l.slice(0, -1))}
+                                onCreate={async () => {
+                                  await call('saveCampaign', draftToPayload(draft));
+                                  toast.success('Campaign created');
+                                  setDrawer([]);
+                                  list.reload();
+                                }}
+                              />
+                            ),
+                          },
+                        ]);
                       }}
                     />
                   ),
@@ -416,6 +405,7 @@ function CampaignForm({
 }) {
   const [d, setD] = useState(emptyDraft);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
   return (
     <>
@@ -532,6 +522,11 @@ function CampaignForm({
               />
             )}
           </FormField>
+          {error ? (
+            <SectionMessage appearance="error" title="Preview failed" headingLevel="h3">
+              <Text as="p">{error}</Text>
+            </SectionMessage>
+          ) : null}
         </Stack>
       </DrawerBody>
       <DrawerFooter onCancel={onCancel}>
@@ -541,7 +536,10 @@ function CampaignForm({
           isLoading={busy}
           onClick={() => {
             setBusy(true);
-            void onPreview(d).finally(() => setBusy(false));
+            setError('');
+            void onPreview(d)
+              .catch((e) => setError(errorText(e)))
+              .finally(() => setBusy(false));
           }}
         >
           Preview
@@ -553,7 +551,6 @@ function CampaignForm({
 
 function PreviewBody({
   preview,
-  busy,
   onBack,
   onCreate,
 }: {
@@ -562,10 +559,20 @@ function PreviewBody({
     warnings: string[];
     totalProjects: number;
   };
-  busy: boolean;
   onBack: () => void;
-  onCreate: () => void;
+  /** Throws on failure; the error is shown inline under the table. */
+  onCreate: () => Promise<void>;
 }) {
+  // Local state: a level's content is built once, so a parent flag would never update here.
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const create = () => {
+    setBusy(true);
+    setError('');
+    void onCreate()
+      .catch((e) => setError(errorText(e)))
+      .finally(() => setBusy(false));
+  };
   return (
     <>
       <DrawerBody>
@@ -601,6 +608,11 @@ function PreviewBody({
               />
             }
           />
+          {error ? (
+            <SectionMessage appearance="error" title="Could not create campaign" headingLevel="h3">
+              <Text as="p">{error}</Text>
+            </SectionMessage>
+          ) : null}
         </Stack>
       </DrawerBody>
       <DrawerFooter onCancel={onBack} cancelLabel="Back">
@@ -608,7 +620,7 @@ function PreviewBody({
           appearance="primary"
           isDisabled={!preview.totalProjects || busy}
           isLoading={busy}
-          onClick={onCreate}
+          onClick={create}
         >
           Create campaign
         </Button>
@@ -645,27 +657,49 @@ function RunDetail({
   }>('getCampaignRun', { runId });
   const { refresh, refreshing } = useRefresh(() => r.reload());
 
+  // The footer stays real in every state; only the body loads (R-10.7).
+  const footer = (
+    <DrawerFooter>
+      <Button appearance="primary" onClick={onClose}>
+        Close
+      </Button>
+    </DrawerFooter>
+  );
   if (r.error && !r.data)
     return (
-      <DrawerBody>
-        <ErrorState title="Run unavailable" message={r.error} retry={r.reload} />
-      </DrawerBody>
+      <>
+        <DrawerBody>
+          <ErrorState title="Run unavailable" message={r.error} retry={r.reload} />
+        </DrawerBody>
+        {footer}
+      </>
     );
   if (!r.data)
     return (
-      <DrawerBody>
-        <DrawerPhantom />
-      </DrawerBody>
+      <>
+        <DrawerBody>
+          <SkeletonRoot>
+            <Phantom width="70%" />
+            <SkeletonTable
+              columns={['Space', 'Assignee', 'Status', 'Due', <ActionsHeader key="a" />]}
+              rows={4}
+            />
+          </SkeletonRoot>
+        </DrawerBody>
+        {footer}
+      </>
     );
 
   const { run, assignments } = r.data;
   const done = assignments.filter((a) => a.status === 'submitted' || a.status === 'signed').length;
   const progress = assignments.length ? done / assignments.length : 0;
+  const notice = staleNotice(r);
 
   return (
     <>
       <DrawerBody>
         <Stack space="space.300">
+          {notice}
           <Text as="p" color="color.text.subtle">
             Status {run.status}
             {run.seq != null ? ` · snapshot #${run.seq}` : ''} · {run.reviewCount} review(s) · due{' '}
@@ -694,7 +728,18 @@ function RunDetail({
               cells: [
                 { key: 'p', content: a.projectId },
                 { key: 'a', content: a.assignee ?? 'Unassigned' },
-                { key: 's', content: a.status },
+                {
+                  key: 's',
+                  content: (
+                    <Pill
+                      tone={
+                        a.status === 'submitted' || a.status === 'signed' ? 'success' : 'neutral'
+                      }
+                    >
+                      {a.status}
+                    </Pill>
+                  ),
+                },
                 { key: 'd', content: formatLocal(a.dueAt) },
                 {
                   key: 'act',
@@ -718,11 +763,7 @@ function RunDetail({
           ) : null}
         </Stack>
       </DrawerBody>
-      <DrawerFooter>
-        <Button appearance="primary" onClick={onClose}>
-          Close
-        </Button>
-      </DrawerFooter>
+      {footer}
     </>
   );
 }

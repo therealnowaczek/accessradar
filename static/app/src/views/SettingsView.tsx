@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Box, Inline, Stack, Text, xcss } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
+import { ErrorMessage } from '@atlaskit/form';
 import { RadioGroup } from '@atlaskit/radio';
 import SectionMessage from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
@@ -19,6 +20,7 @@ import {
   formatLocal,
   permissionLabel,
   SELECTABLE_PERMISSIONS,
+  formatLocalTime,
   timeZone,
   WEEKDAYS,
 } from '../format';
@@ -41,7 +43,7 @@ import {
   DividedList,
   staleNotice,
 } from '../ui';
-import { DetailsPhantom, Phantom, SkeletonRoot } from '../skeletons';
+import { DetailsPhantom, LinesPhantom, Phantom, SkeletonRoot } from '../skeletons';
 import { SpikePanel } from './SpikePanel';
 
 type Opt<T = string> = { label: string; value: T };
@@ -50,11 +52,7 @@ type Opt<T = string> = { label: string; value: T };
 function localHour(hourUtc: number): string {
   const d = new Date();
   d.setUTCHours(hourUtc, 0, 0, 0);
-  return new Intl.DateTimeFormat('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: timeZone(),
-  }).format(d);
+  return formatLocalTime(d.getTime());
 }
 
 /**
@@ -139,20 +137,30 @@ function NumberField({
   max: number;
   hint?: string;
 }) {
+  // R-9.2: an out-of-range value is flagged inline under the field (the server still validates).
+  const invalid = !Number.isFinite(value) || value < min || value > max;
   return (
     <FormField
       label={label}
       helper={hint ?? `Between ${min.toLocaleString()} and ${max.toLocaleString()}.`}
     >
       {(id) => (
-        <Textfield
-          id={id}
-          type="number"
-          min={min}
-          max={max}
-          value={String(value)}
-          onChange={(e) => onChange(Number((e.target as HTMLInputElement).value))}
-        />
+        <>
+          <Textfield
+            id={id}
+            type="number"
+            min={min}
+            max={max}
+            value={String(value)}
+            isInvalid={invalid}
+            onChange={(e) => onChange(Number((e.target as HTMLInputElement).value))}
+          />
+          {invalid ? (
+            <ErrorMessage>
+              Enter a number between {min.toLocaleString()} and {max.toLocaleString()}.
+            </ErrorMessage>
+          ) : null}
+        </>
       )}
     </FormField>
   );
@@ -262,14 +270,19 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
         helper="Used by reviews, change reports, the PDF matrix and space columns. Existing reviews keep the permissions they started with."
       >
         {(id) => (
-          <Select<Opt, true>
-            menuPosition="fixed"
-            inputId={id}
-            isMulti
-            options={options}
-            value={value}
-            onChange={(v) => setValue([...v].slice(0, 20))}
-          />
+          <>
+            <Select<Opt, true>
+              menuPosition="fixed"
+              inputId={id}
+              isMulti
+              options={options}
+              value={value}
+              isInvalid={!value.length}
+              onChange={(v) => setValue([...v].slice(0, 20))}
+            />
+            {/* R-9.2: the field's own error sits under the field. */}
+            {!value.length ? <ErrorMessage>Pick at least one permission.</ErrorMessage> : null}
+          </>
         )}
       </FormField>
     </EditForm>
@@ -487,6 +500,18 @@ const SETTINGS_SECTIONS: Array<[string, string, string[]]> = [
   ],
 ];
 
+/** Terms of the "Security & data" section, shared by the page and its skeleton. */
+const SECURITY_TERMS = [
+  'Jira access',
+  'Work item content',
+  'Where data lives',
+  'Who can use it',
+  'Exports',
+  'Personal data',
+  'Closed accounts',
+  'Audit log',
+];
+
 export function SettingsView() {
   const { status } = useApp();
   const toast = useToast();
@@ -540,6 +565,22 @@ export function SettingsView() {
                 )}
               </Section>
             ))}
+            {/* Same conditional sections as the loaded page (R-10.1). */}
+            {status.data?.edition?.features?.changeAlerts ? (
+              <Section
+                title="Change alerts"
+                description="In-app alerts when access changes between snapshots (Advanced)."
+                action={<Phantom width={48} height={32} />}
+              >
+                <LinesPhantom lines={3} />
+              </Section>
+            ) : null}
+            <Section
+              title="Security & data"
+              description="AccessRadar runs on Atlassian and only reads configuration."
+            >
+              <DetailsPhantom terms={SECURITY_TERMS} />
+            </Section>
           </SkeletonRoot>
         ) : (
           <>

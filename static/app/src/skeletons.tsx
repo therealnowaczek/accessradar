@@ -116,19 +116,15 @@ export function HeadingPhantom({ description = true }: { description?: boolean }
 const growStyles = xcss({ flexGrow: 1 });
 const appHeaderStyles = xcss({ paddingBlock: 'space.300' });
 
-/** Drawer level loading: header and footer stay real, only the body is a skeleton (R-10.7). */
-export function DrawerPhantom() {
+/** Avatar and name line (SubjectCell) while a person loads. */
+export function SubjectPhantom() {
   return (
-    <SkeletonRoot>
-      <Inline space="space.150" alignBlock="center">
-        <Phantom width={32} height={32} radius="full" />
-        <Box xcss={growStyles}>
-          <Phantom width="40%" />
-        </Box>
-      </Inline>
-      <LinesPhantom lines={4} />
-      <LinesPhantom lines={3} />
-    </SkeletonRoot>
+    <Inline space="space.150" alignBlock="center">
+      <Phantom width={32} height={32} radius="full" />
+      <Box xcss={growStyles}>
+        <Phantom width="40%" />
+      </Box>
+    </Inline>
   );
 }
 

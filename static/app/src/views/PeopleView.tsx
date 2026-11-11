@@ -16,6 +16,7 @@ import { DrawerBody, LevelDrawer, type DrawerLevel } from '../Drawer';
 import { formatLocal, permissionLabel, plural } from '../format';
 import { navItem } from '../routes';
 import { NoSnapshot, PartialBanner, useApp, useSnapshots } from '../shared';
+import { useToast } from '../Toast';
 import {
   Details,
   ErrorState,
@@ -30,7 +31,14 @@ import {
   DividedList,
   staleNotice,
 } from '../ui';
-import { DrawerPhantom, FilterBarPhantom, SkeletonRoot } from '../skeletons';
+import {
+  DetailsPhantom,
+  FilterBarPhantom,
+  LinesPhantom,
+  Phantom,
+  SkeletonRoot,
+  SubjectPhantom,
+} from '../skeletons';
 import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
@@ -203,7 +211,8 @@ type GlobalCheck = { checked: string[]; granted: string[]; at: number };
 function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | null }) {
   const { go } = useApp();
   const r = useCall<WithSnapshot<PersonAccess>>('personAccess', { accountId, seq });
-  const [global, setGlobal] = useState<{ busy: boolean; data?: GlobalCheck; error?: string }>({
+  const toast = useToast();
+  const [global, setGlobal] = useState<{ busy: boolean; data?: GlobalCheck }>({
     busy: false,
   });
   const check = async () => {
@@ -211,7 +220,9 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
     try {
       setGlobal({ busy: false, data: await call<GlobalCheck>('globalPermissions', { accountId }) });
     } catch (e) {
-      setGlobal({ busy: false, error: errorText(e) });
+      // R-8.7: an action without a form reports failure as a toast.
+      setGlobal({ busy: false });
+      toast.error('Could not check global permissions', errorText(e));
     }
   };
   if (r.error && !r.data)
@@ -224,7 +235,26 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
   if (!d)
     return (
       <DrawerBody>
-        <DrawerPhantom />
+        {/* Subject, the real Details terms and section titles; only the values load (R-10.1). */}
+        <SkeletonRoot>
+          <SubjectPhantom />
+          <DetailsPhantom terms={['Account ID', 'Account type', 'Status', 'Jira administrator']} />
+          <Section
+            title="Global permissions"
+            description="Jira cannot list global permission holders, so this is checked live for this person."
+          >
+            <Phantom width={96} height={32} />
+          </Section>
+          <Section title="Groups">
+            <Phantom width={200} height={20} radius="full" />
+          </Section>
+          <Section
+            title="Spaces"
+            description="Permissions in each space, with the path that grants them."
+          >
+            <LinesPhantom lines={4} />
+          </Section>
+        </SkeletonRoot>
       </DrawerBody>
     );
   return (
@@ -252,11 +282,6 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
           </Button>
         }
       >
-        {global.error ? (
-          <Text as="p" color="color.text.danger">
-            {global.error}
-          </Text>
-        ) : null}
         {global.data ? (
           <DividedList>
             {global.data.checked.map((p) => (

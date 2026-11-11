@@ -25,7 +25,12 @@ Every control comes from Atlaskit. Do not build custom buttons, links, inputs, s
 ## Button placement
 
 - Modals: in `ModalFooter`, Cancel then the primary button. The primary sits on the right. See `Confirm.tsx`.
-- Drawers and full-page forms: primary first (left), Cancel immediately after. `DrawerFooter` in `Drawer.tsx` renders its children (the primary) first and the `onCancel` button after, aligned to the start. See the footers in `SettingsView.tsx`, `ReviewsView.tsx`, and `CampaignsView.tsx`.
+- Drawers and full-page forms: primary first (left), Cancel immediately after. `DrawerFooter` in `Drawer.tsx` renders its children (the primary) first and the `onCancel` button after, aligned to the start. Never pass Cancel as a child. See the footers in `SettingsView.tsx`, `ReviewsView.tsx`, and `CampaignsView.tsx`. One primary per panel: buttons in the panel body use the default appearance. The guard test (rule 13) checks both footer orders.
+- Feedback: a save or action that succeeds shows `toast.success`. An action without a form that fails shows `toast.error`. A form or panel save that fails shows an inline `SectionMessage` under the fields, without a toast. Field errors show `ErrorMessage` under the field.
+- Loading: skeletons mirror the loaded screen, panel level or section (same section titles, Details terms, tile count and table columns). Panel headers and footers are never skeletons. A load error always has a retry (`ErrorState`), and an error while data is on screen is a `staleNotice`.
+- Empty states: `header` plus a one-sentence `description` (guard rule 16), at most one CTA, and never the same CTA in the header at the same time. Use `headingSize="xsmall"` under a filter bar, among other sections, or inside a panel.
+- Tables only through `Table.tsx` (guard rule 15). `@atlaskit/badge` only for counters (rule 18). JS breakpoints (`useMaxWidth`) use the same widths as CSS: 1023 / 900 / 860 / 768 / 600 / 520 (rule 14).
+- Conformance status per rule: `docs/layout-conformance.md`.
 
 ## Sticky headers
 
@@ -39,7 +44,7 @@ A pinned header has a 1px separator and a scroll fade. No shadow. All in `static
 
 - The UI language follows the Jira user settings (`context.locale` from `view.getContext()`), with English as the fallback. AccessRadar ships English only today.
 - All new user-facing copy for keyed features goes through `t()` in `static/app/src/i18n.ts`. A key missing from the active catalog falls back to English, never to the key.
-- Dates and times use the Jira profile time zone (`context.timezone`, set in `main.tsx` with `setContextTimeZone`). Format dates with the helpers in `static/app/src/format.ts` (`formatLocal`, `formatLocalExport`, `formatUtc`, `formatIsoDate`, `relative`). Do not build ad-hoc date formats in views.
+- Dates and times use the Jira profile time zone (`context.timezone`, set in `main.tsx` with `setContextTimeZone`) and the Jira profile locale (`context.locale`, set once in `main.tsx` with `setFormatLocale`; missing or invalid falls back to English `en-GB`). Format dates with the helpers in `static/app/src/format.ts` (`formatLocal`, `formatLocalDate`, `formatLocalTime`, `formatIsoDate`, `relative`; exports use `formatLocalExport` and `formatUtc`, which stay fixed). Do not build ad-hoc date formats in views or slice formatted strings (guard rule 19).
 - No language switcher in the sidebar, the header, or anywhere else. The guard test (rule 8) rejects a language or locale picker.
 - New user-facing copy has no em dash, no en dash, and no emoji.
 

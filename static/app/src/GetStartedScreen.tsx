@@ -1,5 +1,4 @@
 import { router } from '@forge/bridge';
-import Badge from '@atlaskit/badge';
 import Button, { IconButton } from '@atlaskit/button/new';
 import Heading from '@atlaskit/heading';
 import CheckCircleIcon from '@atlaskit/icon/core/check-circle';
@@ -13,8 +12,8 @@ import { call, errorText } from './api';
 import { usePoll, useStatus } from './data';
 import { MODULE_KEYS } from './routes';
 import { useRefresh } from './shared';
-import { ToastProvider } from './Toast';
-import { BrandMark, ErrorState, PageFrame, PageHeader, Pill } from './ui';
+import { ToastProvider, useToast } from './Toast';
+import { BrandMark, ErrorState, PageFrame, PageHeader, Pill, staleNotice } from './ui';
 import { LinesPhantom, Phantom, SkeletonRoot } from './skeletons';
 
 const contentStyles = xcss({ maxWidth: '35rem' });
@@ -49,24 +48,31 @@ export default function GetStartedScreen() {
 
 function GetStartedBody() {
   const status = useStatus();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
-  const [startError, setStartError] = useState('');
   const active = status.data?.active ?? null;
   usePoll(Boolean(active), status.reload);
   const { refresh, refreshing } = useRefresh(() => status.reload());
+  // R-8.7: an action without a form reports success and failure as toasts.
   const takeFirst = async () => {
     setBusy(true);
-    setStartError('');
     try {
-      await call('startSnapshot', { trigger: 'onboarding' });
+      const r = await call<{ created: boolean; seq: number }>('startSnapshot', {
+        trigger: 'onboarding',
+      });
+      toast.success(
+        r.created ? `Snapshot #${r.seq} started` : `Snapshot #${r.seq} is already running`,
+        'You can leave this page; progress updates here.',
+      );
       void status.reload();
     } catch (e) {
-      setStartError(errorText(e));
+      toast.error('Snapshot could not start', errorText(e));
     } finally {
       setBusy(false);
     }
   };
-  if (status.error)
+  // R-10.13: only a first-load error replaces the page; a refresh error keeps the data.
+  if (status.error && !status.data)
     return (
       <PageFrame
         header={
@@ -167,6 +173,7 @@ function GetStartedBody() {
           }
         />
       }
+      notice={staleNotice(status)}
     >
       <Box xcss={contentStyles}>
         <Stack space="space.300">
@@ -190,11 +197,6 @@ function GetStartedBody() {
               {done} of {steps.length} steps complete
             </Text>
           </Stack>
-          {startError ? (
-            <SectionMessage appearance="error" title="Snapshot could not start" headingLevel="h2">
-              <Text as="p">{startError}</Text>
-            </SectionMessage>
-          ) : null}
           {done === steps.length ? (
             <SectionMessage appearance="success" title="You are set up" headingLevel="h2">
               <Stack space="space.200" alignInline="start">
@@ -216,7 +218,10 @@ function GetStartedBody() {
                     {step.done ? (
                       <CheckCircleIcon label="" color={token('color.icon.success')} />
                     ) : (
-                      <Badge>{index + 1}</Badge>
+                      // R-8.10: an ordinal, not a counter, so plain text instead of Badge.
+                      <Text weight="bold" color="color.text.subtle">
+                        {index + 1}
+                      </Text>
                     )}
                   </Box>
                   <Stack space="space.100" alignInline="start">

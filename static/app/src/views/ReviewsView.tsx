@@ -48,7 +48,14 @@ import {
   evidencePackPdf,
   type EvidencePackPayload,
 } from '../export/evidencePack';
-import { formatLocal, formatUtc, permissionLabel, plural, timeZone } from '../format';
+import {
+  formatLocal,
+  formatLocalDate,
+  formatUtc,
+  permissionLabel,
+  plural,
+  timeZone,
+} from '../format';
 import { t } from '../i18n';
 import {
   deriveRemediation,
@@ -84,7 +91,6 @@ import {
 import {
   DetailsPhantom,
   FilterBarPhantom,
-  LinesPhantom,
   MetricGridPhantom,
   Phantom,
   SkeletonRoot,
@@ -181,7 +187,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
         ) : !reviews.length ? (
           <EmptyState
             header="No reviews yet"
-            description="A review lists who has key permissions in the chosen scope. Reviewers mark each item keep or revoke, then sign off; the evidence pack is hashed."
+            description="Start a review to list who has key permissions in a scope, mark each item keep or revoke, and sign off on a hashed evidence pack."
             primaryAction={
               <Button appearance="primary" onClick={openCreate}>
                 Start a review
@@ -246,7 +252,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                   key: r.dueAt ?? 0,
                   content: r.dueAt ? (
                     <Inline as="span" space="space.075" alignBlock="center" shouldWrap>
-                      {formatLocal(r.dueAt).split(',')[0]}
+                      {formatLocalDate(r.dueAt)}
                       {r.status !== 'signed' && r.dueAt < now ? (
                         <Pill tone="danger">Overdue</Pill>
                       ) : null}
@@ -523,6 +529,8 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
     value: 'keep' | 'revoke' | 'exception' | null,
     note?: string,
     expiresAt?: string | null,
+    /** The item drawer shows a failed save inline (R-8.7), so it skips the error toast. */
+    inlineErrors = false,
   ) => {
     if (!idxs.length) return;
     setBusy(true);
@@ -545,7 +553,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         toast.success(t('exceptions.withdrawn', { count: res.exceptions.withdrawn }));
       r.reload();
     } catch (e) {
-      toast.error('Decision not saved', errorText(e));
+      if (!inlineErrors) toast.error('Decision not saved', errorText(e));
       throw e;
     } finally {
       setBusy(false);
@@ -579,7 +587,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             item={{ ...sample, decision: preset ?? sample.decision }}
             readOnly={signed}
             onSave={async (value, note, expiresAt) => {
-              await decide(idxs, value, note, expiresAt);
+              await decide(idxs, value, note, expiresAt, true);
               setDrawer([]);
             }}
             onCancel={() => setDrawer([])}
@@ -758,6 +766,11 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           <SkeletonTable
             columns={['Who', 'Where', 'Access', 'Why', 'Decision', <ActionsHeader key="a" />]}
           />
+          <Section title="Review record">
+            <DetailsPhantom
+              terms={['Created', 'Due', 'Key permissions', 'Base snapshot hash', 'Engine version']}
+            />
+          </Section>
         </SkeletonRoot>
       </PageFrame>
     );
@@ -1063,11 +1076,6 @@ function ItemDrawer({
           ) : null
         ) : (
           <Stack space="space.150">
-            {error ? (
-              <SectionMessage appearance="error">
-                <Text as="p">{error}</Text>
-              </SectionMessage>
-            ) : null}
             <RadioField label="Decision">
               <RadioGroup
                 value={value ?? ''}
@@ -1131,6 +1139,12 @@ function ItemDrawer({
                   />
                 )}
               </FormField>
+            ) : null}
+            {/* R-9.4: the save error sits under the fields, next to the pinned Save. */}
+            {error ? (
+              <SectionMessage appearance="error">
+                <Text as="p">{error}</Text>
+              </SectionMessage>
             ) : null}
           </Stack>
         )}
@@ -1253,12 +1267,28 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
       </Section>
     );
   }
-  if (!rem.data && !rem.error) {
+  if (rem.error && !rem.data) {
+    // R-10.13: a failed load is an error with retry, never an empty result.
+    return (
+      <Section title="Remediation" description={description}>
+        <ErrorState
+          title="Remediation unavailable"
+          message={rem.error}
+          retry={() => void rem.reload()}
+        />
+      </Section>
+    );
+  }
+  if (!rem.data) {
     return (
       <Section title="Remediation" description={description}>
         <SkeletonRoot>
           <Phantom height={8} radius="full" />
-          <SkeletonTable columns={['Subject', 'Where', 'Access', 'Status']} rows={3} />
+          {/* Gating is only known after the load; Advanced (the default) has the snapshot column. */}
+          <SkeletonTable
+            columns={['Subject', 'Where', 'Access', 'Status', 'Checked in snapshot']}
+            rows={3}
+          />
         </SkeletonRoot>
       </Section>
     );
@@ -1364,28 +1394,34 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
   const [result, setResult] = useState<ChainVerifyResult | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(true);
+  const run = async () => {
+    setError('');
+    setBusy(true);
+    try {
+      setResult(await call<ChainVerifyResult>('verifyChain', {}));
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
   useEffect(() => {
-    void (async () => {
-      try {
-        setResult(await call<ChainVerifyResult>('verifyChain', {}));
-      } catch (e) {
-        setError(errorText(e));
-      } finally {
-        setBusy(false);
-      }
-    })();
+    void run();
   }, []);
   return (
     <>
       <DrawerBody>
         {error ? (
-          <SectionMessage appearance="error">
-            <Text as="p">{error}</Text>
-          </SectionMessage>
+          <ErrorState
+            title="Chain could not be verified"
+            message={error}
+            retry={() => void run()}
+          />
         ) : busy || !result ? (
+          // Mirrors the loaded result: status lozenge, then the chain table (R-10.1, R-10.8).
           <SkeletonRoot>
-            <Phantom width={120} height={16} />
-            <LinesPhantom lines={3} />
+            <Phantom width={120} height={20} radius="full" />
+            <SkeletonTable columns={['Chain #', 'Status', 'Detail']} rows={3} />
           </SkeletonRoot>
         ) : (
           <Stack space="space.200">
@@ -1466,20 +1502,23 @@ function VerifyDrawer({
   const [deepError, setDeepError] = useState('');
   const [polling, setPolling] = useState(false);
 
+  const checkSignature = async () => {
+    setSigError('');
+    try {
+      const v = await call<{
+        ok: boolean;
+        signatureVersion: number;
+        evidenceHash: string | null;
+        recomputed: string;
+      }>('verifyReview', { id: reviewId });
+      setSig(v);
+    } catch (e) {
+      setSigError(errorText(e));
+    }
+  };
+
   useEffect(() => {
-    void (async () => {
-      try {
-        const v = await call<{
-          ok: boolean;
-          signatureVersion: number;
-          evidenceHash: string | null;
-          recomputed: string;
-        }>('verifyReview', { id: reviewId });
-        setSig(v);
-      } catch (e) {
-        setSigError(errorText(e));
-      }
-    })();
+    void checkSignature();
   }, [reviewId]);
 
   useEffect(() => {
@@ -1534,9 +1573,11 @@ function VerifyDrawer({
       <DrawerBody>
         <Section title="Signature">
           {sigError ? (
-            <SectionMessage appearance="error">
-              <Text as="p">{sigError}</Text>
-            </SectionMessage>
+            <ErrorState
+              title="Signature could not be checked"
+              message={sigError}
+              retry={() => void checkSignature()}
+            />
           ) : !sig ? (
             <SkeletonRoot>
               <Phantom width={80} height={16} />
@@ -1565,11 +1606,8 @@ function VerifyDrawer({
             Recomputes the content hash of snapshot #{snapshotSeq} from stored facts and compares it
             to the hash recorded when the review was signed.
           </Text>
-          {!job ? (
-            <Button appearance="primary" onClick={() => void startDeep()}>
-              Check snapshot integrity
-            </Button>
-          ) : null}
+          {/* Default appearance: the footer already holds the panel's one primary (Done). */}
+          {!job ? <Button onClick={() => void startDeep()}>Check snapshot integrity</Button> : null}
           {polling && !deepDone ? (
             <Stack space="space.200">
               <ProgressBar isIndeterminate />
@@ -1577,9 +1615,14 @@ function VerifyDrawer({
             </Stack>
           ) : null}
           {deepError ? (
-            <SectionMessage appearance="error">
-              <Text as="p">{deepError}</Text>
-            </SectionMessage>
+            <ErrorState
+              title="Snapshot integrity could not be checked"
+              message={deepError}
+              retry={() => {
+                setJob(null);
+                void startDeep();
+              }}
+            />
           ) : null}
           {job?.status === 'purged' ? (
             <SectionMessage appearance="warning">

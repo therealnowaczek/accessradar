@@ -122,8 +122,9 @@ export function AlertsView() {
         </FilterBar>
         {!items.length ? (
           <EmptyState
+            headingSize="xsmall"
             header="No alerts"
-            description="When a snapshot detects new admins, anonymous access, or inactive accounts with access, alerts appear here. Detection latency follows your snapshot schedule (typically ≤24h on Advanced daily)."
+            description="When a snapshot detects new admins, anonymous access, or inactive accounts with access, alerts appear here, with a detection latency that follows your snapshot schedule (typically ≤24h on Advanced daily)."
           />
         ) : (
           <DynamicTable

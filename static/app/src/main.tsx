@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client';
 import SectionMessage from '@atlaskit/section-message';
 import { Text } from '@atlaskit/primitives';
 import { errorText } from './api';
-import { setContextTimeZone } from './format';
+import { setContextTimeZone, setFormatLocale } from './format';
 import { initialView, navItem, screenFor } from './routes';
 import { AdminPhantom, AppPhantom, PagePhantom } from './skeletons';
 import { ErrorState } from './ui';
@@ -22,6 +22,8 @@ export type ForgeContext = {
   siteUrl?: string;
   /** Time zone from the user's Jira profile; every displayed date uses it. */
   timezone?: string;
+  /** Locale from the user's Jira profile (e.g. "en_US"); displayed date formats follow it. */
+  locale?: string;
   /** Present on licensed (production) installs; absent on development and staging. */
   license?: { active?: boolean } | null;
 };
@@ -42,6 +44,7 @@ function App() {
       .then((c) => {
         const next = c as ForgeContext;
         setContextTimeZone(next.timezone);
+        setFormatLocale(next.locale);
         setContext(next);
       })
       .catch((e) => setError(errorText(e)));
