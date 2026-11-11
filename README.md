@@ -62,6 +62,10 @@ The edition is decided on the server for every resolver call (`src/api/edition.t
 
 Details: `docs/PRD-R1-R2.md` §5, §5.1, §5.2 and §5.3, `docs/LISTING.md` §8.
 
+## Rovo and MCP tools (Advanced, Preview)
+
+The five read-only Rovo actions (`ar-who-can-access`, `ar-why`, `ar-person-access`, `ar-changes-since`, `ar-review-status`) are also exposed as tools by one `rovo:mcp` module: in Rovo Studio and, once a site admin turns them on in Atlassian Administration > Apps > Sites > Connected apps, in external MCP clients at `https://mcp.atlassian.com/forge/026c4f6a-266d-4c42-aec5-7394371ad05d` (OAuth as the user). Same gates as the agent: active licence (missing licence outside dev = Standard), Jira admin checked as the user (never asApp over MCP), Advanced edition, 50 rows max. No new scopes, no egress. Setup, data flow and tests: `docs/mcp-tools.md`.
+
 ## Deploy
 
 No GitHub Actions. Run `npm run check` locally, then Mac-only `forge deploy` (development and/or production). Use `forge install --upgrade` only when scopes/egress change.

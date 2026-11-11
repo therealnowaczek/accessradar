@@ -107,6 +107,17 @@ modules:
       dependencies:
         tools:
           - ar-review-status
+  # Rovo tools and external MCP clients (Preview). Same read-only GET actions as the agent; MCP calls
+  # run as the user only (no asApp). No new scopes, no egress: keeps Runs on Atlassian.
+  rovo:mcp:
+    - key: accessradar-mcp
+      name: AccessRadar MCP
+      tools:
+        - ar-who-can-access
+        - ar-why
+        - ar-person-access
+        - ar-changes-since
+        - ar-review-status
   action:
     - key: ar-who-can-access
       name: Who can access a space
