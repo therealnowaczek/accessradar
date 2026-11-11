@@ -853,7 +853,7 @@ const ADVANCED_FEATURES: Array<{
   },
   {
     key: 'evidencePack',
-    label: 'Audit evidence pack PDF (methodology and decision trail)',
+    label: 'Audit evidence pack PDF and JSON (methodology and decision trail)',
   },
   {
     key: 'signatureChain',
