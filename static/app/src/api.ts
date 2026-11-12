@@ -275,6 +275,8 @@ export type ReviewItem = {
   project: ProjectRef | null;
   groupName: string | null;
   decidedByName: string | null;
+  /** C5: set when access changed after the decision; the decision must be made again. */
+  recheck?: { currentPermissions: string[] } | null;
 };
 
 export type Limitations = {
@@ -297,6 +299,7 @@ export type ReviewDetail = {
   limitations?: Limitations;
   completeness?: Limitations['completeness'];
   items: ReviewItem[];
+  recheckCount?: number;
 };
 
 export type Settings = {

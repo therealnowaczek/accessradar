@@ -30,6 +30,7 @@ import {
   Section,
   SnapshotPicker,
   SubjectCell,
+  recheckDetail,
 } from '../components';
 import { useCall } from '../data';
 import { useConfirm } from '../Confirm';
@@ -567,6 +568,12 @@ const DECISIONS: Opt[] = [
     },
     value: 'exception',
   },
+  {
+    get label() {
+      return t('reviews.recheck');
+    },
+    value: 'recheck',
+  },
 ];
 const CHANGES: Opt[] = [
   {
@@ -619,7 +626,9 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         (!decision ||
           (decision === 'none'
             ? !i.decision && i.change !== 'removed'
-            : i.decision === decision)) &&
+            : decision === 'recheck'
+              ? Boolean(i.recheck)
+              : i.decision === decision && !i.recheck)) &&
         (!change || i.change === change) &&
         (!q ||
           `${i.subject.name} ${i.project?.key ?? ''} ${i.groupName ?? ''} ${i.reasons.join(' ')} ${i.note ?? ''}`
@@ -629,7 +638,9 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   }, [d, query, decision, change]);
 
   const decidable = (d?.items ?? []).filter((i) => i.change !== 'removed');
-  const decided = decidable.filter((i) => i.decision).length;
+  const recheck = decidable.filter((i) => i.recheck).length;
+  // A decision that must be rechecked counts as still to do, so the review cannot be signed yet.
+  const decided = decidable.filter((i) => i.decision && !i.recheck).length;
   const flagged = revokeDecisions(d?.items ?? []).length;
   const pending = decidable.length - decided;
 
@@ -921,7 +932,8 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         </SkeletonRoot>
       </PageFrame>
     );
-  const filteredOpen = items.filter((i) => i.change !== 'removed').map((i) => i.idx);
+  // Bulk Keep never confirms a decision that needs a recheck; those are decided one by one.
+  const filteredOpen = items.filter((i) => i.change !== 'removed' && !i.recheck).map((i) => i.idx);
   return (
     <PageFrame notice={staleNotice(r)} header={header}>
       <Stack space="space.300">
@@ -974,6 +986,20 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         ) : null}
         {signed ? <RemediationPanel reviewId={id} items={d.items} /> : null}
         <CoverageLimitations coverage={d.coverage} limitations={d.limitations} />
+        {recheck && !signed ? (
+          <SectionMessage
+            appearance="warning"
+            title={t('reviews.recheckTitle', { count: recheck })}
+            headingLevel="h2"
+          >
+            <Text as="p">
+              {t('reviews.recheckBody')}{' '}
+              <LinkButton onClick={() => setDecision('recheck')}>
+                {t('reviews.showRecheck')}
+              </LinkButton>
+            </Text>
+          </SectionMessage>
+        ) : null}
         <MetricGrid>
           <Metric
             label={t('projectReview.items')}
@@ -1030,7 +1056,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                 isDisabled={busy || !filteredOpen.length}
                 onClick={() => void decide(filteredOpen, 'keep')}
               >
-                {filteredOpen.length === decidable.length
+                {filteredOpen.length === decidable.length - recheck
                   ? t('reviewsView.keepAll')
                   : t('reviewsView.keepShown', { count: filteredOpen.length })}
               </Button>
@@ -1111,7 +1137,14 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                     <Text color="color.text.subtle">—</Text>
                   ) : (
                     <Stack as="span" space="space.200">
-                      {i.decision === 'keep' ? (
+                      {i.recheck ? (
+                        <>
+                          <Pill tone="warning">{t('reviews.recheck')}</Pill>
+                          <Text color="color.text.subtle">
+                            {recheckDetail(i.decision, i.recheck.currentPermissions)}
+                          </Text>
+                        </>
+                      ) : i.decision === 'keep' ? (
                         <Pill tone="success">{t('projectReview.keep')}</Pill>
                       ) : i.decision === 'revoke' ? (
                         <Pill tone="danger">{t('projectReview.revoke')}</Pill>
@@ -1142,7 +1175,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                       <Button
                         spacing="compact"
                         isDisabled={busy}
-                        isSelected={i.decision === 'keep'}
+                        isSelected={i.decision === 'keep' && !i.recheck}
                         onClick={() => void decide([i.idx], 'keep')}
                       >
                         {t('projectReview.keep')}

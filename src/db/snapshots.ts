@@ -121,6 +121,14 @@ export async function latestCommitted(): Promise<SnapshotRow | null> {
   return rows.length ? toRow(rows[0]) : null;
 }
 
+/** Latest snapshot that finished without gaps; partial ones can drop paths and would raise false rechecks. */
+export async function latestComplete(): Promise<SnapshotRow | null> {
+  const rows = await q(
+    `SELECT ${COLS} FROM snap WHERE status = 'complete' ORDER BY seq DESC LIMIT 1`,
+  );
+  return rows.length ? toRow(rows[0], false) : null;
+}
+
 export async function previousCommitted(seq: number): Promise<SnapshotRow | null> {
   const rows = await q(
     `SELECT ${COLS} FROM snap WHERE status IN ('complete', 'partial') AND seq < ? ORDER BY seq DESC LIMIT 1`,

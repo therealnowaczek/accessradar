@@ -52,6 +52,8 @@ export interface ReviewItemRow {
   expiresAt: number | null;
   decidedBy: string | null;
   decidedAt: number | null;
+  /** Recheck (C5): fingerprint of the access the decision was last confirmed against. */
+  ackFp: string | null;
 }
 
 const toReview = (r: any): ReviewRow => ({
@@ -96,6 +98,7 @@ const toItem = (r: any): ReviewItemRow => ({
   expiresAt: num(r.expires_at),
   decidedBy: r.decided_by ?? null,
   decidedAt: num(r.decided_at),
+  ackFp: r.ack_fp ?? null,
 });
 
 const REVIEW_COLS =
@@ -250,6 +253,45 @@ export async function decide(
   }
   await exec("UPDATE review SET status = 'in_progress' WHERE id = ? AND status = 'draft'", id);
   return changed;
+}
+
+/** Records the access fingerprint a re-decided (stale) item was confirmed against; null clears it. */
+export async function setAck(id: string, acks: Array<{ idx: number; fp: string | null }>) {
+  for (const a of acks)
+    await exec(
+      `UPDATE review_item SET ack_fp = ? WHERE review_id = ? AND idx = ?
+         AND review_id IN (SELECT id FROM review WHERE status <> 'signed')`,
+      a.fp,
+      id,
+      a.idx,
+    );
+}
+
+/**
+ * Dev-only E2E hook: pretends access changed for the first decided item of every open review whose
+ * name starts with `prefix`, by storing a fingerprint that cannot match. The real recheck detection,
+ * blocking and re-decision paths then run unchanged.
+ */
+export async function simulateAccessChange(prefix: string): Promise<number> {
+  const ids = await q<{ id: string }>(
+    "SELECT id FROM review WHERE status <> 'signed' AND name LIKE ?",
+    `${prefix.replace(/[%_\\]/g, '')}%`,
+  );
+  let n = 0;
+  for (const { id } of ids) {
+    const first = await q<{ idx: number }>(
+      "SELECT MIN(idx) AS idx FROM review_item WHERE review_id = ? AND decision IS NOT NULL AND (change_kind IS NULL OR change_kind <> 'removed')",
+      id,
+    );
+    const idx = first[0]?.idx;
+    if (idx === null || idx === undefined) continue;
+    n += await exec(
+      "UPDATE review_item SET ack_fp = 'simulated-access-change' WHERE review_id = ? AND idx = ?",
+      id,
+      Number(idx),
+    );
+  }
+  return n;
 }
 
 /** Next site-wide chain position and the previous signed evidence hash to link. */

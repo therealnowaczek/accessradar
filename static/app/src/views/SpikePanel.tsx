@@ -80,6 +80,15 @@ export function SpikePanel() {
             >
               Reset review prompt
             </Button>
+            <Button
+              onClick={() =>
+                void call('devSimulateAccessChange').then(() =>
+                  toast.success('Simulated access change on E2E C5 reviews'),
+                )
+              }
+            >
+              Simulate access change
+            </Button>
             <Button appearance="primary" isLoading={busy} onClick={run}>
               {t('spikePanel.runProbes')}
             </Button>

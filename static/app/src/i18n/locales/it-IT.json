@@ -941,5 +941,12 @@
   "reviewPrompt.body": "Una breve recensione su Atlassian Marketplace aiuta altri amministratori Jira a trovare l'app. Richiede circa un minuto e nulla in AccessRadar dipende da essa.",
   "reviewPrompt.open": "Scrivi una recensione",
   "reviewPrompt.alreadyDone": "L'ho già fatto",
-  "reviewPrompt.dismiss": "Non ora"
+  "reviewPrompt.dismiss": "Non ora",
+  "reviews.recheck": "Da riverificare",
+  "reviews.recheckDetail": "Decisione: {decision}. L'accesso è cambiato dopo lo snapshot, ora: {access}",
+  "reviews.recheckDetailPath": "Decisione: {decision}. Il modo in cui questo accesso è concesso è cambiato dopo lo snapshot.",
+  "reviews.recheckTitle": "{count, plural, one {# decisione da riverificare} other {# decisioni da riverificare}}",
+  "reviews.recheckBody": "L'accesso è cambiato in uno snapshot successivo a queste decisioni. Decida di nuovo in base all'accesso attuale. Fino ad allora la revisione non può essere firmata.",
+  "reviews.showRecheck": "Mostra elementi da riverificare",
+  "projectReview.recheckBody": "L'accesso è cambiato in uno snapshot successivo a queste decisioni. Decida di nuovo in base all'accesso attuale. Fino ad allora la revisione non può essere inviata."
 }

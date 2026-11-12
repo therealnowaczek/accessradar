@@ -941,5 +941,12 @@
   "reviewPrompt.body": "Een korte review op de Atlassian Marketplace helpt andere Jira-beheerders de app te vinden. Het duurt ongeveer een minuut en niets in AccessRadar hangt ervan af.",
   "reviewPrompt.open": "Review schrijven",
   "reviewPrompt.alreadyDone": "Al gedaan",
-  "reviewPrompt.dismiss": "Nu niet"
+  "reviewPrompt.dismiss": "Nu niet",
+  "reviews.recheck": "Opnieuw controleren",
+  "reviews.recheckDetail": "Besluit: {decision}. De toegang is gewijzigd na de snapshot, nu: {access}",
+  "reviews.recheckDetailPath": "Besluit: {decision}. De manier waarop deze toegang wordt verleend is gewijzigd na de snapshot.",
+  "reviews.recheckTitle": "{count, plural, one {# besluit moet opnieuw worden gecontroleerd} other {# besluiten moeten opnieuw worden gecontroleerd}}",
+  "reviews.recheckBody": "De toegang is gewijzigd in een latere snapshot, na deze besluiten. Besluit opnieuw op basis van de huidige toegang. Tot die tijd kan de review niet worden ondertekend.",
+  "reviews.showRecheck": "Items om opnieuw te controleren tonen",
+  "projectReview.recheckBody": "De toegang is gewijzigd in een latere snapshot, na deze besluiten. Besluit opnieuw op basis van de huidige toegang. Tot die tijd kan de review niet worden ingediend."
 }

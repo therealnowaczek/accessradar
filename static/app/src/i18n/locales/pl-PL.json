@@ -941,5 +941,12 @@
   "reviewPrompt.body": "Krótka opinia w Atlassian Marketplace pomaga innym administratorom Jira znaleźć aplikację. Zajmuje około minuty i nic w AccessRadar od niej nie zależy.",
   "reviewPrompt.open": "Napisz opinię",
   "reviewPrompt.alreadyDone": "Już to zrobiłem",
-  "reviewPrompt.dismiss": "Nie teraz"
+  "reviewPrompt.dismiss": "Nie teraz",
+  "reviews.recheck": "Sprawdź ponownie",
+  "reviews.recheckDetail": "Decyzja: {decision}. Dostęp zmienił się po migawce, teraz: {access}",
+  "reviews.recheckDetailPath": "Decyzja: {decision}. Sposób przyznania tego dostępu zmienił się po migawce.",
+  "reviews.recheckTitle": "{count, plural, one {# decyzję trzeba sprawdzić ponownie} few {# decyzje trzeba sprawdzić ponownie} many {# decyzji trzeba sprawdzić ponownie} other {# decyzji trzeba sprawdzić ponownie}}",
+  "reviews.recheckBody": "Dostęp zmienił się w późniejszej migawce, po podjęciu tych decyzji. Zdecyduj ponownie na podstawie bieżącego dostępu. Do tego czasu przeglądu nie można podpisać.",
+  "reviews.showRecheck": "Pokaż pozycje do ponownego sprawdzenia",
+  "projectReview.recheckBody": "Dostęp zmienił się w późniejszej migawce, po podjęciu tych decyzji. Zdecyduj ponownie na podstawie bieżącego dostępu. Do tego czasu przeglądu nie można przesłać."
 }
