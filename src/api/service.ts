@@ -52,6 +52,15 @@ import { getVerifyJob, insertVerifyJob, patchVerifyJob, recomputeSnapshotHash } 
 import { push } from '../lib/queue';
 import { jiraCall, mapLimit } from '../lib/budget';
 import { TRACKED_GROUPS_MAX } from './groupDiff';
+import {
+  decideSample,
+  finishSample,
+  newSample,
+  parseSampleDecision,
+  SAMPLE_KV,
+  sampleView,
+  type SampleStored,
+} from '../domain/sampleCampaign';
 import { findStale, recheckBlockMessage, type StaleItem } from '../engine/recheck';
 import { getSettings, kvGet, kvSet, saveSettings } from '../db/settings';
 import {
@@ -217,6 +226,52 @@ export async function answerReviewPrompt(payload: any) {
   const state = parseReviewPromptChoice(payload?.choice);
   await kvSet(REVIEW_PROMPT_KV, { state, at: Date.now() } satisfies ReviewPromptStored);
   return { state };
+}
+
+/** Sample review campaign (C7): app-local data only, see domain/sampleCampaign.ts. */
+export async function sampleGet() {
+  const s = await kvGet<SampleStored>(SAMPLE_KV);
+  return { sample: s ? sampleView(s) : null };
+}
+
+export async function sampleStart() {
+  const existing = await kvGet<SampleStored>(SAMPLE_KV);
+  const s = existing ?? newSample(Date.now());
+  if (!existing) await kvSet(SAMPLE_KV, s);
+  return { sample: sampleView(s) };
+}
+
+export async function sampleDecide(p: any) {
+  const s = await kvGet<SampleStored>(SAMPLE_KV);
+  if (!s) throw new BadRequest('There is no sample campaign');
+  try {
+    const next = decideSample(
+      s,
+      p?.id,
+      p?.decision === null ? null : parseSampleDecision(p?.decision),
+    );
+    await kvSet(SAMPLE_KV, next);
+    return { sample: sampleView(next) };
+  } catch (e) {
+    throw new BadRequest(e instanceof Error ? e.message : 'Invalid sample decision');
+  }
+}
+
+export async function sampleFinish() {
+  const s = await kvGet<SampleStored>(SAMPLE_KV);
+  if (!s) throw new BadRequest('There is no sample campaign');
+  try {
+    const next = finishSample(s, Date.now());
+    await kvSet(SAMPLE_KV, next);
+    return { sample: sampleView(next) };
+  } catch (e) {
+    throw new BadRequest(e instanceof Error ? e.message : 'Cannot finish the sample');
+  }
+}
+
+export async function sampleDelete() {
+  await sqlExec('DELETE FROM kv WHERE k = ?', SAMPLE_KV);
+  return { sample: null };
 }
 
 export async function resetReviewPrompt() {

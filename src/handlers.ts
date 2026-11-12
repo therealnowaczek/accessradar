@@ -104,6 +104,11 @@ def('getStatus', async (_p, c) => ({
 }));
 def('getOverview', (p) => svc.overview(p));
 def('answerReviewPrompt', (p) => svc.answerReviewPrompt(p));
+def('getSample', () => svc.sampleGet());
+def('startSample', () => svc.sampleStart());
+def('decideSample', (p) => svc.sampleDecide(p));
+def('finishSample', () => svc.sampleFinish());
+def('deleteSample', () => svc.sampleDelete());
 def('listSnapshots', () => svc.snapshots());
 def('getSnapshot', (p) => svc.snapshotDetail(p));
 def('startSnapshot', (p, c) =>
