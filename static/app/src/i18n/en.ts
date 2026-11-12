@@ -1171,7 +1171,8 @@ export const en = {
   'seats.multipleProducts': 'Several products',
   'seats.accessPartial':
     'Some access could not be resolved in this snapshot, so the count of people with no space access may be incomplete.',
-  'seats.productSummary': '{seats} seat holders through {groups} groups',
+  'seats.productSummary':
+    '{seats, plural, one {# seat holder} other {# seat holders}} through {groups, plural, one {# group} other {# groups}}',
   'seats.productPartial': 'Some groups were not read, so this count may be too low.',
   'seats.emptyGroup': 'Empty',
   'seats.notRead': 'Not read',

@@ -66,6 +66,16 @@ describe('t', () => {
     setCatalog(en);
   });
 
+  it('pluralises the seat summary in English', () => {
+    setCatalog(en);
+    expect(t('seats.productSummary', { seats: 1, groups: 1 })).toBe(
+      '1 seat holder through 1 group',
+    );
+    expect(t('seats.productSummary', { seats: 5, groups: 2 })).toBe(
+      '5 seat holders through 2 groups',
+    );
+  });
+
   it('loadLocale keeps English for an unknown locale', async () => {
     expect(await loadLocale('ru_RU')).toBe('en-US');
     expect(t('settings.save')).toBe(en['settings.save']);
