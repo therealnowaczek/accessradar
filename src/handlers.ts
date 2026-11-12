@@ -201,12 +201,15 @@ const projectResolver = new Resolver();
 type ProjectCtx = Ctx & {
   projectId: string;
   access: 'assignee' | 'site-admin' | 'not-assigned';
+  /** No open review exists for this space, so the caller may start their own. */
+  canStart: boolean;
 };
 type ProjectHandler = (payload: any, ctx: ProjectCtx) => Promise<unknown>;
 
 /**
  * Project settings page: license → projectId from extension context → ADMINISTER_PROJECTS
- * (or site admin) → Advanced delegatedReviews. Payload project ids are ignored.
+ * (or site admin). Self review of the caller's own space is on every edition (C8); campaign
+ * assignments only exist on Advanced. Payload project ids are ignored.
  */
 function defProject(name: string, fn: ProjectHandler) {
   projectResolver.define(name, async ({ payload, context }) => {
@@ -228,8 +231,6 @@ function defProject(name: string, fn: ProjectHandler) {
         await ensureMigrated();
         phase.at = 'edition';
         const edition = await decideForInvocation(license, environmentType);
-        if (!edition.features.delegatedReviews) return { denied: REQUIRES_ADVANCED } as const;
-
         phase.at = 'auth';
         const siteAdmin = await isJiraAdmin(accountId);
         if (!siteAdmin) await assertProjectAdminister(accountId, projectId);
@@ -249,6 +250,7 @@ function defProject(name: string, fn: ProjectHandler) {
           edition,
           projectId,
           access,
+          canStart: !open,
         });
         return { data } as const;
       })();
@@ -271,17 +273,16 @@ function defProject(name: string, fn: ProjectHandler) {
 }
 
 defProject('getMyAssignment', (_p, c) =>
-  svc.projectMyAssignment(c.projectId, c.accountId, c.access, c.edition),
+  svc.projectMyAssignment(c.projectId, c.accountId, c.access, c.canStart),
 );
+defProject('startSelfReview', (_p, c) => svc.projectStartSelfReview(c.projectId, c.accountId));
 defProject('decideAssignedItems', (p, c) =>
-  svc.projectDecideItems(c.projectId, c.accountId, c.access, p, c.edition),
+  svc.projectDecideItems(c.projectId, c.accountId, c.access, p),
 );
 defProject('submitAssignment', (p, c) =>
-  svc.projectSubmitAssignment(c.projectId, c.accountId, c.access, p, c.edition),
+  svc.projectSubmitAssignment(c.projectId, c.accountId, c.access, p),
 );
-defProject('dismissNotice', (p, c) =>
-  svc.projectDismissNotice(c.projectId, c.accountId, p, c.edition),
-);
+defProject('dismissNotice', (p, c) => svc.projectDismissNotice(c.projectId, c.accountId, p));
 
 export const projectResolverHandler = projectResolver.getDefinitions();
 

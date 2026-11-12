@@ -4,7 +4,6 @@
  * or en dash (R-8.5), like every other EmptyState description.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { featureFlags } from '../src/domain/edition';
 
 const m = vi.hoisted(() => ({
   listNotices: vi.fn(),
@@ -23,14 +22,6 @@ vi.mock('../src/db/campaigns', async (orig) => ({
 }));
 
 import { PROJECT_EMPTY_COPY, projectMyAssignment } from '../src/api/service';
-
-const advanced = {
-  edition: 'advanced',
-  source: 'license',
-  features: featureFlags('advanced'),
-  override: null,
-  canOverride: false,
-} as const;
 
 /** One sentence: a single terminal full stop, no sentence break inside, no dashes. */
 function expectOneSentence(text: string) {
@@ -58,13 +49,13 @@ describe('project page empty-state copy', () => {
 
   it('No assigned review (no open assignment) returns the one-sentence description', async () => {
     m.findOpenAssignmentForProject.mockResolvedValue(null);
-    const r = await projectMyAssignment('10001', 'acc', 'site-admin', advanced);
+    const r = await projectMyAssignment('10001', 'acc', 'site-admin');
     expect(r.limitation).toBe(PROJECT_EMPTY_COPY.noAssignment);
     expectOneSentence(r.limitation!);
   });
 
   it('a project admin without an assignment gets the one-sentence description', async () => {
-    const r = await projectMyAssignment('10001', 'acc', 'not-assigned', advanced);
+    const r = await projectMyAssignment('10001', 'acc', 'not-assigned', true);
     expect(r.limitation).toBe(PROJECT_EMPTY_COPY.notAssigned);
     expect(m.findOpenAssignmentForProject).not.toHaveBeenCalled();
   });

@@ -1636,6 +1636,7 @@ import {
   getCampaign,
   getCampaignRun,
   insertCampaign,
+  insertAssignment,
   insertCampaignRun,
   listAssignmentsForRun,
   listCampaigns as dbListCampaigns,
@@ -1784,10 +1785,6 @@ export async function campaignReassign(p: any, accountId: string, edition: Editi
 }
 
 // ---------- project settings page (delegated reviews) ----------
-function assertDelegated(edition: EditionDecision) {
-  if (!edition.features.delegatedReviews) throw new BadRequest(REQUIRES_ADVANCED);
-}
-
 /**
  * Empty-state descriptions for the project settings page ("No assigned review"). The UI shows them
  * as the EmptyState description, so they follow R-8.5: one sentence, no em or en dash.
@@ -1808,9 +1805,8 @@ export async function projectMyAssignment(
   projectId: string,
   accountId: string,
   access: 'assignee' | 'site-admin' | 'not-assigned',
-  edition: EditionDecision,
+  canStart = false,
 ) {
-  assertDelegated(edition);
   const notices = await listNotices({
     audience: 'project',
     projectId,
@@ -1826,6 +1822,7 @@ export async function projectMyAssignment(
       items: [],
       notices: notices.items,
       limitation: PROJECT_EMPTY_COPY.notAssigned,
+      canStart,
     };
   }
   const assignment = await findOpenAssignmentForProject(projectId);
@@ -1837,6 +1834,7 @@ export async function projectMyAssignment(
       items: [],
       notices: notices.items,
       limitation: PROJECT_EMPTY_COPY.noAssignment,
+      canStart: true,
     };
   }
   if (access === 'assignee' && assignment.assignee !== accountId) {
@@ -1847,6 +1845,7 @@ export async function projectMyAssignment(
       items: [],
       notices: notices.items,
       limitation: PROJECT_EMPTY_COPY.otherAssignee,
+      canStart: false,
     };
   }
   const detail = await reviewDetail({ id: assignment.reviewId });
@@ -1857,7 +1856,70 @@ export async function projectMyAssignment(
     items: detail.items,
     notices: notices.items,
     limitation: null,
+    canStart: false,
   };
+}
+
+const SELF_REVIEW_DAYS = 30;
+
+/**
+ * C8: a space admin reviews their own space. Server side: the project resolver has already verified
+ * ADMINISTER_PROJECTS (or site admin) on the space from the Forge context, so the scope is that one
+ * space and nothing else. Reuses the delegated review (one review, one open assignment, same Recheck,
+ * decide and submit paths); a site admin still signs on Advanced.
+ */
+export async function projectStartSelfReview(projectId: string, accountId: string) {
+  if (await findOpenAssignmentForProject(projectId))
+    throw new BadRequest('This space already has an open review');
+  const base = await committed(null);
+  if (!base)
+    throw new BadRequest('No snapshot yet. Ask a Jira admin to take a snapshot, then try again.');
+  const prev = await previousCommitted(base.seq);
+  const [state, compareState, settings] = await Promise.all([
+    stateFor(base.seq),
+    prev ? stateFor(prev.seq) : Promise.resolve(undefined),
+    getSettings(),
+  ]);
+  const project = state.projects.get(projectId);
+  if (!project)
+    throw new BadRequest(
+      'This space is not in the latest snapshot yet. Ask a Jira admin to take one.',
+    );
+  const scope: ReviewScope = { type: 'projects', ids: [projectId] };
+  const drafts = buildReviewItems(state, scope, settings.keyPermissions, compareState);
+  const now = Date.now();
+  await expireExceptions(now);
+  const active = await activeExceptionsForKeys(drafts.map((i) => i.itemKey));
+  const items = applyExceptions(drafts, active, now);
+  const dueAt = now + SELF_REVIEW_DAYS * 86400_000;
+  const reviewId = await insertReview(
+    {
+      name: `Self review ${project.key} ${new Date(now).toISOString().slice(0, 10)}`,
+      scope,
+      keyPermissions: settings.keyPermissions,
+      baseSeq: base.seq,
+      compareSeq: prev?.seq ?? null,
+      createdBy: accountId,
+      createdAt: now,
+      dueAt,
+      engineVersion: ENGINE_VERSION,
+      campaignRunId: null,
+    },
+    items,
+  );
+  await insertAssignment({
+    reviewId,
+    projectId,
+    assignee: accountId,
+    status: 'open',
+    dueAt,
+    submittedAt: null,
+    submittedBy: null,
+    lastReminderAt: null,
+    reminderCount: 0,
+  });
+  await audit(accountId, 'review.self_started', reviewId, { projectId, items: items.length });
+  return { reviewId, items: items.length };
 }
 
 export async function projectDecideItems(
@@ -1865,9 +1927,7 @@ export async function projectDecideItems(
   accountId: string,
   access: 'assignee' | 'site-admin' | 'not-assigned',
   p: any,
-  edition: EditionDecision,
 ) {
-  assertDelegated(edition);
   if (access === 'not-assigned')
     throw new ForbiddenError('Only the assigned space admin can review access here');
   const reviewId = v.id(p.reviewId ?? p.id, 'review', /^[0-9a-f-]{36}$/);
@@ -1884,9 +1944,7 @@ export async function projectSubmitAssignment(
   accountId: string,
   access: 'assignee' | 'site-admin' | 'not-assigned',
   p: any,
-  edition: EditionDecision,
 ) {
-  assertDelegated(edition);
   if (access === 'not-assigned')
     throw new ForbiddenError('Only the assigned space admin can submit this review');
   const reviewId = v.id(p.reviewId ?? p.id, 'review', /^[0-9a-f-]{36}$/);
@@ -1906,13 +1964,7 @@ export async function projectSubmitAssignment(
   return { submitted: true, reviewId, name: review.name };
 }
 
-export async function projectDismissNotice(
-  projectId: string,
-  accountId: string,
-  p: any,
-  edition: EditionDecision,
-) {
-  assertDelegated(edition);
+export async function projectDismissNotice(projectId: string, accountId: string, p: any) {
   const id = Number(p.id);
   if (!Number.isInteger(id) || id < 1) throw new BadRequest('Invalid notice');
   const list = await listNotices({

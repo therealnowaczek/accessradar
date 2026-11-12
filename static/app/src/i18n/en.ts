@@ -1185,4 +1185,9 @@ export const en = {
   'seats.flagNoSpace': 'No space access',
   'seats.flagMultiple': 'Several products',
   'seats.nothingToReview': 'No seat holders to review in this snapshot.',
+  'projectReview.startSelf': 'Start a review of this space',
+  'projectReview.startSelfDescription':
+    'Review who has access to this space and decide to keep or revoke it. Nothing is changed in Jira.',
+  'projectReview.selfStarted': 'Review started',
+  'projectReview.couldNotStart': 'Could not start the review',
 } as const;
