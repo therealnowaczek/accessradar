@@ -30,6 +30,7 @@ import {
 import { runCollectStep, scheduledTick } from './collector/run';
 import { runPrivacyReport } from './privacy';
 import * as svc from './api/service';
+import { auditChanges, securityLevels, sharedItems } from './lib/exposure';
 import { findOpenAssignmentForProject } from './db/campaigns';
 import { errInfo } from './lib/errors';
 import { withResolverBudget, type Phase } from './lib/budget';
@@ -153,6 +154,15 @@ def('setEditionOverride', async (p, c) =>
   ),
 );
 def('getActivity', () => svc.activity());
+// Phase 3b, read-only. I (sharing) and K (security levels): both editions. J (audit log): Advanced.
+def('getExposure', async () => {
+  const [sharing, security] = await Promise.all([sharedItems(), securityLevels()]);
+  return { sharing, security };
+});
+def('getAuditChanges', async (p, c) => {
+  if (!c.edition.features.changeAlerts) return { denied: REQUIRES_ADVANCED } as const;
+  return auditChanges(Math.min(30, Math.max(1, Number(p?.days) || 7)));
+});
 def('logExport', (p, c) => svc.logExport(p, c.accountId));
 
 /** Dev-only spike: probes as interactive user + as app, and enqueues an offline-impersonation probe

@@ -74,3 +74,10 @@ Changing the heuristic without a real MCP context shape would be a guess. Revisi
   are a follow-up (extract with `/workspace/radrly/accessradar/tools/extract.mjs`, then translate).
 - Translations are machine-drafted by Claude and not reviewed by native speakers: Marcin should have de/fr/pl/ja checked
   before the listing advertises localisation.
+
+## 2026-11-12: Phase 3 (read-only I, J, K) (Claude run)
+
+- H (writing work items/comments) dropped earlier; 3b builds only I (public filters/dashboards), K (issue security levels) and J (audit-log diffs, Advanced) as one page, "Sharing and security", read live and not stored.
+- Six new `read:` scopes, see `docs/phase-3-scopes-for-marcin.md`. Major version 3.0.0. Branch `feat/phase-3b-sharing-security-audit`: deployed to dev only, PR not merged, no production deploy until Marcin approves.
+- J reuses the `changeAlerts` Advanced flag (no new edition flag).
+- **Approved by Marcin (2026-11-12 05:06, Jira Apps room): "Jeśli na coś czekacie na mnie, to nie czekajcie, realizujemy plan do spodu!"** Phase 3 (I, J, K; six read-only scopes, major 3.0.0) ships to production after green dev E2E. No write scopes, no egress, no remotes. Deploy never uses `forge install --upgrade`; sites approve the update themselves.
