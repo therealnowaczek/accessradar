@@ -51,6 +51,7 @@ import { coverageHash } from '../engine/facts';
 import { getVerifyJob, insertVerifyJob, patchVerifyJob, recomputeSnapshotHash } from '../db/verify';
 import { push } from '../lib/queue';
 import { jiraCall, mapLimit } from '../lib/budget';
+import { TRACKED_GROUPS_MAX } from './groupDiff';
 import { findStale, recheckBlockMessage, type StaleItem } from '../engine/recheck';
 import { getSettings, kvGet, kvSet, saveSettings } from '../db/settings';
 import {
@@ -339,7 +340,26 @@ export async function takeSnapshot(accountId: string, trigger: 'manual' | 'onboa
 
 // ---------- explore ----------
 export const exploreProjects = (p: any) => withState(p.seq, (s) => projectsList(s));
-export const exploreGroups = (p: any) => withState(p.seq, (s) => groupsList(s));
+export async function exploreGroups(p: any) {
+  const [r, settings] = await Promise.all([withState(p.seq, (s) => groupsList(s)), getSettings()]);
+  const tracked = new Set(settings.trackedGroups);
+  return { ...r, data: r.data?.map((g) => ({ ...g, tracked: tracked.has(g.id) })) ?? null };
+}
+
+/** Track or stop tracking a group for the weekly reach and membership changes (C3). */
+export async function setGroupTracked(p: any, accountId: string) {
+  const groupId = v.id(p.groupId, 'group', /^[\w:.\- ]{1,128}$/);
+  const settings = await getSettings();
+  const set = new Set(settings.trackedGroups);
+  if (p.tracked === true) {
+    if (!set.has(groupId) && set.size >= TRACKED_GROUPS_MAX)
+      throw new BadRequest(`You can track up to ${TRACKED_GROUPS_MAX} groups`);
+    set.add(groupId);
+  } else set.delete(groupId);
+  await saveSettings({ trackedGroups: [...set] });
+  await audit(accountId, p.tracked === true ? 'group.tracked' : 'group.untracked', groupId, {});
+  return { tracked: set.has(groupId), count: set.size };
+}
 export const explorePeople = (p: any) => withState(p.seq, (s) => peopleList(s));
 
 export async function projectDetail(p: any) {
@@ -996,7 +1016,16 @@ export async function runWeeklyDigest(now = Date.now()): Promise<WeeklyDigest> {
   else if (!base) digest = emptyDigest('no-baseline', now, head);
   else {
     const [prevState, nextState] = await Promise.all([stateFor(base.seq), stateFor(head.seq)]);
-    digest = buildWeeklyDigest(prevState, nextState, { base, head, partialWeek }, now);
+    const { trackedGroups } = await getSettings();
+    digest = buildWeeklyDigest(
+      prevState,
+      nextState,
+      { base, head, partialWeek },
+      now,
+      undefined,
+      undefined,
+      trackedGroups,
+    );
   }
   await kvSet(DIGEST_KV_KEY, digest);
   await audit('system', 'digest.built', head ? `#${head.seq}` : null, {

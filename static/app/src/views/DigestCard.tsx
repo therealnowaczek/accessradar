@@ -11,6 +11,7 @@ import { t, type MessageKey } from '../i18n';
 import { MetricGridPhantom, Phantom } from '../skeletons';
 import { useApp } from '../shared';
 import { useToast } from '../Toast';
+import { TrackedGroupChanges } from './TrackedGroups';
 import { Metric, MetricGrid, Pill, PlanNote, staleNotice } from '../ui';
 
 const RULES: DigestRule[] = [
@@ -177,6 +178,12 @@ export function DigestCard({ planNote = true }: { planNote?: boolean }) {
           <Text as="p" color="color.text.subtle">
             {t('digest.omitted', { count: d.omitted })}
           </Text>
+        ) : null}
+        {d.trackedGroups?.tracked ? (
+          <Stack space="space.100">
+            <Text weight="bold">{t('groups.trackedTitle')}</Text>
+            <TrackedGroupChanges summary={d.trackedGroups} />
+          </Stack>
         ) : null}
       </Stack>
     );

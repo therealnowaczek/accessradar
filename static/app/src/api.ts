@@ -157,6 +157,7 @@ export type GroupRow = {
   applications: string[];
   projects: number;
   grants: number;
+  tracked?: boolean;
 };
 
 export type GroupDetail = {
@@ -414,4 +415,22 @@ export interface WeeklyDigest {
   counts: Record<DigestRule, number>;
   items: Array<{ rule: DigestRule; severity: 'high' | 'medium'; title: string; body: string }>;
   omitted: number;
+  trackedGroups?: TrackedGroupsSummary;
+}
+
+export interface TrackedGroupChange {
+  groupId: string;
+  name: string;
+  status: 'changed' | 'unchanged' | 'gone';
+  spacesAdded: Array<{ key: string; name: string; permissions: string[] }>;
+  spacesRemoved: Array<{ key: string; name: string; permissions: string[] }>;
+  permissionsChanged: Array<{ key: string; name: string; added: string[]; removed: string[] }>;
+  membersJoined: number | null;
+  membersLeft: number | null;
+}
+
+export interface TrackedGroupsSummary {
+  tracked: number;
+  changed: number;
+  changes: TrackedGroupChange[];
 }

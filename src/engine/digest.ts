@@ -8,6 +8,7 @@
 import { ALERT_RULES, DEFAULT_ALERT_RULES, evaluateAlerts, type AlertRule } from './alerts';
 import { resolveAll, type EffectiveAccess } from './resolve';
 import type { AccessState } from './state';
+import { diffTrackedGroups, type TrackedGroupsSummary } from '../api/groupDiff';
 
 export const DIGEST_WINDOW_MS = 7 * 24 * 3600_000;
 /** Items kept in the stored digest; counts always cover every change. */
@@ -45,6 +46,8 @@ export interface WeeklyDigest {
   items: DigestItem[];
   /** Changes counted but not listed in `items` (cap). */
   omitted: number;
+  /** C3: reach and membership changes of the groups the admin tracks (absent when none are tracked). */
+  trackedGroups?: TrackedGroupsSummary;
 }
 
 export function emptyCounts(): Record<AlertRule, number> {
@@ -100,6 +103,7 @@ export function buildWeeklyDigest(
   now: number,
   cap = DIGEST_ITEM_CAP,
   entries?: { prev?: EffectiveAccess[]; next?: EffectiveAccess[] },
+  trackedGroupIds: readonly string[] = [],
 ): WeeklyDigest {
   const changes = evaluateAlerts(
     prev,
@@ -128,5 +132,16 @@ export function buildWeeklyDigest(
     counts,
     items: sorted.slice(0, cap),
     omitted: Math.max(0, sorted.length - cap),
+    ...(trackedGroupIds.length
+      ? {
+          trackedGroups: diffTrackedGroups(
+            prev,
+            next,
+            entries?.prev ?? resolveAll(prev),
+            entries?.next ?? resolveAll(next),
+            trackedGroupIds,
+          ),
+        }
+      : {}),
   };
 }

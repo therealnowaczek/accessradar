@@ -26,6 +26,8 @@ export interface Settings {
   requireKeepNote: boolean;
   /** Advanced change-alert rules (ignored on Standard). */
   alerts: AlertRulesConfig;
+  /** Group ids tracked for weekly reach and membership changes (C3), at most 50. */
+  trackedGroups: string[];
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -42,6 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showAppAccounts: false,
   requireKeepNote: false,
   alerts: { ...DEFAULT_ALERT_RULES },
+  trackedGroups: [],
 };
 
 const PERMISSION_KEY = /^[A-Z][A-Z0-9_]{1,63}$/;
@@ -89,6 +92,15 @@ export function sanitizeSettings(input: unknown, base: Settings = DEFAULT_SETTIN
     requireKeepNote:
       typeof i.requireKeepNote === 'boolean' ? i.requireKeepNote : base.requireKeepNote,
     alerts: sanitizeAlertRules(i.alerts !== undefined ? i.alerts : base.alerts),
+    trackedGroups: Array.isArray(i.trackedGroups)
+      ? [
+          ...new Set(
+            i.trackedGroups.filter(
+              (g): g is string => typeof g === 'string' && /^[\w:.\- ]{1,128}$/.test(g),
+            ),
+          ),
+        ].slice(0, 50)
+      : base.trackedGroups,
   };
 }
 

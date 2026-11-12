@@ -1097,4 +1097,26 @@ export const en = {
   'reviews.showRecheck': 'Show items to recheck',
   'projectReview.recheckBody':
     'Access changed in a later snapshot after these decisions were made. Decide them again against the current access. The review cannot be submitted until then.',
+  'groups.tracked': 'Tracked',
+  'groups.trackedFilter': 'Tracked groups',
+  'groups.tracking': 'Tracking',
+  'groups.track': 'Track changes',
+  'groups.untrack': 'Stop tracking',
+  'groups.trackedHint':
+    'Tracked groups appear in the weekly digest with changes in the spaces they reach and in their membership.',
+  'groups.trackedToast': 'Tracking {name}',
+  'groups.untrackedToast': 'Stopped tracking {name}',
+  'groups.trackingNotSaved': 'Tracking was not saved',
+  'groups.trackedTitle': 'Tracked groups this week',
+  'groups.trackedDescription':
+    'What tracked groups can reach now compared with a week ago, from the weekly digest.',
+  'groups.trackedSummary': '{changed} of {tracked} tracked groups changed',
+  'groups.trackedNone': 'No tracked group changed this week.',
+  'groups.trackedGone': 'No longer in the latest snapshot (deleted or renamed).',
+  'groups.reachAdded': 'Now reaches {space}: {permissions}',
+  'groups.reachRemoved': 'No longer reaches {space}',
+  'groups.reachPermsAdded': '{space}: gained {permissions}',
+  'groups.reachPermsRemoved': '{space}: lost {permissions}',
+  'groups.membersJoined': '{count, plural, one {# member joined} other {# members joined}}',
+  'groups.membersLeft': '{count, plural, one {# member left} other {# members left}}',
 } as const;
