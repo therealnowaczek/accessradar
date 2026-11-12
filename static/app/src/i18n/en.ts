@@ -1190,4 +1190,14 @@ export const en = {
     'Review who has access to this space and decide to keep or revoke it. Nothing is changed in Jira.',
   'projectReview.selfStarted': 'Review started',
   'projectReview.couldNotStart': 'Could not start the review',
+  'reviews.aiSuggest': 'Suggest review order (AI)',
+  'reviews.aiTitle': 'AI suggestions',
+  'reviews.aiBody':
+    'Advice only, based on roles, group names and existing risk flags. No names, emails or account ids are sent, and the model runs on Atlassian (Forge LLMs). You decide every item.',
+  'reviews.aiClear': 'Clear suggestions',
+  'reviews.aiDone': 'Suggestions ready for {count} items',
+  'reviews.aiFailed': 'AI suggestions unavailable',
+  'reviews.aiPriority.high': 'AI: look first',
+  'reviews.aiPriority.medium': 'AI: look next',
+  'reviews.aiPriority.low': 'AI: lower priority',
 } as const;

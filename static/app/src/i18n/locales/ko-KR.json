@@ -1030,5 +1030,14 @@
   "projectReview.startSelf": "이 스페이스 검토 시작",
   "projectReview.startSelfDescription": "이 스페이스에 누가 액세스할 수 있는지 검토하고 유지할지 취소할지 결정하세요. Jira에서는 아무것도 변경되지 않습니다.",
   "projectReview.selfStarted": "검토가 시작되었습니다",
-  "projectReview.couldNotStart": "검토를 시작하지 못했습니다"
+  "projectReview.couldNotStart": "검토를 시작하지 못했습니다",
+  "reviews.aiSuggest": "검토 순서 제안 (AI)",
+  "reviews.aiTitle": "AI 제안",
+  "reviews.aiBody": "역할, 그룹 이름, 기존 위험 플래그를 바탕으로 한 조언일 뿐입니다. 이름, 이메일, 계정 ID는 전송되지 않으며 모델은 Atlassian에서 실행됩니다(Forge LLMs). 각 항목은 직접 결정합니다.",
+  "reviews.aiClear": "제안 지우기",
+  "reviews.aiDone": "{count}개 항목에 대한 제안이 준비되었습니다",
+  "reviews.aiFailed": "AI 제안을 사용할 수 없습니다",
+  "reviews.aiPriority.high": "AI: 먼저 확인",
+  "reviews.aiPriority.medium": "AI: 다음으로 확인",
+  "reviews.aiPriority.low": "AI: 낮은 우선순위"
 }

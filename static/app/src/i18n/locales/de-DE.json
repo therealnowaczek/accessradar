@@ -1030,5 +1030,14 @@
   "projectReview.startSelf": "Überprüfung dieses Space starten",
   "projectReview.startSelfDescription": "Prüfen Sie, wer Zugriff auf diesen Space hat, und entscheiden Sie, ob er bleibt oder entzogen wird. In Jira wird nichts geändert.",
   "projectReview.selfStarted": "Überprüfung gestartet",
-  "projectReview.couldNotStart": "Überprüfung konnte nicht gestartet werden"
+  "projectReview.couldNotStart": "Überprüfung konnte nicht gestartet werden",
+  "reviews.aiSuggest": "Prüfreihenfolge vorschlagen (KI)",
+  "reviews.aiTitle": "KI-Vorschläge",
+  "reviews.aiBody": "Nur ein Hinweis auf Basis von Rollen, Gruppennamen und vorhandenen Risikokennzeichen. Es werden keine Namen, E-Mail-Adressen oder Konto-IDs gesendet, und das Modell läuft bei Atlassian (Forge LLMs). Sie entscheiden jeden Eintrag.",
+  "reviews.aiClear": "Vorschläge löschen",
+  "reviews.aiDone": "Vorschläge für {count} Einträge bereit",
+  "reviews.aiFailed": "KI-Vorschläge nicht verfügbar",
+  "reviews.aiPriority.high": "KI: zuerst ansehen",
+  "reviews.aiPriority.medium": "KI: danach ansehen",
+  "reviews.aiPriority.low": "KI: niedrigere Priorität"
 }

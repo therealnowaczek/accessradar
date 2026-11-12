@@ -14,6 +14,14 @@ import {
 import { computeRisks } from '../engine/risk';
 import { sharedItems } from '../lib/exposure';
 import { seatReport } from '../engine/seats';
+import { askForgeLlm } from '../lib/llm';
+import { errInfo } from '../lib/errors';
+import {
+  parsePresort,
+  presortCandidates,
+  presortMessages,
+  type PresortSuggestion,
+} from '../domain/presort';
 import { buildState, type AccessState } from '../engine/state';
 import { audit, listAudit } from '../db/audit';
 import {
@@ -1861,6 +1869,48 @@ export async function projectMyAssignment(
 }
 
 const SELF_REVIEW_DAYS = 30;
+
+/**
+ * C6, Advanced: AI pre-sort for the reviewer. Only the minimised records built in domain/presort.ts go
+ * to Forge LLMs (no names, account ids, emails, space keys or permissions). The reply is validated and
+ * only ever returned as advice; nothing is decided, saved or written to Jira. Audit keeps counts only.
+ */
+export async function reviewPresort(
+  p: any,
+  accountId: string,
+  edition: EditionDecision,
+  ask: typeof askForgeLlm = askForgeLlm,
+) {
+  if (!edition.features.signatureChain) throw new BadRequest(REQUIRES_ADVANCED);
+  const review = await loadReview(p.id);
+  if (review.status === 'signed') throw new BadRequest('A signed review cannot be changed');
+  const { records, total } = presortCandidates(await getItems(review.id));
+  if (!records.length) throw new BadRequest('Every item already has a decision');
+  let reply: { text: string; model: string };
+  try {
+    reply = await ask(presortMessages(records));
+  } catch (e) {
+    console.error('[presort] model call failed', errInfo(e));
+    throw new BadRequest('The AI service is not available right now. Try again later.');
+  }
+  let parsed: Map<number, PresortSuggestion>;
+  try {
+    parsed = parsePresort(reply.text, new Set(records.map((r) => r.id)));
+  } catch (e) {
+    throw new BadRequest(e instanceof Error ? e.message : 'The AI reply could not be used');
+  }
+  await audit(accountId, 'review.presort', review.id, {
+    considered: records.length,
+    total,
+    suggested: parsed.size,
+  });
+  return {
+    model: reply.model,
+    considered: records.length,
+    total,
+    suggestions: Object.fromEntries(parsed),
+  };
+}
 
 /**
  * C8: a space admin reviews their own space. Server side: the project resolver has already verified

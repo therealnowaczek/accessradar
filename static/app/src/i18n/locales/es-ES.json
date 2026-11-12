@@ -1030,5 +1030,14 @@
   "projectReview.startSelf": "Iniciar una revisión de este espacio",
   "projectReview.startSelfDescription": "Revise quién tiene acceso a este espacio y decida si lo mantiene o lo revoca. No se cambia nada en Jira.",
   "projectReview.selfStarted": "Revisión iniciada",
-  "projectReview.couldNotStart": "No se pudo iniciar la revisión"
+  "projectReview.couldNotStart": "No se pudo iniciar la revisión",
+  "reviews.aiSuggest": "Sugerir orden de revisión (IA)",
+  "reviews.aiTitle": "Sugerencias de la IA",
+  "reviews.aiBody": "Solo un consejo, basado en roles, nombres de grupos e indicadores de riesgo existentes. No se envían nombres, correos ni identificadores de cuenta, y el modelo se ejecuta en Atlassian (Forge LLMs). Usted decide cada elemento.",
+  "reviews.aiClear": "Borrar sugerencias",
+  "reviews.aiDone": "Sugerencias listas para {count} elementos",
+  "reviews.aiFailed": "Sugerencias de la IA no disponibles",
+  "reviews.aiPriority.high": "IA: revisar primero",
+  "reviews.aiPriority.medium": "IA: revisar después",
+  "reviews.aiPriority.low": "IA: prioridad menor"
 }

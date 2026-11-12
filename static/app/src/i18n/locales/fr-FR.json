@@ -1030,5 +1030,14 @@
   "projectReview.startSelf": "Démarrer une revue de cet espace",
   "projectReview.startSelfDescription": "Passez en revue qui a accès à cet espace et décidez de le conserver ou de le révoquer. Rien n'est modifié dans Jira.",
   "projectReview.selfStarted": "Revue démarrée",
-  "projectReview.couldNotStart": "Impossible de démarrer la revue"
+  "projectReview.couldNotStart": "Impossible de démarrer la revue",
+  "reviews.aiSuggest": "Suggérer un ordre de revue (IA)",
+  "reviews.aiTitle": "Suggestions de l'IA",
+  "reviews.aiBody": "Simple conseil, fondé sur les rôles, les noms de groupes et les indicateurs de risque existants. Aucun nom, e-mail ou identifiant de compte n'est envoyé, et le modèle s'exécute chez Atlassian (Forge LLMs). Vous décidez de chaque élément.",
+  "reviews.aiClear": "Effacer les suggestions",
+  "reviews.aiDone": "Suggestions prêtes pour {count} éléments",
+  "reviews.aiFailed": "Suggestions de l'IA indisponibles",
+  "reviews.aiPriority.high": "IA : à voir en premier",
+  "reviews.aiPriority.medium": "IA : à voir ensuite",
+  "reviews.aiPriority.low": "IA : priorité plus basse"
 }
