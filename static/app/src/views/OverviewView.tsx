@@ -210,8 +210,8 @@ export function OverviewView() {
   return (
     <PageFrame header={header} notice={staleNotice(ov, t('overview.overviewCouldNotRefresh'))}>
       <Stack space="space.300">
-        {active ? <SnapshotProgress active={active} /> : null}
         {d.reviewPrompt?.show ? <ReviewPrompt url={d.reviewPrompt.url} /> : null}
+        {active ? <SnapshotProgress active={active} /> : null}
         {(status.data?.alertCount ?? 0) > 0 ? (
           <SectionMessage
             appearance="warning"

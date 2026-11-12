@@ -35,6 +35,11 @@ describe('review prompt basics', () => {
     expect(u.pathname.startsWith('/apps/3691498947/')).toBe(true);
     expect(u.searchParams.get('tab')).toBe('reviews');
   });
+  it('uses the exact Radrly standard URL, no UTM', () => {
+    expect(MARKETPLACE_REVIEW_URL).toBe(
+      'https://marketplace.atlassian.com/apps/3691498947/accessradar-access-review-permission-audit-for-jira?tab=reviews&hosting=cloud',
+    );
+  });
   it('treats anything but done as dismissed', () => {
     expect(parseReviewPromptChoice('done')).toBe('done');
     expect(parseReviewPromptChoice('x')).toBe('dismissed');
