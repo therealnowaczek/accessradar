@@ -51,8 +51,8 @@ export const useSnapshots = () =>
 export function useRefresh(reload: () => Promise<boolean>) {
   const toast = useToast();
   const [refresh, refreshing] = useAction(async () => {
-    if (await reload()) toast.success('Data refreshed');
-    else toast.error('Could not refresh', 'Try again in a moment.');
+    if (await reload()) toast.success(t('shared.dataRefreshed'));
+    else toast.error(t('shared.couldNotRefresh'), t('shared.tryAgainInAMoment'));
   });
   return { refresh, refreshing };
 }
@@ -68,24 +68,35 @@ export function useTakeSnapshot(
     try {
       const r = await call<{ created: boolean; seq: number }>('startSnapshot', { trigger });
       toast.success(
-        r.created ? `Snapshot #${r.seq} started` : `Snapshot #${r.seq} is already running`,
-        'You can keep working; progress updates here.',
+        r.created
+          ? t('shared.snapshotStarted', { seq: r.seq })
+          : t('shared.snapshotAlreadyRunning', { seq: r.seq }),
+        t('shared.keepWorkingProgressUpdates'),
       );
       void status.reload();
       onStarted?.();
     } catch (e) {
-      toast.error('Snapshot could not start', errorText(e));
+      toast.error(t('getStarted.snapshotCouldNotStart'), errorText(e));
     }
   });
   return { run, busy };
 }
 
-const STEP_LABEL: Record<string, string> = {
-  PLAN: 'Planning: spaces and permission schemes',
-  PROJECTS: 'Reading space schemes and roles',
-  DIRECTORY: 'Reading groups, application access and users',
-  GROUPS: 'Reading group members',
-  FINALIZE: 'Computing effective access',
+const stepLabel = (step: string): string => {
+  switch (step) {
+    case 'PLAN':
+      return t('shared.stepPlan');
+    case 'PROJECTS':
+      return t('shared.stepProjects');
+    case 'DIRECTORY':
+      return t('shared.stepDirectory');
+    case 'GROUPS':
+      return t('shared.stepGroups');
+    case 'FINALIZE':
+      return t('shared.stepFinalize');
+    default:
+      return step;
+  }
 };
 
 /** Live progress of the running snapshot; polls status while active. */
@@ -100,7 +111,9 @@ export function SnapshotProgress({ active }: { active: Snapshot }) {
   return (
     <SectionMessage
       appearance="information"
-      title={`Snapshot #${active.seq} is ${active.status === 'queued' ? 'queued' : 'running'}`}
+      title={t(active.status === 'queued' ? 'shared.snapshotQueued' : 'shared.snapshotRunning', {
+        seq: active.seq,
+      })}
       headingLevel="h2"
     >
       <Box xcss={progressStyles}>
@@ -108,12 +121,19 @@ export function SnapshotProgress({ active }: { active: Snapshot }) {
           <ProgressBar
             value={value}
             isIndeterminate={value === undefined}
-            ariaLabel="Snapshot progress"
+            ariaLabel={t('shared.snapshotProgress')}
           />
           <Text as="p" color="color.text.subtle">
-            {p ? (STEP_LABEL[p.step] ?? p.step) : 'Waiting for the collector'}
-            {p?.batches ? ` · batch ${p.batch + 1} of ${p.batches}` : ''}
-            {p?.message ? ` · ${p.message}` : ''} · started {relative(active.startedAt)}
+            {[
+              p ? stepLabel(p.step) : t('shared.waitingForTheCollector'),
+              p?.batches
+                ? t('shared.progressBatch', { batch: p.batch + 1, batches: p.batches })
+                : '',
+              p?.message ?? '',
+              t('shared.progressStarted', { when: relative(active.startedAt) }),
+            ]
+              .filter(Boolean)
+              .join(' · ')}
           </Text>
           {counts.length ? (
             <Text as="p" color="color.text.subtle">
@@ -138,8 +158,8 @@ export function NoSnapshot({ what, headingSize }: { what: string; headingSize?: 
   return (
     <EmptyState
       headingSize={headingSize}
-      header="No snapshot yet"
-      description={`Take the first snapshot to see ${what}; it reads permission schemes, roles, groups and application access, and nothing in Jira changes.`}
+      header={t('shared.noSnapshotYet')}
+      description={t('shared.takeFirstSnapshotToSee', { what })}
       primaryAction={
         <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>
           {t('shared.takeSnapshotNow')}
@@ -161,7 +181,7 @@ export function PartialBanner({
   return (
     <SectionMessage
       appearance="warning"
-      title={`Snapshot #${snapshot.seq} is partial`}
+      title={t('shared.snapshotPartial', { seq: snapshot.seq })}
       headingLevel="h2"
       actions={
         onDetails ? (
@@ -171,10 +191,7 @@ export function PartialBanner({
         ) : undefined
       }
     >
-      <Text as="p">
-        {snapshot.gaps} area{snapshot.gaps === 1 ? '' : 's'} could not be read completely. Results
-        below may miss access granted through those areas.
-      </Text>
+      <Text as="p">{t('shared.areasCouldNotBeRead', { count: snapshot.gaps })}</Text>
     </SectionMessage>
   );
 }
@@ -190,9 +207,9 @@ export function useExporter() {
     async (label: string, fn: () => Promise<unknown> | unknown) => {
       try {
         await fn();
-        toast.success(`${label} downloaded`);
+        toast.success(t('shared.exportDownloaded', { label }));
       } catch (e) {
-        toast.error(`${label} failed`, errorText(e));
+        toast.error(t('shared.exportFailed', { label }), errorText(e));
       }
     },
     [toast],

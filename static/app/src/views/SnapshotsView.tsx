@@ -28,24 +28,54 @@ import { DetailsPhantom, SkeletonRoot } from '../skeletons';
 import { SkeletonTable } from '../skeletonTable';
 
 const STAT_LABEL: Record<string, string> = {
-  project: 'Spaces',
-  scheme: 'Permission schemes',
-  grant: 'Permission grants',
-  role: 'Space roles',
-  role_actor: 'Role actors',
-  group: 'Groups',
-  group_access: 'Group admin/application access',
-  group_member: 'Group memberships',
-  app_role: 'Applications',
-  app_role_group: 'Application access groups',
-  person: 'People and app accounts',
+  get project() {
+    return t('snapshots.statProject');
+  },
+  get scheme() {
+    return t('snapshots.statScheme');
+  },
+  get grant() {
+    return t('snapshots.statGrant');
+  },
+  get role() {
+    return t('snapshots.statRole');
+  },
+  get role_actor() {
+    return t('snapshots.statRoleActor');
+  },
+  get group() {
+    return t('snapshots.statGroup');
+  },
+  get group_access() {
+    return t('snapshots.statGroupAccess');
+  },
+  get group_member() {
+    return t('snapshots.statGroupMember');
+  },
+  get app_role() {
+    return t('snapshots.statAppRole');
+  },
+  get app_role_group() {
+    return t('snapshots.statAppRoleGroup');
+  },
+  get person() {
+    return t('snapshots.statPerson');
+  },
 };
 
 const TRIGGER: Record<string, string> = {
-  manual: 'Manual',
-  scheduled: 'Scheduled',
-  onboarding: 'First snapshot',
-  dev: 'Dev self-test',
+  get manual() {
+    return t('snapshots.triggerManual');
+  },
+  get scheduled() {
+    return t('snapshots.triggerScheduled');
+  },
+  get onboarding() {
+    return t('snapshots.triggerOnboarding');
+  },
+  get dev() {
+    return t('snapshots.triggerDev');
+  },
 };
 
 export function SnapshotsView() {
@@ -70,7 +100,7 @@ export function SnapshotsView() {
     setDrawer([
       {
         key: String(s.seq),
-        title: `Snapshot #${s.seq}`,
+        title: t('snapshots.snapshotNumber', { seq: s.seq }),
         description: formatLocal(s.startedAt),
         content: <SnapshotDrawer seq={s.seq} />,
       },
@@ -122,12 +152,19 @@ export function SnapshotsView() {
         ) : !snaps.data ? (
           <SkeletonRoot>
             <SkeletonTable
-              columns={['Snapshot', 'Status', 'Trigger', 'Duration', 'Contents', 'API cost']}
+              columns={[
+                t('alerts.snapshot'),
+                t('campaigns.status'),
+                t('snapshots.trigger'),
+                t('snapshots.duration'),
+                t('snapshots.contents'),
+                t('snapshots.apiCost'),
+              ]}
             />
           </SkeletonRoot>
         ) : !list.length ? (
           <EmptyState
-            header="No snapshots yet"
+            header={t('snapshots.noSnapshotsYet')}
             description={t('snapshots.aSnapshotRecordsPermissionSchemesRoles')}
             // R-3.2: while a snapshot runs the header keeps its (disabled) button; no second CTA.
             primaryAction={
@@ -142,12 +179,12 @@ export function SnapshotsView() {
           <DynamicTable
             head={{
               cells: [
-                { key: 'seq', content: 'Snapshot', isSortable: true },
-                { key: 'status', content: 'Status' },
-                { key: 'trigger', content: 'Trigger' },
-                { key: 'duration', content: 'Duration' },
-                { key: 'size', content: 'Contents' },
-                { key: 'cost', content: 'API cost' },
+                { key: 'seq', content: t('alerts.snapshot'), isSortable: true },
+                { key: 'status', content: t('campaigns.status') },
+                { key: 'trigger', content: t('snapshots.trigger') },
+                { key: 'duration', content: t('snapshots.duration') },
+                { key: 'size', content: t('snapshots.contents') },
+                { key: 'cost', content: t('snapshots.apiCost') },
               ],
             }}
             rows={list.map((s) => ({
@@ -173,8 +210,11 @@ export function SnapshotsView() {
                   key: 'size',
                   content: s.stats ? (
                     <Text color="color.text.subtle">
-                      {s.stats.project ?? 0} spaces · {s.stats.group ?? 0} groups ·{' '}
-                      {s.stats.person ?? 0} people
+                      {t('snapshots.contentsSummary', {
+                        spaces: s.stats.project ?? 0,
+                        groups: s.stats.group ?? 0,
+                        people: s.stats.person ?? 0,
+                      })}
                     </Text>
                   ) : (
                     <Text color="color.text.subtle">—</Text>
@@ -184,7 +224,10 @@ export function SnapshotsView() {
                   key: 'cost',
                   content: (
                     <Text color="color.text.subtle">
-                      {s.calls} calls · {s.points.toLocaleString()} points
+                      {t('snapshots.costSummary', {
+                        calls: s.calls,
+                        points: s.points.toLocaleString(),
+                      })}
                     </Text>
                   ),
                 },
@@ -226,14 +269,14 @@ function SnapshotDrawer({ seq }: { seq: number }) {
         <SkeletonRoot>
           <DetailsPhantom
             terms={[
-              'Status',
-              'Started',
-              'Finished',
-              'Trigger',
-              'Identity',
-              'API cost',
-              'Engine version',
-              'Content hash (SHA-256)',
+              t('campaigns.status'),
+              t('snapshots.started'),
+              t('snapshots.finished'),
+              t('snapshots.trigger'),
+              t('snapshots.identity'),
+              t('snapshots.apiCost'),
+              t('snapshots.engineVersion'),
+              t('snapshots.contentHash'),
             ]}
           />
         </SkeletonRoot>
@@ -244,25 +287,31 @@ function SnapshotDrawer({ seq }: { seq: number }) {
     <DrawerBody>
       <Details
         rows={[
-          ['Status', <SnapshotLozenge key="s" status={s.status} />],
-          ['Started', `${formatLocal(s.startedAt)} · ${formatUtc(s.startedAt)}`],
+          [t('campaigns.status'), <SnapshotLozenge key="s" status={s.status} />],
+          [t('snapshots.started'), `${formatLocal(s.startedAt)} · ${formatUtc(s.startedAt)}`],
           [
-            'Finished',
+            t('snapshots.finished'),
             s.finishedAt
               ? `${formatLocal(s.finishedAt)} (${duration(s.startedAt, s.finishedAt)})`
               : '—',
           ],
-          ['Trigger', TRIGGER[s.trigger] ?? s.trigger],
+          [t('snapshots.trigger'), TRIGGER[s.trigger] ?? s.trigger],
           [
-            'Identity',
+            t('snapshots.identity'),
             s.collectorMode === 'app+impersonation'
-              ? 'App, with admin fallback for some calls'
-              : 'App',
+              ? t('snapshots.identityAppWithFallback')
+              : t('components.app'),
           ],
-          ['API cost', `${s.calls} calls · ${s.points.toLocaleString()} rate points`],
-          ['Engine version', s.engineVersion],
-          ['Content hash (SHA-256)', <Hash key="h" value={s.contentHash} />],
-          ...(s.error ? ([['Error', s.error]] as Array<[string, string]>) : []),
+          [
+            t('snapshots.apiCost'),
+            t('snapshots.costSummaryDetailed', {
+              calls: s.calls,
+              points: s.points.toLocaleString(),
+            }),
+          ],
+          [t('snapshots.engineVersion'), s.engineVersion],
+          [t('snapshots.contentHash'), <Hash key="h" value={s.contentHash} />],
+          ...(s.error ? ([[t('toast.error'), s.error]] as Array<[string, string]>) : []),
         ]}
       />
       {s.stats ? (

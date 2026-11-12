@@ -31,17 +31,22 @@ import { FilterBarPhantom, Phantom, SkeletonRoot } from '../skeletons';
 import { SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
-const ALL: Opt = { label: 'All', value: '' };
+const ALL: Opt = {
+  get label() {
+    return t('alerts.all');
+  },
+  value: '',
+};
 
 function AccessTable({ rows, empty }: { rows: AccessChange[]; empty: string }) {
   return (
     <DynamicTable
       head={{
         cells: [
-          { key: 'project', content: 'Space', isSortable: true },
-          { key: 'who', content: 'Who', isSortable: true },
-          { key: 'perm', content: 'Permission', isSortable: true },
-          { key: 'why', content: 'Why' },
+          { key: 'project', content: t('campaigns.space'), isSortable: true },
+          { key: 'who', content: t('activity.who'), isSortable: true },
+          { key: 'perm', content: t('changes.permission'), isSortable: true },
+          { key: 'why', content: t('projects.why') },
         ],
       }}
       rows={rows.map((c, i) => ({
@@ -59,7 +64,9 @@ function AccessTable({ rows, empty }: { rows: AccessChange[]; empty: string }) {
               <WrapAnywhere>
                 <Text color="color.text.subtle">
                   {c.reasons[0]}
-                  {c.reasons.length > 1 ? ` (+${c.reasons.length - 1} more)` : ''}
+                  {c.reasons.length > 1
+                    ? ` ${t('changes.moreReasons', { count: c.reasons.length - 1 })}`
+                    : ''}
                 </Text>
               </WrapAnywhere>
             ),
@@ -84,10 +91,10 @@ function FactTable({ rows }: { rows: FactChange[] }) {
     <DynamicTable
       head={{
         cells: [
-          { key: 'change', content: 'Change', isSortable: true },
-          { key: 'cat', content: 'Area', isSortable: true },
-          { key: 'what', content: 'What' },
-          { key: 'detail', content: 'Detail' },
+          { key: 'change', content: t('changes.change'), isSortable: true },
+          { key: 'cat', content: t('changes.area'), isSortable: true },
+          { key: 'what', content: t('activity.what') },
+          { key: 'detail', content: t('activity.detail') },
         ],
       }}
       rows={rows.map((f, i) => ({
@@ -267,7 +274,14 @@ export function ChangesView() {
               <PageScroll>
                 <SkeletonRoot>
                   <FilterBarPhantom controls={4} />
-                  <SkeletonTable columns={['Space', 'Who', 'Permission', 'Why']} />
+                  <SkeletonTable
+                    columns={[
+                      t('campaigns.space'),
+                      t('activity.who'),
+                      t('changes.permission'),
+                      t('projects.why'),
+                    ]}
+                  />
                 </SkeletonRoot>
               </PageScroll>
             </TabPanel>
@@ -290,14 +304,21 @@ export function ChangesView() {
             />
           ) : !d ? (
             <SkeletonRoot>
-              <SkeletonTable columns={['Space', 'Who', 'Permission', 'Why']} />
+              <SkeletonTable
+                columns={[
+                  t('campaigns.space'),
+                  t('activity.who'),
+                  t('changes.permission'),
+                  t('projects.why'),
+                ]}
+              />
             </SkeletonRoot>
           ) : !d.b ? (
-            <NoSnapshot what="what changed" headingSize="xsmall" />
+            <NoSnapshot what={t('changes.whatChanged')} headingSize="xsmall" />
           ) : (
             <EmptyState
               headingSize="xsmall"
-              header="One snapshot so far"
+              header={t('changes.oneSnapshotSoFar')}
               description={t('changes.changesCompareTwoSnapshotsSoThe')}
             />
           )}
@@ -312,14 +333,14 @@ export function ChangesView() {
       <SearchField
         value={query}
         onChange={setQuery}
-        label={access ? 'Search people, spaces, paths' : 'Search changes'}
+        label={access ? t('changes.searchPeopleSpacesPaths') : t('changes.searchChanges')}
       />
       {(
         (access
           ? [
-              ['Space', options.projects, project, setProject],
-              ['Group', options.groups, group, setGroup],
-              ['Permission', options.perms, perm, setPerm],
+              [t('campaigns.space'), options.projects, project, setProject],
+              [t('groups.group'), options.groups, group, setGroup],
+              [t('changes.permission'), options.perms, perm, setPerm],
             ]
           : []) as Array<[string, Opt[], string, (v: string) => void]>
       ).map(([label, opts, value, set]) => (
@@ -351,23 +372,38 @@ export function ChangesView() {
       <PagePinned>
         {pickers}
         <Text as="p" color="color.text.subtle">
-          Comparing snapshot #{d!.a!.seq} with #{d!.b!.seq} ·{' '}
+          {t('changes.comparingSnapshots', { a: d!.a!.seq, b: d!.b!.seq })} ·{' '}
           {all
-            ? 'all permissions'
-            : `key permissions: ${d!.keyPermissions.map(permissionLabel).join(', ')}`}
+            ? t('changes.allPermissions')
+            : t('changes.keyPermissionsList', {
+                list: d!.keyPermissions.map(permissionLabel).join(', '),
+              })}
         </Text>
       </PagePinned>
       <PageTabs>
         <Tabs id="changes-tabs">
           <TabList>
-            <Tab>Granted ({granted.length})</Tab>
-            <Tab>Revoked ({revoked.length})</Tab>
-            <Tab>Groups ({groupFacts.length})</Tab>
-            <Tab>Schemes & roles ({schemeFacts.length})</Tab>
-            <Tab>People ({peopleFacts.length})</Tab>
+            <Tab>
+              {t('changes.tabCount', { label: t('changes.granted'), count: granted.length })}
+            </Tab>
+            <Tab>
+              {t('changes.tabCount', { label: t('changes.revoked'), count: revoked.length })}
+            </Tab>
+            <Tab>
+              {t('changes.tabCount', { label: t('changes.groups'), count: groupFacts.length })}
+            </Tab>
+            <Tab>
+              {t('changes.tabCount', {
+                label: t('changes.schemesRoles'),
+                count: schemeFacts.length,
+              })}
+            </Tab>
+            <Tab>
+              {t('changes.tabCount', { label: t('changes.people'), count: peopleFacts.length })}
+            </Tab>
           </TabList>
-          {panel(<AccessTable rows={granted} empty="No access was granted." />, true)}
-          {panel(<AccessTable rows={revoked} empty="No access was revoked." />, true)}
+          {panel(<AccessTable rows={granted} empty={t('changes.noAccessWasGranted')} />, true)}
+          {panel(<AccessTable rows={revoked} empty={t('changes.noAccessWasRevoked')} />, true)}
           {panel(<FactTable rows={groupFacts} />)}
           {panel(<FactTable rows={schemeFacts} />)}
           {panel(<FactTable rows={peopleFacts} />)}

@@ -158,26 +158,48 @@ export function ReasonList({
   );
 }
 
-const SNAPSHOT_STATUS: Record<
+const SNAPSHOT_TONE: Record<
   Snapshot['status'],
-  [string, 'success' | 'warning' | 'info' | 'neutral' | 'danger']
+  'success' | 'warning' | 'info' | 'neutral' | 'danger'
 > = {
-  complete: ['Complete', 'success'],
-  partial: ['Partial', 'warning'],
-  running: ['Running', 'info'],
-  queued: ['Queued', 'neutral'],
-  failed: ['Failed', 'danger'],
+  complete: 'success',
+  partial: 'warning',
+  running: 'info',
+  queued: 'neutral',
+  failed: 'danger',
+};
+
+const snapshotStatusLabel = (status: Snapshot['status']): string => {
+  switch (status) {
+    case 'complete':
+      return t('components.statusComplete');
+    case 'partial':
+      return t('components.statusPartial');
+    case 'running':
+      return t('components.statusRunning');
+    case 'queued':
+      return t('components.statusQueued');
+    case 'failed':
+      return t('components.statusFailed');
+    default:
+      return status;
+  }
 };
 
 export function SnapshotLozenge({ status }: { status: Snapshot['status'] }) {
-  const [label, tone] = SNAPSHOT_STATUS[status] ?? [status, 'neutral'];
-  return <Pill tone={tone}>{label}</Pill>;
+  return <Pill tone={SNAPSHOT_TONE[status] ?? 'neutral'}>{snapshotStatusLabel(status)}</Pill>;
 }
 
 type Option = { label: string; value: number };
 
 export function snapshotLabel(s: Pick<Snapshot, 'seq' | 'startedAt' | 'status'>) {
-  return `#${s.seq} · ${formatLocal(s.startedAt)}${s.status === 'partial' ? ' · partial' : ''}`;
+  return t(
+    s.status === 'partial' ? 'components.snapshotLabelPartial' : 'components.snapshotLabel',
+    {
+      seq: s.seq,
+      when: formatLocal(s.startedAt),
+    },
+  );
 }
 
 /** Picks one committed snapshot; null = latest. */
@@ -185,7 +207,7 @@ export function SnapshotPicker({
   snapshots,
   value,
   onChange,
-  label = 'Snapshot',
+  label = t('alerts.snapshot'),
   allowLatest = true,
   size = 'wide',
   inputId,
@@ -200,7 +222,10 @@ export function SnapshotPicker({
 }) {
   const committed = snapshots.filter((s) => s.status === 'complete' || s.status === 'partial');
   const options: Option[] = [
-    { label: allowLatest ? 'Latest snapshot' : 'Previous snapshot', value: 0 },
+    {
+      label: allowLatest ? t('components.latestSnapshot') : t('components.previousSnapshot'),
+      value: 0,
+    },
     ...committed.map((s) => ({ label: snapshotLabel(s), value: s.seq })),
   ];
   const selected = options.find((o) => o.value === (value ?? 0)) ?? null;
@@ -249,7 +274,7 @@ export function ExportMenu({
   onJson,
   extraItems,
   isDisabled,
-  label = 'Export',
+  label = t('snapshots.export'),
 }: {
   onCsv: () => void;
   onPdf?: () => void;
@@ -357,6 +382,10 @@ export function CoverageLimitations({
   limitations?: Limitations | null;
 }) {
   if (!limitations && !coverage.length) return null;
+  const completenessParts = t('components.completenessLimitations', {
+    label: '{label}',
+    version: limitations?.version ?? '',
+  }).split('{label}');
   const partial = limitations?.completeness === 'partial' || limitations?.completeness === 'failed';
   return (
     <SectionMessage
@@ -367,8 +396,9 @@ export function CoverageLimitations({
       <Stack space="space.200">
         {limitations ? (
           <Text as="p">
-            Completeness: <Text weight="bold">{limitations.label}</Text> (limitations v
-            {limitations.version})
+            {completenessParts[0]}
+            <Text weight="bold">{limitations.label}</Text>
+            {completenessParts[1]}
           </Text>
         ) : null}
         <CoverageList coverage={coverage} />

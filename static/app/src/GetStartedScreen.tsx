@@ -62,12 +62,14 @@ function GetStartedBody() {
         trigger: 'onboarding',
       });
       toast.success(
-        r.created ? `Snapshot #${r.seq} started` : `Snapshot #${r.seq} is already running`,
-        'You can leave this page; progress updates here.',
+        r.created
+          ? t('shared.snapshotStarted', { seq: r.seq })
+          : t('shared.snapshotAlreadyRunning', { seq: r.seq }),
+        t('getStarted.leavePageProgressUpdates'),
       );
       void status.reload();
     } catch (e) {
-      toast.error('Snapshot could not start', errorText(e));
+      toast.error(t('getStarted.snapshotCouldNotStart'), errorText(e));
     } finally {
       setBusy(false);
     }
@@ -137,28 +139,36 @@ function GetStartedBody() {
   const steps = [
     {
       id: 'install',
-      title: 'Install and connect',
-      detail: 'AccessRadar is installed and can read this site’s access configuration.',
+      title: t('getStarted.installAndConnect'),
+      detail: t('getStarted.accessradarIsInstalledAndCanRead'),
       done: true,
     },
     {
       id: 'collect',
-      title: 'Review what we collect and the schedule',
-      detail:
-        'Permission schemes, space roles, groups, application access and account status. Never work item content, and nothing leaves Atlassian. Confirm the snapshot schedule in Settings.',
+      title: t('getStarted.reviewWhatWeCollectAndThe'),
+      detail: t('getStarted.permissionSchemesSpaceRolesGroupsApplication'),
       done: status.data.settingsSaved,
-      action: { label: 'Open settings', run: openConfig, primary: false },
+      action: { label: t('getStarted.openSettings'), run: openConfig, primary: false },
     },
     {
       id: 'snapshot',
-      title: 'Take the first snapshot',
+      title: t('getStarted.takeTheFirstSnapshot'),
       detail: active
-        ? `Snapshot #${active.seq} is running${active.progress?.message ? `: ${active.progress.message}` : ''}. You can leave this page.`
-        : 'The first snapshot gives you the full access picture and the baseline for change reports.',
+        ? active.progress?.message
+          ? t('getStarted.snapshotRunningWithMessage', {
+              seq: active.seq,
+              message: active.progress.message,
+            })
+          : t('getStarted.snapshotRunningLeavePage', { seq: active.seq })
+        : t('getStarted.theFirstSnapshotGivesYouThe'),
       done: Boolean(status.data.latest),
       action: active
-        ? { label: 'Open AccessRadar', run: openApp, primary: false }
-        : { label: 'Take the first snapshot', run: () => void takeFirst(), primary: true },
+        ? { label: t('getStarted.openAccessradar'), run: openApp, primary: false }
+        : {
+            label: t('getStarted.takeTheFirstSnapshot'),
+            run: () => void takeFirst(),
+            primary: true,
+          },
     },
   ];
   const done = steps.filter((s) => s.done).length;
@@ -196,10 +206,10 @@ function GetStartedBody() {
           <Stack space="space.200">
             <ProgressBar
               value={done / steps.length}
-              ariaLabel={`${done} of ${steps.length} steps complete`}
+              ariaLabel={t('getStarted.stepsComplete', { done, total: steps.length })}
             />
             <Text as="p" color="color.text.subtle">
-              {done} of {steps.length} steps complete
+              {t('getStarted.stepsComplete', { done, total: steps.length })}
             </Text>
           </Stack>
           {done === steps.length ? (

@@ -245,7 +245,15 @@ export function ExposureView() {
             />
           ) : !exposure.data ? (
             <SkeletonRoot>
-              <SkeletonTable columns={['Name', 'Type', 'Owner', 'Shared with']} rows={4} />
+              <SkeletonTable
+                columns={[
+                  t('campaigns.name'),
+                  t('exposure.type'),
+                  t('exposure.owner'),
+                  t('exposure.sharedWith'),
+                ]}
+                rows={4}
+              />
             </SkeletonRoot>
           ) : (
             <SharingSection data={exposure.data.sharing} />
@@ -257,7 +265,15 @@ export function ExposureView() {
         >
           {exposure.error && !exposure.data ? null : !exposure.data ? (
             <SkeletonRoot>
-              <SkeletonTable columns={['Scheme', 'Level', 'Holders', 'Spaces']} rows={4} />
+              <SkeletonTable
+                columns={[
+                  t('exposure.scheme'),
+                  t('exposure.level'),
+                  t('exposure.holders'),
+                  t('campaigns.spaces'),
+                ]}
+                rows={4}
+              />
             </SkeletonRoot>
           ) : (
             <SecuritySection data={exposure.data.security} />
@@ -274,7 +290,15 @@ export function ExposureView() {
             />
           ) : !audit.data ? (
             <SkeletonRoot>
-              <SkeletonTable columns={['When', 'Who', 'What', 'Change']} rows={4} />
+              <SkeletonTable
+                columns={[
+                  t('activity.when'),
+                  t('activity.who'),
+                  t('activity.what'),
+                  t('changes.change'),
+                ]}
+                rows={4}
+              />
             </SkeletonRoot>
           ) : (
             <AuditSection data={audit.data} />

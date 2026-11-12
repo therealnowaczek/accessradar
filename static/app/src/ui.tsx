@@ -100,7 +100,7 @@ export function PageFrame({
 /** Refresh failed but data from the last load is still shown: a pinned notice with retry (R-10.13). */
 export function staleNotice(
   load: { data?: unknown; error?: string; reload: () => unknown },
-  title = 'Could not refresh',
+  title = t('shared.couldNotRefresh'),
 ) {
   return load.error && load.data ? (
     <ErrorState title={title} message={load.error} retry={() => void load.reload()} />
@@ -231,7 +231,7 @@ function MoreHeaderActions({ items }: { items: ReactNode[] }) {
               isDisabled={props.isDisabled}
               onClick={(e) => props.onClick?.(e as unknown as React.MouseEvent)}
             >
-              {actionLabel(item, `Action ${index + 1}`)}
+              {actionLabel(item, t('ui.actionN', { n: index + 1 }))}
             </DropdownItem>
           );
         })}

@@ -18,7 +18,7 @@ export function ActivityView() {
   return (
     <PageFrame
       header={<PageHeader title={meta.title} description={meta.description} />}
-      notice={staleNotice(r, 'Activity could not refresh')}
+      notice={staleNotice(r, t('activityView.couldNotRefresh'))}
     >
       <Stack space="space.300">
         {r.error && !r.data ? (
@@ -29,21 +29,29 @@ export function ActivityView() {
           />
         ) : !r.data ? (
           <SkeletonRoot>
-            <SkeletonTable columns={['When', 'Who', 'What', 'Detail']} rows={8} />
+            <SkeletonTable
+              columns={[
+                t('activity.when'),
+                t('activity.who'),
+                t('activity.what'),
+                t('activity.detail'),
+              ]}
+              rows={8}
+            />
           </SkeletonRoot>
         ) : !r.data.events.length ? (
           <EmptyState
-            header="No activity yet"
+            header={t('activity.noActivityYet')}
             description={t('activity.snapshotsReviewsSignOffsExportsAnd')}
           />
         ) : (
           <DynamicTable
             head={{
               cells: [
-                { key: 'at', content: 'When', isSortable: true },
-                { key: 'who', content: 'Who', isSortable: true },
-                { key: 'what', content: 'What', isSortable: true },
-                { key: 'detail', content: 'Detail' },
+                { key: 'at', content: t('activity.when'), isSortable: true },
+                { key: 'who', content: t('activity.who'), isSortable: true },
+                { key: 'what', content: t('activity.what'), isSortable: true },
+                { key: 'detail', content: t('activity.detail') },
               ],
             }}
             rows={r.data.events.map((e) => ({

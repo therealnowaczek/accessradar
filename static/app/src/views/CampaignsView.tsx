@@ -61,21 +61,71 @@ type ProjectOpt = {
 };
 
 const FREQ: Opt[] = [
-  { label: 'Quarterly', value: 'quarterly' },
-  { label: 'Semi-annual', value: 'semiannual' },
-  { label: 'Annual', value: 'annual' },
-  { label: 'Once', value: 'once' },
+  {
+    get label() {
+      return t('campaigns.quarterly');
+    },
+    value: 'quarterly',
+  },
+  {
+    get label() {
+      return t('campaigns.semiAnnual');
+    },
+    value: 'semiannual',
+  },
+  {
+    get label() {
+      return t('campaigns.annual');
+    },
+    value: 'annual',
+  },
+  {
+    get label() {
+      return t('campaigns.once');
+    },
+    value: 'once',
+  },
 ];
 
 const SCOPE_RADIOS = [
-  { name: 'scope', value: 'site', label: 'Entire site' },
-  { name: 'scope', value: 'projects', label: 'Selected spaces' },
-  { name: 'scope', value: 'category', label: 'Space categories' },
+  {
+    name: 'scope',
+    value: 'site',
+    get label() {
+      return t('campaigns.entireSite');
+    },
+  },
+  {
+    name: 'scope',
+    value: 'projects',
+    get label() {
+      return t('campaigns.selectedSpaces');
+    },
+  },
+  {
+    name: 'scope',
+    value: 'category',
+    get label() {
+      return t('campaigns.spaceCategories');
+    },
+  },
 ];
 
 const DELEGATE_RADIOS = [
-  { name: 'delegate', value: 'projectLead', label: 'Space lead' },
-  { name: 'delegate', value: 'admin', label: 'Campaign owner (me)' },
+  {
+    name: 'delegate',
+    value: 'projectLead',
+    get label() {
+      return t('campaigns.spaceLead');
+    },
+  },
+  {
+    name: 'delegate',
+    value: 'admin',
+    get label() {
+      return t('campaigns.campaignOwnerMe');
+    },
+  },
 ];
 
 function statusLozenge(status: string) {
@@ -183,8 +233,8 @@ export function CampaignsView() {
               setDrawer([
                 {
                   key: 'new',
-                  title: 'New campaign',
-                  description: 'Schedule a recurring access review.',
+                  title: t('campaigns.newCampaign'),
+                  description: t('campaigns.scheduleARecurringAccessReview'),
                   content: (
                     <CampaignForm
                       projects={projectOpts}
@@ -206,15 +256,17 @@ export function CampaignsView() {
                           ...levels,
                           {
                             key: 'preview',
-                            title: 'Preview campaign',
-                            description: `${preview.totalProjects} space(s) will get a review.`,
+                            title: t('campaigns.previewCampaign'),
+                            description: t('campaigns.previewDescription', {
+                              count: preview.totalProjects,
+                            }),
                             content: (
                               <PreviewBody
                                 preview={preview}
                                 onBack={() => setDrawer((l) => l.slice(0, -1))}
                                 onCreate={async () => {
                                   await call('saveCampaign', draftToPayload(draft));
-                                  toast.success('Campaign created');
+                                  toast.success(t('campaigns.campaignCreated'));
                                   setDrawer([]);
                                   list.reload();
                                 }}
@@ -259,7 +311,13 @@ export function CampaignsView() {
       <PageFrame header={header}>
         <SkeletonRoot>
           <SkeletonTable
-            columns={['Name', 'Frequency', 'Next run', 'Status', <ActionsHeader key="a" />]}
+            columns={[
+              t('campaigns.name'),
+              t('campaigns.frequency'),
+              t('campaigns.nextRun'),
+              t('campaigns.status'),
+              <ActionsHeader key="a" />,
+            ]}
             rows={4}
           />
         </SkeletonRoot>
@@ -271,11 +329,11 @@ export function CampaignsView() {
     setBusy(true);
     try {
       const r = await call<{ runId: string }>('startCampaignRun', { campaignId });
-      toast.success('Campaign run started');
+      toast.success(t('campaigns.campaignRunStarted'));
       openRun(r.runId);
       list.reload();
     } catch (e) {
-      toast.error('Could not start run', errorText(e));
+      toast.error(t('campaigns.couldNotStartRun'), errorText(e));
     } finally {
       setBusy(false);
     }
@@ -283,25 +341,25 @@ export function CampaignsView() {
   const pause = async (id: string) => {
     try {
       await call('pauseCampaign', { id });
-      toast.success('Campaign paused');
+      toast.success(t('campaigns.campaignPaused'));
       list.reload();
     } catch (e) {
-      toast.error('Could not pause', errorText(e));
+      toast.error(t('campaigns.couldNotPause'), errorText(e));
     }
   };
   const remove = async (id: string) => {
     try {
       await call('deleteCampaign', { id });
-      toast.success('Campaign deleted');
+      toast.success(t('campaigns.campaignDeleted'));
       list.reload();
     } catch (e) {
-      toast.error('Could not delete', errorText(e));
+      toast.error(t('campaigns.couldNotDelete'), errorText(e));
     }
   };
   const confirmDelete = (c: Campaign) =>
     confirm({
-      title: `Delete campaign "${c.name}"?`,
-      confirmLabel: 'Delete campaign',
+      title: t('campaigns.deleteCampaignTitle', { name: c.name }),
+      confirmLabel: t('campaigns.deleteCampaign'),
       onConfirm: () => remove(c.id),
       body: <Text as="p">{t('campaigns.theCampaignStopsSchedulingRunsAnd')}</Text>,
     });
@@ -309,8 +367,8 @@ export function CampaignsView() {
     setDrawer([
       {
         key: 'run',
-        title: 'Campaign run',
-        description: 'Per-space reviews and assignees.',
+        title: t('campaigns.campaignRun'),
+        description: t('campaigns.perSpaceReviewsAndAssignees'),
         content: (
           <RunDetail
             runId={runId}
@@ -330,17 +388,17 @@ export function CampaignsView() {
         </SectionMessage>
         {!items.length ? (
           <EmptyState
-            header="Schedule your first recurring review"
+            header={t('campaigns.scheduleYourFirstRecurringReview')}
             description={t('campaigns.campaignsCreatePerSpaceReviewsOn')}
           />
         ) : (
           <DynamicTable
             head={{
               cells: [
-                { key: 'name', content: 'Name' },
-                { key: 'freq', content: 'Frequency' },
-                { key: 'next', content: 'Next run' },
-                { key: 'status', content: 'Status' },
+                { key: 'name', content: t('campaigns.name') },
+                { key: 'freq', content: t('campaigns.frequency') },
+                { key: 'next', content: t('campaigns.nextRun') },
+                { key: 'status', content: t('campaigns.status') },
                 { key: 'act', content: <ActionsHeader /> },
               ],
             }}
@@ -348,7 +406,10 @@ export function CampaignsView() {
               key: c.id,
               cells: [
                 { key: 'name', content: c.name },
-                { key: 'freq', content: c.frequency },
+                {
+                  key: 'freq',
+                  content: FREQ.find((o) => o.value === c.frequency)?.label ?? c.frequency,
+                },
                 {
                   key: 'next',
                   content: c.nextRunAt ? formatLocal(c.nextRunAt) : '—',
@@ -363,7 +424,7 @@ export function CampaignsView() {
                           {t('campaigns.runNow')}
                         </Button>
                       ) : null}
-                      <RowMenu label={`More actions for ${c.name}`}>
+                      <RowMenu label={t('campaigns.moreActionsFor', { name: c.name })}>
                         {c.status === 'active' ? (
                           <DropdownItem onClick={() => void pause(c.id)}>
                             {t('campaigns.pause')}
@@ -458,7 +519,7 @@ function CampaignForm({
           {d.scopeType === 'category' ? (
             <FormField
               label={t('campaigns.categories')}
-              helper="From the latest snapshot’s space categories."
+              helper={t('campaigns.fromTheLatestSnapshotSSpace')}
             >
               {(id) => (
                 <Select
@@ -519,7 +580,7 @@ function CampaignForm({
           </RadioField>
           <FormField
             label={t('campaigns.reminderDaysBeforeDue')}
-            helper="Comma-separated, e.g. 7,3,1"
+            helper={t('campaigns.commaSeparatedEG73')}
           >
             {(id) => (
               <Textfield
@@ -596,16 +657,16 @@ function PreviewBody({
           <DynamicTable
             head={{
               cells: [
-                { key: 'p', content: 'Space' },
-                { key: 'a', content: 'Assignee' },
-                { key: 'i', content: 'Items (est.)' },
+                { key: 'p', content: t('campaigns.space') },
+                { key: 'a', content: t('campaigns.assignee') },
+                { key: 'i', content: t('campaigns.itemsEst') },
               ],
             }}
             rows={preview.projects.map((p) => ({
               key: p.id,
               cells: [
                 { key: 'p', content: p.key },
-                { key: 'a', content: p.assignee ?? 'Unassigned' },
+                { key: 'a', content: p.assignee ?? t('campaigns.unassigned') },
                 { key: 'i', content: String(p.items) },
               ],
             }))}
@@ -614,7 +675,7 @@ function PreviewBody({
             emptyView={
               <EmptyState
                 headingSize="xsmall"
-                header="No spaces"
+                header={t('campaigns.noSpaces')}
                 description={t('campaigns.adjustTheScopeAndTryAgain')}
               />
             }
@@ -696,7 +757,13 @@ function RunDetail({
           <SkeletonRoot>
             <Phantom width="70%" />
             <SkeletonTable
-              columns={['Space', 'Assignee', 'Status', 'Due', <ActionsHeader key="a" />]}
+              columns={[
+                t('campaigns.space'),
+                t('campaigns.assignee'),
+                t('campaigns.status'),
+                t('campaigns.due'),
+                <ActionsHeader key="a" />,
+              ]}
               rows={4}
             />
           </SkeletonRoot>
@@ -716,9 +783,18 @@ function RunDetail({
         <Stack space="space.300">
           {notice}
           <Text as="p" color="color.text.subtle">
-            Status {run.status}
-            {run.seq != null ? ` · snapshot #${run.seq}` : ''} · {run.reviewCount} review(s) · due{' '}
-            {formatLocal(run.dueAt)}
+            {run.seq != null
+              ? t('campaigns.runSummaryWithSnapshot', {
+                  status: run.status,
+                  seq: run.seq,
+                  count: run.reviewCount,
+                  due: formatLocal(run.dueAt),
+                })
+              : t('campaigns.runSummary', {
+                  status: run.status,
+                  count: run.reviewCount,
+                  due: formatLocal(run.dueAt),
+                })}
           </Text>
           {run.error ? (
             <SectionMessage appearance="error">
@@ -726,15 +802,15 @@ function RunDetail({
             </SectionMessage>
           ) : null}
           {assignments.length ? (
-            <ProgressBar value={progress} ariaLabel="Assignment progress" />
+            <ProgressBar value={progress} ariaLabel={t('campaigns.assignmentProgress')} />
           ) : null}
           <DynamicTable
             head={{
               cells: [
-                { key: 'p', content: 'Space' },
-                { key: 'a', content: 'Assignee' },
-                { key: 's', content: 'Status' },
-                { key: 'd', content: 'Due' },
+                { key: 'p', content: t('campaigns.space') },
+                { key: 'a', content: t('campaigns.assignee') },
+                { key: 's', content: t('campaigns.status') },
+                { key: 'd', content: t('campaigns.due') },
                 { key: 'act', content: <ActionsHeader /> },
               ],
             }}
@@ -742,7 +818,7 @@ function RunDetail({
               key: a.reviewId,
               cells: [
                 { key: 'p', content: a.projectId },
-                { key: 'a', content: a.assignee ?? 'Unassigned' },
+                { key: 'a', content: a.assignee ?? t('campaigns.unassigned') },
                 {
                   key: 's',
                   content: (

@@ -11,7 +11,7 @@ import { CoverageList, Section, SnapshotLozenge } from '../components';
 import { DigestCard, DigestSectionPhantom } from './DigestCard';
 import { useCall } from '../data';
 import { LevelDrawer, DrawerBody, type DrawerLevel } from '../Drawer';
-import { formatLocal, plural, relative } from '../format';
+import { formatLocal, relative } from '../format';
 import { navItem, type ViewId } from '../routes';
 import {
   NoSnapshot,
@@ -39,7 +39,17 @@ import { HeadingPhantom, MetricGridPhantom, Phantom, SkeletonRoot } from '../ske
 import { SkeletonTable } from '../skeletonTable';
 
 const SEVERITY_TONE = { high: 'danger', medium: 'warning', low: 'neutral' } as const;
-const SEVERITY_LABEL = { high: 'High', medium: 'Medium', low: 'Low' } as const;
+const SEVERITY_LABEL = {
+  get high() {
+    return t('alerts.high');
+  },
+  get medium() {
+    return t('alerts.medium');
+  },
+  get low() {
+    return t('alerts.low');
+  },
+} as const;
 
 /** Where a risk tile leads: the explore view pre-filtered on the risky items. */
 const RISK_TARGET: Record<string, [ViewId, Params]> = {
@@ -117,7 +127,10 @@ export function OverviewView() {
             title={t('overview.riskIndicators')}
             description={t('overview.signalsWorthCheckingInTheNext')}
           >
-            <SkeletonTable columns={['Severity', 'Indicator', 'Count']} rows={4} />
+            <SkeletonTable
+              columns={[t('alerts.severity'), t('overview.indicator'), t('overview.count')]}
+              rows={4}
+            />
           </Section>
           <Section
             title={t('overview.changesSinceThePreviousSnapshot')}
@@ -169,7 +182,7 @@ export function OverviewView() {
             </DividedList>
             {r.count > r.items.length ? (
               <Text as="p" color="color.text.subtle">
-                Showing {r.items.length} of {r.count}.
+                {t('overview.showingOf', { shown: r.items.length, total: r.count })}
               </Text>
             ) : null}
             {RISK_TARGET[r.id] ? (
@@ -185,18 +198,17 @@ export function OverviewView() {
     ]);
 
   return (
-    <PageFrame header={header} notice={staleNotice(ov, 'Overview could not refresh')}>
+    <PageFrame header={header} notice={staleNotice(ov, t('overview.overviewCouldNotRefresh'))}>
       <Stack space="space.300">
         {active ? <SnapshotProgress active={active} /> : null}
         {(status.data?.alertCount ?? 0) > 0 ? (
           <SectionMessage
             appearance="warning"
-            title={`${status.data!.alertCount} unread change alert${status.data!.alertCount === 1 ? '' : 's'}`}
+            title={t('overview.unreadChangeAlerts', { count: status.data?.alertCount ?? 0 })}
             headingLevel="h2"
           >
             <Text as="p">
-              New admins, anonymous grants, or inactive accounts with access were detected since a
-              recent snapshot.{' '}
+              {t('overview.newAdminsAnonymousGrantsOrInactive')}{' '}
               <LinkButton onClick={() => go('alerts')}>{t('overview.openAlerts')}</LinkButton>
             </Text>
           </SectionMessage>
@@ -204,18 +216,17 @@ export function OverviewView() {
         {status.data?.lastAttempt?.status === 'failed' && !active ? (
           <SectionMessage
             appearance="error"
-            title={`Snapshot #${status.data.lastAttempt.seq} failed`}
+            title={t('overview.snapshotFailed', { seq: status.data.lastAttempt.seq })}
             headingLevel="h2"
           >
             <Text as="p">
-              {status.data.lastAttempt.error ??
-                'The collector stopped. Try again; completed data is kept.'}
+              {status.data.lastAttempt.error ?? t('overview.theCollectorStoppedTryAgainCompleted')}
             </Text>
           </SectionMessage>
         ) : null}
         {!d.snapshot ? (
           active ? null : (
-            <NoSnapshot what="who has access to what" headingSize="xsmall" />
+            <NoSnapshot what={t('overview.whoHasAccessToWhat')} headingSize="xsmall" />
           )
         ) : (
           <>
@@ -225,8 +236,8 @@ export function OverviewView() {
                 setDrawer([
                   {
                     key: 'coverage',
-                    title: 'What we could not see',
-                    description: `Snapshot #${d.snapshot!.seq}`,
+                    title: t('shared.whatWeCouldNotSee'),
+                    description: t('overview.snapshotSeq', { seq: d.snapshot!.seq }),
                     content: (
                       <DrawerBody>
                         <CoverageList coverage={d.coverage ?? []} />
@@ -237,7 +248,7 @@ export function OverviewView() {
               }
             />
             <SectionHeader
-              title={`Snapshot #${d.snapshot.seq}`}
+              title={t('overview.snapshotSeq', { seq: d.snapshot.seq })}
               status={<SnapshotLozenge status={d.snapshot.status} />}
               description={
                 <>
@@ -253,27 +264,30 @@ export function OverviewView() {
                 <Metric
                   label={t('campaigns.spaces')}
                   value={d.metrics.projects}
-                  hint={`${d.metrics.teamManaged} team-managed`}
+                  hint={t('overview.teamManagedCount', { count: d.metrics.teamManaged })}
                 />
                 <Metric
                   label={t('changes.people')}
                   value={d.metrics.people}
-                  hint={`Excl. ${plural(d.metrics.appAccounts, 'app account')} · ${d.metrics.inactivePeople} inactive`}
+                  hint={t('overview.exclAppAccountsInactive', {
+                    appAccounts: d.metrics.appAccounts,
+                    inactive: d.metrics.inactivePeople,
+                  })}
                 />
                 <Metric
                   label={t('changes.groups')}
                   value={d.metrics.groups}
-                  hint={`${d.metrics.groupsRead} with members read`}
+                  hint={t('overview.groupsWithMembersRead', { count: d.metrics.groupsRead })}
                 />
                 <Metric
                   label={t('overview.permissionGrants')}
                   value={d.metrics.grants}
-                  hint={plural(d.metrics.schemes, 'scheme')}
+                  hint={t('overview.schemeCount', { count: d.metrics.schemes })}
                 />
                 <Metric
                   label={t('overview.accessEntries')}
                   value={d.metrics.accessEntries}
-                  hint="Who × space × permission"
+                  hint={t('overview.whoSpacePermission')}
                 />
               </MetricGrid>
             ) : null}
@@ -285,9 +299,9 @@ export function OverviewView() {
                 <DynamicTable
                   head={{
                     cells: [
-                      { key: 'severity', content: 'Severity', width: 12 },
-                      { key: 'indicator', content: 'Indicator' },
-                      { key: 'count', content: 'Count', width: 10 },
+                      { key: 'severity', content: t('alerts.severity'), width: 12 },
+                      { key: 'indicator', content: t('overview.indicator') },
+                      { key: 'count', content: t('overview.count'), width: 10 },
                     ],
                   }}
                   rows={d.risks
@@ -337,12 +351,12 @@ export function OverviewView() {
                   <Metric
                     label={t('overview.accessGranted')}
                     value={d.changes.granted}
-                    hint={`Since snapshot #${d.changes.fromSeq}`}
+                    hint={t('overview.sinceSnapshot', { seq: d.changes.fromSeq })}
                   />
                   <Metric
                     label={t('overview.accessRevoked')}
                     value={d.changes.revoked}
-                    hint={`Since snapshot #${d.changes.fromSeq}`}
+                    hint={t('overview.sinceSnapshot', { seq: d.changes.fromSeq })}
                   />
                 </MetricGrid>
               ) : (
@@ -368,7 +382,9 @@ export function OverviewView() {
                   value={d.reviews.signed}
                   hint={
                     d.reviews.lastSigned
-                      ? `Last: ${formatLocal(d.reviews.lastSigned.signedAt)}`
+                      ? t('overview.lastSigned', {
+                          date: formatLocal(d.reviews.lastSigned.signedAt),
+                        })
                       : undefined
                   }
                 />
@@ -377,7 +393,7 @@ export function OverviewView() {
                   value={d.remediation?.open ?? 0}
                   hint={
                     d.remediation?.stillPresent
-                      ? `${d.remediation.stillPresent} still present`
+                      ? t('overview.stillPresent', { count: d.remediation.stillPresent })
                       : undefined
                   }
                 />
@@ -385,7 +401,7 @@ export function OverviewView() {
               {d.reviews.overdue.length ? (
                 <SectionMessage
                   appearance="warning"
-                  title={`${plural(d.reviews.overdue.length, 'review')} past due`}
+                  title={t('overview.reviewsPastDue', { count: d.reviews.overdue.length })}
                   headingLevel="h3"
                 >
                   <Text as="p">{d.reviews.overdue.map((r) => r.name).join(', ')}</Text>
@@ -395,7 +411,7 @@ export function OverviewView() {
           ) : d.snapshot ? (
             <EmptyState
               headingSize="xsmall"
-              header="No reviews yet"
+              header={t('overview.noReviewsYet')}
               description={t('overview.startAReviewOfTheLatest')}
               primaryAction={
                 <Button onClick={() => go('reviews', { create: '1' })}>
@@ -410,8 +426,11 @@ export function OverviewView() {
           )}
         </Section>
         <Text as="p" color="color.text.subtle">
-          Collector usage this hour: {d.usage.points.toLocaleString()} of{' '}
-          {d.budget.toLocaleString()} rate points · {plural(d.usage.calls, 'call')}
+          {t('overview.collectorUsage', {
+            points: d.usage.points.toLocaleString(),
+            budget: d.budget.toLocaleString(),
+            calls: d.usage.calls,
+          })}
         </Text>
       </Stack>
       <LevelDrawer

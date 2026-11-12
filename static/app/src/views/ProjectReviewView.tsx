@@ -8,7 +8,7 @@ import { REQUIRES_ADVANCED } from '../../../../src/domain/edition';
 import { call, errorText, type ReviewItem, type ReviewSummary } from '../api';
 import { SubjectCell } from '../components';
 import { useCall } from '../data';
-import { formatLocal, permissionLabel, plural } from '../format';
+import { formatLocal, permissionLabel } from '../format';
 import { t } from '../i18n';
 import { useToast } from '../Toast';
 import {
@@ -69,10 +69,13 @@ export function ProjectReviewView() {
         idxs,
         decision,
       });
-      toast.success(decision === 'keep' ? 'Kept' : 'Marked revoke', plural(idxs.length, 'item'));
+      toast.success(
+        decision === 'keep' ? t('projectReview.kept') : t('projectReview.markedRevoke'),
+        t('reviewsView.itemCount', { count: idxs.length }),
+      );
       mine.reload();
     } catch (e) {
-      toast.error('Could not save decision', errorText(e));
+      toast.error(t('projectReview.couldNotSaveDecision'), errorText(e));
     } finally {
       setBusy(false);
     }
@@ -83,10 +86,10 @@ export function ProjectReviewView() {
     setBusy(true);
     try {
       await call('submitAssignment', { reviewId: d.assignment.reviewId });
-      toast.success('Submitted', 'A Jira admin will sign the review.');
+      toast.success(t('projectReview.submitted'), t('projectReviewView.adminWillSign'));
       mine.reload();
     } catch (e) {
-      toast.error('Could not submit', errorText(e));
+      toast.error(t('projectReview.couldNotSubmit'), errorText(e));
     } finally {
       setBusy(false);
     }
@@ -97,7 +100,7 @@ export function ProjectReviewView() {
       await call('dismissNotice', { id });
       mine.reload();
     } catch (e) {
-      toast.error('Could not dismiss', errorText(e));
+      toast.error(t('alerts.couldNotDismiss'), errorText(e));
     }
   };
 
@@ -143,7 +146,14 @@ export function ProjectReviewView() {
           <Phantom height={72} />
           {/* The "Decided" tile has a hint, which sets the row height of every tile. */}
           <MetricGridPhantom count={4} />
-          <SkeletonTable columns={['Who', 'Permissions', 'Decision', <ActionsHeader key="a" />]} />
+          <SkeletonTable
+            columns={[
+              t('activity.who'),
+              t('exceptions.permissions'),
+              t('reviews.decision'),
+              <ActionsHeader key="a" />,
+            ]}
+          />
         </SkeletonRoot>
       </PageFrame>
     );
@@ -169,17 +179,18 @@ export function ProjectReviewView() {
 
         {d.limitation || !d.assignment || !d.review ? (
           <EmptyState
-            header="No assigned review"
-            description={
-              d.limitation ??
-              'When a Jira admin runs a campaign, the assigned space admin reviews access here, with reminders in the app only (AccessRadar sends no email).'
-            }
+            header={t('projectReview.noAssignedReview')}
+            description={d.limitation ?? t('projectReview.whenAJiraAdminRunsA')}
           />
         ) : (
           <>
             <SectionMessage appearance="information" title={d.review.name} headingLevel="h2">
               <Text as="p">
-                Due {formatLocal(d.assignment.dueAt)} · snapshot #{d.review.baseSeq} ·{' '}
+                {t('projectReviewView.dueSnapshot', {
+                  date: formatLocal(d.assignment.dueAt),
+                  seq: d.review.baseSeq,
+                })}{' '}
+                ·{' '}
                 {d.access === 'site-admin' ? (
                   <Pill tone="info">{t('projectReview.viewingAsJiraAdmin')}</Pill>
                 ) : (
@@ -195,7 +206,11 @@ export function ProjectReviewView() {
               <Metric
                 label={t('projectReview.decided')}
                 value={decided}
-                hint={pending ? `${pending} to go` : 'All decided'}
+                hint={
+                  pending
+                    ? t('reviewsView.toGo', { count: pending })
+                    : t('projectReview.allDecided')
+                }
               />
               <Metric
                 label={t('projectReview.keep')}
@@ -233,9 +248,9 @@ export function ProjectReviewView() {
             <DynamicTable
               head={{
                 cells: [
-                  { key: 'who', content: 'Who' },
-                  { key: 'perm', content: 'Permissions' },
-                  { key: 'decision', content: 'Decision' },
+                  { key: 'who', content: t('activity.who') },
+                  { key: 'perm', content: t('exceptions.permissions') },
+                  { key: 'decision', content: t('reviews.decision') },
                   { key: 'actions', content: <ActionsHeader /> },
                 ],
               }}
