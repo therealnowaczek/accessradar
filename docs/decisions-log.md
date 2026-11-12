@@ -100,3 +100,6 @@ Dev only, one branch and one PR per item, nothing merged, no production deploy (
 ### C1: control mapping (SOC 2, ISO 27001:2022, NIS2)
 - Kept the existing control-level mapping and tightened two rows (CC6.3 and A.5.18 now name Recheck). Added NIS2 Art. 21(2)(i) (access control policies) and Art. 21(2)(f) (assessing effectiveness of measures); the other Art. 21(2) points are not about Jira access and are not mapped. `CONTROLS_VERSION` 1 to 2, printed in the PDF. The disclaimer now says it supports evidence collection, is not a statement of compliance and not legal advice. Em dash removed from a control title.
 - The docs page is in-repo: `docs/control-mapping.md` (not the marketing site). No scope, no egress, no UI change (the mapping is part of the Advanced evidence pack PDF).
+
+### C3: group reach and tracked groups
+- Reach per group already existed in the group panel; C3 adds tracking: up to 50 groups per site (setting `trackedGroups`, server side limit), a Tracked pill and filter on Groups, and a weekly diff (spaces added or removed, permission changes, members joined or left) built from the two snapshots the weekly digest already compares. It appears on Groups, Overview digest and the digest export path. Available on Standard and Advanced like Groups. No scope, no egress. Audit events group.tracked and group.untracked.
