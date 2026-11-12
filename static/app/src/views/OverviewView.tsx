@@ -65,6 +65,15 @@ const RISK_TARGET: Record<string, [ViewId, Params]> = {
   'unused-schemes': ['explore-projects', {}],
   'empty-groups-in-use': ['explore-groups', {}],
   'app-accounts-admin': ['explore-people', { filter: 'admins' }],
+  'anonymous-write': ['explore-projects', { filter: 'anonymous' }],
+  'inactive-admin': ['explore-people', { filter: 'admins' }],
+  'destructive-large-group': ['explore-groups', { filter: 'large' }],
+  'admin-group-large': ['explore-groups', { filter: 'admin' }],
+  'empty-admin-groups': ['explore-groups', { filter: 'admin' }],
+  'project-single-admin': ['explore-projects', {}],
+  'filters-public': ['exposure', {}],
+  'dashboards-public': ['exposure', {}],
+  'shared-loggedin': ['exposure', {}],
 };
 
 export function OverviewView() {

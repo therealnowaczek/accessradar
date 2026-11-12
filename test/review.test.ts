@@ -177,8 +177,8 @@ describe('computeRisks', () => {
     expect(risks['wide-admin'].count).toBe(0);
     expect(risks['large-groups'].items.map((i) => i.label)).toEqual(['jira-users']);
   });
-  it('exposes eleven rules ordered by severity then count', () => {
-    expect(list).toHaveLength(11);
+  it('exposes twenty rules ordered by severity then count', () => {
+    expect(list).toHaveLength(20);
     const rank = { high: 0, medium: 1, low: 2 } as const;
     for (let i = 1; i < list.length; i++) {
       const prev = rank[list[i - 1].severity];

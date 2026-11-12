@@ -12,6 +12,7 @@ import {
   type ExceptionSyncResult,
 } from '../db/exceptions';
 import { computeRisks } from '../engine/risk';
+import { sharedItems } from '../lib/exposure';
 import { buildState, type AccessState } from '../engine/state';
 import { audit, listAudit } from '../db/audit';
 import {
@@ -329,12 +330,19 @@ export async function overview(payload: any) {
   const entries = resolveAll(state);
   const persons = [...state.persons.values()];
   const humans = persons.filter((p) => p.accountType === 'atlassian');
-  const risks = computeRisks(state, {
-    largeGroupThreshold: settings.largeGroupThreshold,
-    wideAdminProjects: settings.wideAdminProjects,
-    includeAppAccounts: settings.showAppAccounts,
-    keyPermissions: settings.keyPermissions,
-  }).map((r) => ({ ...r, items: r.items.slice(0, 50) }));
+  // Filters and dashboards are read live (not part of a snapshot); unreadable means "partial", not "none".
+  const sharing = await sharedItems().catch(() => null);
+  const risks = computeRisks(
+    state,
+    {
+      largeGroupThreshold: settings.largeGroupThreshold,
+      wideAdminProjects: settings.wideAdminProjects,
+      includeAppAccounts: settings.showAppAccounts,
+      keyPermissions: settings.keyPermissions,
+    },
+    entries,
+    sharing?.status === 'ok' ? sharing.items : null,
+  ).map((r) => ({ ...r, items: r.items.slice(0, 50) }));
   let changes: { granted: number; revoked: number; fromSeq: number } | null = null;
   if (prev && prevState) {
     const keys = new Set(settings.keyPermissions);
