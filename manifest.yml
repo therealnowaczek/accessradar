@@ -264,6 +264,18 @@ permissions:
       allowImpersonation: true
     read:issue-type-hierarchy:jira:
       allowImpersonation: true
+    read:filter:jira:
+      allowImpersonation: true
+    read:jql:jira:
+      allowImpersonation: true
+    read:dashboard:jira:
+      allowImpersonation: true
+    read:audit-log:jira:
+      allowImpersonation: true
+    read:issue-security-level:jira:
+      allowImpersonation: true
+    read:issue-security-scheme:jira:
+      allowImpersonation: true
     read:project-version:jira:
       allowImpersonation: true
     read:project.component:jira:

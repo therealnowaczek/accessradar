@@ -7,6 +7,7 @@ import { AppContext, type AppCtx, type Params } from './shared';
 import { ToastProvider } from './Toast';
 import { SplitLayout } from './ui';
 import { ActivityView } from './views/ActivityView';
+import { ExposureView } from './views/ExposureView';
 import { ChangesView } from './views/ChangesView';
 import { GroupsView } from './views/GroupsView';
 import { OverviewView } from './views/OverviewView';
@@ -32,6 +33,7 @@ const VIEWS: Record<ViewId, () => JSX.Element> = {
   'explore-projects': ProjectsView,
   'explore-groups': GroupsView,
   'explore-people': PeopleView,
+  exposure: ExposureView,
   changes: ChangesView,
   reviews: ReviewsView,
   exceptions: ExceptionsView,

@@ -5,6 +5,7 @@ export type ViewId =
   | 'explore-projects'
   | 'explore-groups'
   | 'explore-people'
+  | 'exposure'
   | 'changes'
   | 'reviews'
   | 'exceptions'
@@ -49,6 +50,13 @@ export const NAV: Array<{ group: string; items: NavItem[] }> = [
         label: 'People',
         title: 'People',
         description: 'What a person can do, and through which path.',
+      },
+      {
+        id: 'exposure',
+        label: 'Sharing and security',
+        title: 'Sharing and security',
+        description:
+          'Publicly shared filters and dashboards, issue security levels and recent permission changes in the Jira audit log.',
       },
     ],
   },
