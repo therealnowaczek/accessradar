@@ -62,8 +62,10 @@ function GetStartedBody() {
         trigger: 'onboarding',
       });
       toast.success(
-        r.created ? `Snapshot #${r.seq} started` : `Snapshot #${r.seq} is already running`,
-        'You can leave this page; progress updates here.',
+        r.created
+          ? t('shared.snapshotStarted', { seq: r.seq })
+          : t('shared.snapshotAlreadyRunning', { seq: r.seq }),
+        t('getStarted.leavePageProgressUpdates'),
       );
       void status.reload();
     } catch (e) {
@@ -152,7 +154,12 @@ function GetStartedBody() {
       id: 'snapshot',
       title: t('getStarted.takeTheFirstSnapshot'),
       detail: active
-        ? `Snapshot #${active.seq} is running${active.progress?.message ? `: ${active.progress.message}` : ''}. You can leave this page.`
+        ? active.progress?.message
+          ? t('getStarted.snapshotRunningWithMessage', {
+              seq: active.seq,
+              message: active.progress.message,
+            })
+          : t('getStarted.snapshotRunningLeavePage', { seq: active.seq })
         : t('getStarted.theFirstSnapshotGivesYouThe'),
       done: Boolean(status.data.latest),
       action: active
@@ -199,10 +206,10 @@ function GetStartedBody() {
           <Stack space="space.200">
             <ProgressBar
               value={done / steps.length}
-              ariaLabel={`${done} of ${steps.length} steps complete`}
+              ariaLabel={t('getStarted.stepsComplete', { done, total: steps.length })}
             />
             <Text as="p" color="color.text.subtle">
-              {done} of {steps.length} steps complete
+              {t('getStarted.stepsComplete', { done, total: steps.length })}
             </Text>
           </Stack>
           {done === steps.length ? (

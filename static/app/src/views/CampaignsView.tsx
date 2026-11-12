@@ -257,7 +257,9 @@ export function CampaignsView() {
                           {
                             key: 'preview',
                             title: t('campaigns.previewCampaign'),
-                            description: `${preview.totalProjects} space(s) will get a review.`,
+                            description: t('campaigns.previewDescription', {
+                              count: preview.totalProjects,
+                            }),
                             content: (
                               <PreviewBody
                                 preview={preview}
@@ -356,7 +358,7 @@ export function CampaignsView() {
   };
   const confirmDelete = (c: Campaign) =>
     confirm({
-      title: `Delete campaign "${c.name}"?`,
+      title: t('campaigns.deleteCampaignTitle', { name: c.name }),
       confirmLabel: t('campaigns.deleteCampaign'),
       onConfirm: () => remove(c.id),
       body: <Text as="p">{t('campaigns.theCampaignStopsSchedulingRunsAnd')}</Text>,
@@ -404,7 +406,10 @@ export function CampaignsView() {
               key: c.id,
               cells: [
                 { key: 'name', content: c.name },
-                { key: 'freq', content: c.frequency },
+                {
+                  key: 'freq',
+                  content: FREQ.find((o) => o.value === c.frequency)?.label ?? c.frequency,
+                },
                 {
                   key: 'next',
                   content: c.nextRunAt ? formatLocal(c.nextRunAt) : '—',
@@ -419,7 +424,7 @@ export function CampaignsView() {
                           {t('campaigns.runNow')}
                         </Button>
                       ) : null}
-                      <RowMenu label={`More actions for ${c.name}`}>
+                      <RowMenu label={t('campaigns.moreActionsFor', { name: c.name })}>
                         {c.status === 'active' ? (
                           <DropdownItem onClick={() => void pause(c.id)}>
                             {t('campaigns.pause')}
@@ -778,9 +783,18 @@ function RunDetail({
         <Stack space="space.300">
           {notice}
           <Text as="p" color="color.text.subtle">
-            Status {run.status}
-            {run.seq != null ? ` · snapshot #${run.seq}` : ''} · {run.reviewCount} review(s) · due{' '}
-            {formatLocal(run.dueAt)}
+            {run.seq != null
+              ? t('campaigns.runSummaryWithSnapshot', {
+                  status: run.status,
+                  seq: run.seq,
+                  count: run.reviewCount,
+                  due: formatLocal(run.dueAt),
+                })
+              : t('campaigns.runSummary', {
+                  status: run.status,
+                  count: run.reviewCount,
+                  due: formatLocal(run.dueAt),
+                })}
           </Text>
           {run.error ? (
             <SectionMessage appearance="error">

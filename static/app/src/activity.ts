@@ -1,43 +1,113 @@
 import type { ActivityEvent } from './api';
-import { plural } from './format';
+import { t } from './i18n';
 
 /** Readable names for audit-log actions (src/**: audit(actor, action, ...)). */
 export const ACTIVITY_LABELS: Record<string, string> = {
-  'snapshot.started': 'Started a snapshot',
-  'snapshot.completed': 'Snapshot completed',
-  'snapshot.failed': 'Snapshot failed',
-  'review.created': 'Started a review',
-  'review.decided': 'Recorded decisions',
-  'review.signed': 'Signed a review',
-  'review.deleted': 'Deleted a review',
-  'review.verified': 'Verified a review',
-  'review.verify_started': 'Started a snapshot integrity check',
-  'review.chain_verified': 'Verified the signature chain',
-  'exception.granted': 'Granted exceptions',
-  'exception.superseded': 'Replaced exceptions',
-  'exception.expired': 'Exceptions expired',
-  'exception.revoked': 'Revoked exceptions',
-  'exception.withdrawn': 'Withdrew exceptions',
-  'remediation.created': 'Tracking revocations',
-  'remediation.checked': 'Checked revocations',
-  'remediation.accepted': 'Accepted a remediation risk',
-  'alert.raised': 'Raised change alerts',
-  'alert.dismissed': 'Dismissed alerts',
-  'notice.dismissed': 'Dismissed a notice',
-  'campaign.created': 'Created a campaign',
-  'campaign.updated': 'Updated a campaign',
-  'campaign.paused': 'Paused a campaign',
-  'campaign.deleted': 'Deleted a campaign',
-  'campaign.run_started': 'Campaign run started',
-  'campaign.run_materialized': 'Campaign reviews created',
-  'campaign.run_completed': 'Campaign run completed',
-  'assignment.reassigned': 'Reassigned a space review',
-  'assignment.submitted': 'Submitted a space review',
-  'reminder.issued': 'Sent review reminders',
-  'edition.override': 'Changed the plan override',
-  'settings.saved': 'Saved settings',
-  'rovo.action': 'Rovo agent answered',
-  export: 'Exported',
+  get 'snapshot.started'() {
+    return t('activity.labelSnapshotStarted');
+  },
+  get 'snapshot.completed'() {
+    return t('activity.labelSnapshotCompleted');
+  },
+  get 'snapshot.failed'() {
+    return t('activity.labelSnapshotFailed');
+  },
+  get 'review.created'() {
+    return t('activity.labelReviewCreated');
+  },
+  get 'review.decided'() {
+    return t('activity.labelReviewDecided');
+  },
+  get 'review.signed'() {
+    return t('activity.labelReviewSigned');
+  },
+  get 'review.deleted'() {
+    return t('activity.labelReviewDeleted');
+  },
+  get 'review.verified'() {
+    return t('activity.labelReviewVerified');
+  },
+  get 'review.verify_started'() {
+    return t('activity.labelReviewVerifyStarted');
+  },
+  get 'review.chain_verified'() {
+    return t('activity.labelReviewChainVerified');
+  },
+  get 'exception.granted'() {
+    return t('activity.labelExceptionGranted');
+  },
+  get 'exception.superseded'() {
+    return t('activity.labelExceptionSuperseded');
+  },
+  get 'exception.expired'() {
+    return t('activity.labelExceptionExpired');
+  },
+  get 'exception.revoked'() {
+    return t('activity.labelExceptionRevoked');
+  },
+  get 'exception.withdrawn'() {
+    return t('activity.labelExceptionWithdrawn');
+  },
+  get 'remediation.created'() {
+    return t('activity.labelRemediationCreated');
+  },
+  get 'remediation.checked'() {
+    return t('activity.labelRemediationChecked');
+  },
+  get 'remediation.accepted'() {
+    return t('activity.labelRemediationAccepted');
+  },
+  get 'alert.raised'() {
+    return t('activity.labelAlertRaised');
+  },
+  get 'alert.dismissed'() {
+    return t('activity.labelAlertDismissed');
+  },
+  get 'notice.dismissed'() {
+    return t('activity.labelNoticeDismissed');
+  },
+  get 'campaign.created'() {
+    return t('activity.labelCampaignCreated');
+  },
+  get 'campaign.updated'() {
+    return t('activity.labelCampaignUpdated');
+  },
+  get 'campaign.paused'() {
+    return t('activity.labelCampaignPaused');
+  },
+  get 'campaign.deleted'() {
+    return t('activity.labelCampaignDeleted');
+  },
+  get 'campaign.run_started'() {
+    return t('activity.labelCampaignRunStarted');
+  },
+  get 'campaign.run_materialized'() {
+    return t('activity.labelCampaignRunMaterialized');
+  },
+  get 'campaign.run_completed'() {
+    return t('activity.labelCampaignRunCompleted');
+  },
+  get 'assignment.reassigned'() {
+    return t('activity.labelAssignmentReassigned');
+  },
+  get 'assignment.submitted'() {
+    return t('activity.labelAssignmentSubmitted');
+  },
+  get 'reminder.issued'() {
+    return t('activity.labelReminderIssued');
+  },
+  get 'edition.override'() {
+    return t('activity.labelEditionOverride');
+  },
+  get 'settings.saved'() {
+    return t('activity.labelSettingsSaved');
+  },
+  get 'rovo.action'() {
+    return t('activity.labelRovoAction');
+  },
+  get export() {
+    return t('activity.labelExport');
+  },
 };
 
 /** "alert.raised" → "Raised change alerts"; unknown keys become "Foo bar" instead of raw keys. */
@@ -59,32 +129,44 @@ export function activityTarget(
   e: Pick<ActivityEvent, 'action' | 'target' | 'targetLabel'>,
 ): string {
   if (e.targetLabel) return `“${e.targetLabel}”`;
-  const t = e.target;
-  if (!t || t === 'edition') return '';
-  let m = SNAPSHOT_TARGET.exec(t);
-  if (m) return e.action.startsWith('snapshot.') ? `#${m[1]}` : `snapshot #${m[1]}`;
-  m = SNAPSHOT_RANGE.exec(t);
-  if (m) return `snapshots #${m[1]} → #${m[2]}`;
+  const target = e.target;
+  if (!target || target === 'edition') return '';
+  let m = SNAPSHOT_TARGET.exec(target);
+  if (m)
+    return e.action.startsWith('snapshot.')
+      ? `#${m[1]}`
+      : t('activity.targetSnapshot', { seq: m[1]! });
+  m = SNAPSHOT_RANGE.exec(target);
+  if (m) return t('activity.targetSnapshotRange', { from: m[1]!, to: m[2]! });
   const kind = e.action.startsWith('campaign.run_')
-    ? 'campaign run'
+    ? t('activity.kindCampaignRun')
     : e.action.startsWith('campaign.')
-      ? 'campaign'
+      ? t('activity.kindCampaign')
       : e.action.startsWith('review.') ||
           e.action.startsWith('exception.') ||
           e.action.startsWith('remediation.') ||
           e.action.startsWith('assignment.')
-        ? 'review'
+        ? t('activity.kindReview')
         : '';
-  const short = t.length > 20 ? `${t.slice(0, 8)}…` : t;
-  return kind ? `${kind} ${short}` : short;
+  const short = target.length > 20 ? `${target.slice(0, 8)}…` : target;
+  return kind ? t('activity.targetKind', { kind, id: short }) : short;
 }
 
-const EXPORT_KIND: Record<string, string> = {
-  'review-csv': 'Review CSV',
-  'review-pdf': 'Review PDF',
-  'evidence-pack': 'Evidence pack PDF',
-  'changes-csv': 'Changes CSV',
-  'changes-pdf': 'Changes PDF',
+const exportKind = (kind: string): string | undefined => {
+  switch (kind) {
+    case 'review-csv':
+      return t('activity.exportReviewCsv');
+    case 'review-pdf':
+      return t('activity.exportReviewPdf');
+    case 'evidence-pack':
+      return t('activity.exportEvidencePack');
+    case 'changes-csv':
+      return t('activity.exportChangesCsv');
+    case 'changes-pdf':
+      return t('activity.exportChangesPdf');
+    default:
+      return undefined;
+  }
 };
 
 /** Short, readable detail column. */
@@ -93,17 +175,23 @@ export function activityDetail(e: Pick<ActivityEvent, 'action' | 'detail'>): str
   const n = (v: unknown) => (typeof v === 'number' ? v : Number(v) || 0);
   switch (e.action) {
     case 'review.decided':
-      return `${plural(n(d.count), 'item')} → ${d.decision ?? 'undecided'}`;
+      return t('activity.detailDecided', {
+        count: n(d.count),
+        decision: String(d.decision ?? t('activity.undecided')),
+      });
     case 'review.signed': {
       const hash = String(d.evidenceHash ?? d.hash ?? '');
-      return hash ? `Evidence hash ${hash.slice(0, 16)}…` : '';
+      return hash ? t('activity.detailEvidenceHash', { hash: hash.slice(0, 16) }) : '';
     }
     case 'export':
-      return EXPORT_KIND[String(d.kind ?? '')] ?? String(d.kind ?? '');
+      return exportKind(String(d.kind ?? '')) ?? String(d.kind ?? '');
     case 'review.created':
-      return `${plural(n(d.items), 'item')}, scope ${d.scope ?? ''}`;
+      return t('activity.detailReviewCreated', { items: n(d.items), scope: String(d.scope ?? '') });
     case 'settings.saved':
-      return `Schedule ${d.frequency ?? ''}, retention ${d.retentionDays ?? ''} days`;
+      return t('activity.detailSettingsSaved', {
+        frequency: String(d.frequency ?? ''),
+        days: String(d.retentionDays ?? ''),
+      });
     case 'snapshot.started':
       return String(d.trigger ?? '');
     case 'snapshot.completed':
@@ -111,7 +199,7 @@ export function activityDetail(e: Pick<ActivityEvent, 'action' | 'detail'>): str
     case 'snapshot.failed':
       return String(d.message ?? d.step ?? '');
     case 'alert.raised':
-      return plural(n(d.total), 'alert');
+      return t('activity.detailAlerts', { total: n(d.total) });
     case 'alert.dismissed':
     case 'exception.granted':
     case 'exception.superseded':
@@ -122,9 +210,21 @@ export function activityDetail(e: Pick<ActivityEvent, 'action' | 'detail'>): str
     case 'reminder.issued':
       return d.count !== undefined ? String(d.count) : '';
     case 'remediation.checked':
-      return `${n(d.verified)} verified, ${n(d.stillPresent)} still present, ${n(d.inconclusive)} inconclusive`;
+      return t('activity.detailRemediationChecked', {
+        verified: n(d.verified),
+        stillPresent: n(d.stillPresent),
+        inconclusive: n(d.inconclusive),
+      });
     case 'review.verified':
-      return [d.mode, d.result ?? (d.ok === true ? 'ok' : d.ok === false ? 'mismatch' : '')]
+      return [
+        d.mode,
+        d.result ??
+          (d.ok === true
+            ? t('activity.resultOk')
+            : d.ok === false
+              ? t('activity.resultMismatch')
+              : ''),
+      ]
         .filter(Boolean)
         .join(' · ');
     default:

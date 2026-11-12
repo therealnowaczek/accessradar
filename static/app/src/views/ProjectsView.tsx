@@ -21,7 +21,7 @@ import {
 import { useCall } from '../data';
 import { DrawerBody, LevelDrawer, type DrawerLevel } from '../Drawer';
 import { exportMatrix } from '../export/actions';
-import { permissionLabel, plural } from '../format';
+import { permissionLabel } from '../format';
 import { navItem } from '../routes';
 import {
   exportContext,
@@ -240,7 +240,7 @@ export function ProjectsView() {
                         {p.appAccounts ? (
                           <Text color="color.text.subtle">
                             {' '}
-                            · {plural(p.appAccounts, 'app account')}
+                            · {t('projects.appAccountCount', { count: p.appAccounts })}
                           </Text>
                         ) : null}
                       </Text>
@@ -254,7 +254,7 @@ export function ProjectsView() {
                         {p.appAdmins ? (
                           <Text color="color.text.subtle">
                             {' '}
-                            · {plural(p.appAdmins, 'app account')}
+                            · {t('projects.appAccountCount', { count: p.appAdmins })}
                           </Text>
                         ) : null}
                       </Text>
@@ -268,7 +268,9 @@ export function ProjectsView() {
                           <Pill tone="danger">{t('components.anonymous')}</Pill>
                         ) : null}
                         {p.unexpanded ? (
-                          <Pill tone="warning">{p.unexpanded} unread groups</Pill>
+                          <Pill tone="warning">
+                            {t('projects.unreadGroups', { count: p.unexpanded })}
+                          </Pill>
                         ) : null}
                         {p.conditional ? (
                           <Pill tone="discovery">{t('components.workItemDependent')}</Pill>
@@ -332,7 +334,10 @@ function ProjectDetail({
       {
         key: subject.key,
         title: subject.name,
-        description: `Why ${subject.type === 'group' ? 'this group has' : 'they have'} access to ${d?.project.key}`,
+        description:
+          subject.type === 'group'
+            ? t('projects.whyThisGroupHasAccess', { key: d?.project.key ?? '' })
+            : t('projects.whyTheyHaveAccess', { key: d?.project.key ?? '' }),
         content: (
           <DrawerBody>
             <SubjectCell subject={subject} />
@@ -346,7 +351,7 @@ function ProjectDetail({
       title={d ? `${d.project.key} · ${d.project.name}` : t('campaigns.space')}
       description={
         d
-          ? `${d.project.style === 'team' ? 'Team-managed' : 'Company-managed'} · ${d.project.schemeName ?? 'per-space permissions'}`
+          ? `${d.project.style === 'team' ? t('projects.teamManaged') : t('projects.companyManaged')} · ${d.project.schemeName ?? t('projects.perSpacePermissions')}`
           : undefined
       }
       breadcrumbs={pageBreadcrumbs([

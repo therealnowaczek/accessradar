@@ -18,7 +18,7 @@ export function ActivityView() {
   return (
     <PageFrame
       header={<PageHeader title={meta.title} description={meta.description} />}
-      notice={staleNotice(r, 'Activity could not refresh')}
+      notice={staleNotice(r, t('activityView.couldNotRefresh'))}
     >
       <Stack space="space.300">
         {r.error && !r.data ? (

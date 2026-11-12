@@ -58,11 +58,21 @@ const STATUS_OPTS = [
 ];
 
 const RULE_LABEL: Record<string, string> = {
-  'new-admin': 'New admin',
-  'new-anonymous-grant': 'Anonymous access',
-  'inactive-with-access': 'Inactive with access',
-  'new-project-admin': 'Space admin',
-  'new-app-account-admin': 'App account admin',
+  get 'new-admin'() {
+    return t('alerts.ruleNewAdmin');
+  },
+  get 'new-anonymous-grant'() {
+    return t('projects.anonymousAccess');
+  },
+  get 'inactive-with-access'() {
+    return t('people.inactiveWithAccess');
+  },
+  get 'new-project-admin'() {
+    return t('alerts.ruleSpaceAdmin');
+  },
+  get 'new-app-account-admin'() {
+    return t('alerts.ruleAppAccountAdmin');
+  },
 };
 
 export function AlertsView() {

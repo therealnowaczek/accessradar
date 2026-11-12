@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import VisuallyHidden from '@atlaskit/visually-hidden';
+import { t } from './i18n';
 import { Phantom } from './skeletons';
 import DynamicTable from './Table';
 
 /** Hidden header for an action column (R-8.4). */
-export function ActionsHeader({ label = 'Actions' }: { label?: string }) {
-  return <VisuallyHidden>{label}</VisuallyHidden>;
+export function ActionsHeader({ label }: { label?: string }) {
+  return <VisuallyHidden>{label ?? t('skeletonTable.actions')}</VisuallyHidden>;
 }
 
 const CELL_WIDTHS = ['80%', '60%', '45%', '70%', '35%', '55%'];

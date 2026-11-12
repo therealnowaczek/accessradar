@@ -1,25 +1,23 @@
 import { invoke } from '@forge/bridge';
+import { t } from './i18n';
 
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string; forbidden?: boolean };
 
 /** Resolvers answer { ok, data } | { ok: false, error } (MarginRadar convention); unwrap or throw. */
 export async function call<T>(key: string, payload: Record<string, unknown> = {}): Promise<T> {
   const r = (await invoke(key, payload)) as Result<T> | undefined;
-  if (!r || typeof r !== 'object' || !('ok' in r))
-    throw new Error('Unexpected response from AccessRadar.');
+  if (!r || typeof r !== 'object' || !('ok' in r)) throw new Error(t('api.unexpectedResponse'));
   if (!r.ok) throw new Error(r.error);
   return r.data;
 }
 
 const rawErrorText = (e: unknown) =>
-  e instanceof Error ? e.message : typeof e === 'string' ? e : 'Something went wrong.';
+  e instanceof Error ? e.message : typeof e === 'string' ? e : t('api.somethingWentWrong');
 
 /** User-facing error text; the generic Forge payload message is never shown as-is (R-9.5). */
 export const errorText = (e: unknown) => {
   const text = rawErrorText(e);
-  return /request payload is not valid/i.test(text)
-    ? 'Some values are not valid. Check the fields and try again.'
-    : text;
+  return /request payload is not valid/i.test(text) ? t('api.invalidValues') : text;
 };
 
 // ---------- shared types (mirror src/api) ----------

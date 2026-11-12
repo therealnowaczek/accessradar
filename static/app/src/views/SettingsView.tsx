@@ -22,7 +22,6 @@ import {
   SELECTABLE_PERMISSIONS,
   formatLocalTime,
   timeZone,
-  WEEKDAYS,
 } from '../format';
 import { t } from '../i18n';
 import { navItem } from '../routes';
@@ -48,6 +47,23 @@ import { SpikePanel } from './SpikePanel';
 
 type Opt<T = string> = { label: string; value: T };
 
+/** "09:00" for a UTC hour (wraps at 24). */
+const hh = (h: number) => `${String(h % 24).padStart(2, '0')}:00`;
+
+/** Weekday name for 1 (Monday) to 7 (Sunday). */
+function weekdayName(day: number): string {
+  const keys = [
+    'settings.weekdayMonday',
+    'settings.weekdayTuesday',
+    'settings.weekdayWednesday',
+    'settings.weekdayThursday',
+    'settings.weekdayFriday',
+    'settings.weekdaySaturday',
+    'settings.weekdaySunday',
+  ] as const;
+  return t(keys[day - 1] ?? keys[0]);
+}
+
 /** Local wall-clock time of a UTC hour, for the schedule hint. */
 function localHour(hourUtc: number): string {
   const d = new Date();
@@ -61,12 +77,16 @@ function localHour(hourUtc: number): string {
  * from the server (Standard runs a saved daily schedule weekly).
  */
 function scheduleText(s: Settings): string {
-  if (s.frequency === 'off') return 'Off (manual snapshots only)';
-  const hh = (h: number) => `${String(h % 24).padStart(2, '0')}:00`;
-  const at = `between ${hh(s.hourUtc)} and ${hh(s.hourUtc + 1)} UTC (from ${localHour(s.hourUtc)} ${timeZone()})`;
+  if (s.frequency === 'off') return t('settings.offManualSnapshotsOnly');
+  const vars = {
+    from: hh(s.hourUtc),
+    to: hh(s.hourUtc + 1),
+    local: localHour(s.hourUtc),
+    zone: timeZone(),
+  };
   return s.frequency === 'daily'
-    ? `Daily, starting ${at}`
-    : `Weekly on ${WEEKDAYS[s.weekday - 1]}, starting ${at}`;
+    ? t('settings.scheduleDaily', vars)
+    : t('settings.scheduleWeekly', { ...vars, day: weekdayName(s.weekday) });
 }
 
 type Saver = (patch: Partial<Settings>, fallback?: 'me' | 'off') => Promise<void>;
@@ -141,7 +161,13 @@ function NumberField({
   return (
     <FormField
       label={label}
-      helper={hint ?? `Between ${min.toLocaleString()} and ${max.toLocaleString()}.`}
+      helper={
+        hint ??
+        t('settings.betweenMinAndMax', {
+          min: min.toLocaleString(),
+          max: max.toLocaleString(),
+        })
+      }
     >
       {(id) => (
         <>
@@ -156,7 +182,10 @@ function NumberField({
           />
           {invalid ? (
             <ErrorMessage>
-              Enter a number between {min.toLocaleString()} and {max.toLocaleString()}.
+              {t('settings.enterANumberBetween', {
+                min: min.toLocaleString(),
+                max: max.toLocaleString(),
+              })}
             </ErrorMessage>
           ) : null}
         </>
@@ -181,9 +210,12 @@ function ScheduleForm({
   const [weekday, setWeekday] = useState(s.weekday);
   const hours: Opt<number>[] = Array.from({ length: 24 }, (_, h) => ({
     value: h,
-    label: `${String(h).padStart(2, '0')}:00 UTC · ${localHour(h)} local`,
+    label: t('settings.hourUtcLocal', { hour: hh(h), local: localHour(h) }),
   }));
-  const days: Opt<number>[] = WEEKDAYS.map((label, i) => ({ label, value: i + 1 }));
+  const days: Opt<number>[] = Array.from({ length: 7 }, (_, i) => ({
+    label: weekdayName(i + 1),
+    value: i + 1,
+  }));
   return (
     <EditForm
       dirty={frequency !== s.frequency || hourUtc !== s.hourUtc || weekday !== s.weekday}
@@ -256,7 +288,7 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
       onSave={() =>
         value.length
           ? save({ keyPermissions: value.map((o) => o.value) })
-          : Promise.reject(new Error('Pick at least one permission.'))
+          : Promise.reject(new Error(t('settings.pickAtLeastOnePermission')))
       }
     >
       <FormField
@@ -310,7 +342,7 @@ function RetentionForm({
         onChange={setDays}
         min={30}
         max={max}
-        hint={`30 to ${max} days. Snapshots used by a review are always kept with the review.`}
+        hint={t('settings.retentionHint', { min: 30, max })}
       />
       {!advanced ? <PlanNote benefit={t('planGate.history')} /> : null}
     </EditForm>
@@ -363,11 +395,11 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
         label={t('settings.useMyAccountWhenTheApp')}
         isChecked={fallback}
         onChange={setFallback}
-        helper={`Some Jira endpoints only answer for administrators. With fallback on, AccessRadar retries those reads on your behalf (read-only).${
+        helper={
           v.fallbackEnabled && !v.fallbackIsMe
-            ? ' Another administrator is currently set as fallback; saving with this on makes it you.'
-            : ''
-        }`}
+            ? t('settings.fallbackHelperAnotherAdmin')
+            : t('settings.fallbackHelper')
+        }
       />
     </EditForm>
   );
@@ -432,11 +464,18 @@ function ReviewsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: ()
   );
 }
 
-const ALERT_RULE_LABELS: Array<{ key: keyof NonNullable<Settings['alerts']>; label: string }> = [
+const ALERT_RULE_LABELS: Array<{
+  key: keyof NonNullable<Settings['alerts']>;
+  label: string;
+  toggle: string;
+}> = [
   {
     key: 'new-admin',
     get label() {
       return t('settings.newJiraAdmin');
+    },
+    get toggle() {
+      return t('settings.alertOnNewJiraAdmin');
     },
   },
   {
@@ -444,11 +483,17 @@ const ALERT_RULE_LABELS: Array<{ key: keyof NonNullable<Settings['alerts']>; lab
     get label() {
       return t('settings.newAnonymousAnyoneGrant');
     },
+    get toggle() {
+      return t('settings.alertOnNewAnonymousGrant');
+    },
   },
   {
     key: 'inactive-with-access',
     get label() {
       return t('settings.inactiveAccountWithAccess');
+    },
+    get toggle() {
+      return t('settings.alertOnInactiveAccountWithAccess');
     },
   },
   {
@@ -456,11 +501,17 @@ const ALERT_RULE_LABELS: Array<{ key: keyof NonNullable<Settings['alerts']>; lab
     get label() {
       return t('settings.newSpaceAdmin');
     },
+    get toggle() {
+      return t('settings.alertOnNewSpaceAdmin');
+    },
   },
   {
     key: 'new-app-account-admin',
     get label() {
       return t('settings.newAppAccountAdmin');
+    },
+    get toggle() {
+      return t('settings.alertOnNewAppAccountAdmin');
     },
   },
 ];
@@ -486,7 +537,7 @@ function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () 
       {ALERT_RULE_LABELS.map((r) => (
         <ToggleField
           key={r.key}
-          label={`Alert on ${r.label.charAt(0).toLowerCase()}${r.label.slice(1)}`}
+          label={r.toggle}
           isChecked={alerts[r.key]}
           onChange={(value) => setAlerts((a) => ({ ...a, [r.key]: value }))}
         />
@@ -496,42 +547,50 @@ function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () 
 }
 
 /** Section titles and terms of the Settings page, shared by the page and its skeleton. */
-const SETTINGS_SECTIONS: Array<[string, string, string[]]> = [
-  [
-    'Snapshot schedule',
-    'How often AccessRadar records the access picture of this site.',
-    ['Schedule'],
-  ],
-  ['Key permissions', 'Permissions highlighted in reviews, change reports and exports.', []],
-  ['Retention', 'How long snapshots are kept.', ['Snapshots', 'Signed reviews']],
-  [
-    'Collection',
-    'What the collector reads and how much API quota it may use.',
-    ['Group members', 'API budget', 'Admin fallback'],
-  ],
-  [
-    'Risk indicators',
-    'Thresholds for the Overview signals.',
-    ['Large group', 'Admin of many spaces', 'App accounts'],
-  ],
-  [
-    'Reviews',
-    'Justification rules for access decisions.',
-    ['Keep justification', 'Revoke / exception'],
-  ],
-];
+function settingsSections(): Array<[string, string, string[]]> {
+  return [
+    [
+      t('settings.snapshotSchedule'),
+      t('settings.howOftenAccessradarRecordsTheAccess'),
+      [t('settings.schedule')],
+    ],
+    [t('settings.keyPermissions'), t('settings.permissionsHighlightedInReviewsChangeReports'), []],
+    [
+      t('settings.retention'),
+      t('settings.howLongSnapshotsAreKept'),
+      [t('nav.snapshots.label'), t('settings.signedReviews')],
+    ],
+    [
+      t('settings.collection'),
+      t('settings.whatTheCollectorReadsAndHow'),
+      [t('settings.groupMembers'), t('settings.apiBudget'), t('settings.adminFallback')],
+    ],
+    [
+      t('overview.riskIndicators'),
+      t('settings.thresholdsForTheOverviewSignals'),
+      [t('settings.largeGroup'), t('settings.adminOfManySpaces'), t('settings.appAccounts')],
+    ],
+    [
+      t('settings.reviews'),
+      t('settings.justificationRulesForAccessDecisions'),
+      [t('settings.keepJustification'), t('settings.revokeException')],
+    ],
+  ];
+}
 
 /** Terms of the "Security & data" section, shared by the page and its skeleton. */
-const SECURITY_TERMS = [
-  'Jira access',
-  'Work item content',
-  'Where data lives',
-  'Who can use it',
-  'Exports',
-  'Personal data',
-  'Closed accounts',
-  'Audit log',
-];
+function securityTerms(): string[] {
+  return [
+    t('settings.jiraAccess'),
+    t('settings.workItemContent'),
+    t('settings.whereDataLives'),
+    t('settings.whoCanUseIt'),
+    t('settings.exports'),
+    t('settings.personalData'),
+    t('settings.closedAccounts'),
+    t('settings.auditLog'),
+  ];
+}
 
 export function SettingsView() {
   const { status } = useApp();
@@ -558,7 +617,7 @@ export function SettingsView() {
   return (
     <PageFrame
       header={<PageHeader title={meta.title} description={meta.description} />}
-      notice={staleNotice(r, 'Settings could not refresh')}
+      notice={staleNotice(r, t('settings.settingsCouldNotRefresh'))}
     >
       <Stack space="space.300">
         {r.error && !v ? (
@@ -573,9 +632,9 @@ export function SettingsView() {
               title={t('settings.edition')}
               description={t('settings.whichAccessradarFeaturesThisSiteCan')}
             >
-              <DetailsPhantom terms={['Edition', 'Advanced']} />
+              <DetailsPhantom terms={[t('settings.edition'), t('settings.advanced')]} />
             </Section>
-            {SETTINGS_SECTIONS.map(([title, description, terms]) => (
+            {settingsSections().map(([title, description, terms]) => (
               <Section
                 key={title}
                 title={title}
@@ -607,7 +666,7 @@ export function SettingsView() {
               title={t('settings.securityData')}
               description={t('settings.accessradarRunsOnAtlassianAndOnly')}
             >
-              <DetailsPhantom terms={SECURITY_TERMS} />
+              <DetailsPhantom terms={securityTerms()} />
             </Section>
           </SkeletonRoot>
         ) : (
@@ -631,8 +690,8 @@ export function SettingsView() {
                 <Button
                   onClick={() =>
                     edit(
-                      'Snapshot schedule',
-                      'Scheduled snapshots run in the background.',
+                      t('settings.snapshotSchedule'),
+                      t('settings.scheduledSnapshotsRunInTheBackground'),
                       <ScheduleForm
                         s={s}
                         save={save}
@@ -646,7 +705,7 @@ export function SettingsView() {
                 </Button>
               }
             >
-              <Details rows={[['Schedule', scheduleText(s)]]} />
+              <Details rows={[[t('settings.schedule'), scheduleText(s)]]} />
             </Section>
             <Section
               title={t('settings.keyPermissions')}
@@ -655,8 +714,8 @@ export function SettingsView() {
                 <Button
                   onClick={() =>
                     edit(
-                      'Key permissions',
-                      'What reviewers see and sign off.',
+                      t('settings.keyPermissions'),
+                      t('settings.whatReviewersSeeAndSignOff'),
                       <KeyPermissionsForm s={s} save={save} cancel={close} />,
                     )
                   }
@@ -678,8 +737,8 @@ export function SettingsView() {
                 <Button
                   onClick={() =>
                     edit(
-                      'Retention',
-                      'Older snapshots are deleted automatically.',
+                      t('settings.retention'),
+                      t('settings.olderSnapshotsAreDeletedAutomatically'),
                       <RetentionForm
                         s={s}
                         save={save}
@@ -695,8 +754,11 @@ export function SettingsView() {
             >
               <Details
                 rows={[
-                  ['Snapshots', `${s.retentionDays} days`],
-                  ['Signed reviews', 'Kept until deleted with the app'],
+                  [
+                    t('nav.snapshots.label'),
+                    t('settings.retentionDaysValue', { count: s.retentionDays }),
+                  ],
+                  [t('settings.signedReviews'), t('settings.keptUntilDeletedWithTheApp')],
                 ]}
               />
             </Section>
@@ -707,8 +769,8 @@ export function SettingsView() {
                 <Button
                   onClick={() =>
                     edit(
-                      'Collection',
-                      'Read-only; nothing in Jira changes.',
+                      t('settings.collection'),
+                      t('settings.readOnlyNothingInJiraChanges'),
                       <CollectionForm v={v} save={save} cancel={close} />,
                     )
                   }
@@ -720,20 +782,25 @@ export function SettingsView() {
               <Details
                 rows={[
                   [
-                    'Group members',
-                    s.groupMembers === 'all' ? 'Every group' : 'Groups that grant access',
+                    t('settings.groupMembers'),
+                    s.groupMembers === 'all'
+                      ? t('settings.everyGroup')
+                      : t('settings.groupsThatGrantAccess'),
                   ],
                   [
-                    'API budget',
-                    `${s.hourlyPointBudget.toLocaleString()} rate points per hour · ${v.usage.points.toLocaleString()} used this hour`,
+                    t('settings.apiBudget'),
+                    t('settings.apiBudgetValue', {
+                      budget: s.hourlyPointBudget.toLocaleString(),
+                      used: v.usage.points.toLocaleString(),
+                    }),
                   ],
                   [
-                    'Admin fallback',
+                    t('settings.adminFallback'),
                     v.fallbackEnabled
                       ? v.fallbackIsMe
-                        ? 'On (your account)'
-                        : 'On (another administrator)'
-                      : 'Off',
+                        ? t('settings.fallbackOnYourAccount')
+                        : t('settings.fallbackOnAnotherAdmin')
+                      : t('settings.off'),
                   ],
                 ]}
               />
@@ -745,8 +812,8 @@ export function SettingsView() {
                 <Button
                   onClick={() =>
                     edit(
-                      'Risk indicators',
-                      'Tune what counts as a signal.',
+                      t('overview.riskIndicators'),
+                      t('settings.tuneWhatCountsAsASignal'),
                       <RiskForm s={s} save={save} cancel={close} />,
                     )
                   }
@@ -757,9 +824,18 @@ export function SettingsView() {
             >
               <Details
                 rows={[
-                  ['Large group', `${s.largeGroupThreshold}+ members`],
-                  ['Admin of many spaces', `${s.wideAdminProjects}+ spaces`],
-                  ['App accounts', s.showAppAccounts ? 'Included' : 'Excluded'],
+                  [
+                    t('settings.largeGroup'),
+                    t('settings.membersThreshold', { count: s.largeGroupThreshold }),
+                  ],
+                  [
+                    t('settings.adminOfManySpaces'),
+                    t('settings.spacesThreshold', { count: s.wideAdminProjects }),
+                  ],
+                  [
+                    t('settings.appAccounts'),
+                    s.showAppAccounts ? t('settings.included') : t('settings.excluded'),
+                  ],
                 ]}
               />
             </Section>
@@ -770,8 +846,8 @@ export function SettingsView() {
                 <Button
                   onClick={() =>
                     edit(
-                      'Reviews',
-                      'When reviewers must explain a decision.',
+                      t('settings.reviews'),
+                      t('settings.whenReviewersMustExplainADecision'),
                       <ReviewsForm s={s} save={save} cancel={close} />,
                     )
                   }
@@ -783,10 +859,12 @@ export function SettingsView() {
               <Details
                 rows={[
                   [
-                    'Keep justification',
-                    s.requireKeepNote ? 'Required (≥10 characters)' : 'Optional',
+                    t('settings.keepJustification'),
+                    s.requireKeepNote
+                      ? t('settings.requiredMin10Characters')
+                      : t('settings.optional'),
                   ],
-                  ['Revoke / exception', 'Always required (≥10 characters)'],
+                  [t('settings.revokeException'), t('settings.alwaysRequiredMin10Characters')],
                 ]}
               />
             </Section>
@@ -798,8 +876,8 @@ export function SettingsView() {
                   <Button
                     onClick={() =>
                       edit(
-                        'Change alerts',
-                        'Which rules raise an in-app alert after a snapshot.',
+                        t('settings.changeAlerts'),
+                        t('settings.whichRulesRaiseAnInAppAlert'),
                         <AlertsForm s={s} save={save} cancel={close} />,
                       )
                     }
@@ -811,7 +889,7 @@ export function SettingsView() {
                 <Details
                   rows={ALERT_RULE_LABELS.map((r) => [
                     r.label,
-                    (s.alerts ?? {})[r.key] === false ? 'Off' : 'On',
+                    (s.alerts ?? {})[r.key] === false ? t('settings.off') : t('settings.on'),
                   ])}
                 />
               </Section>
@@ -822,28 +900,24 @@ export function SettingsView() {
             >
               <Details
                 rows={[
+                  [t('settings.jiraAccess'), t('settings.jiraAccessValue')],
+                  [t('settings.workItemContent'), t('settings.neverRead')],
+                  [t('settings.whereDataLives'), t('settings.whereDataLivesValue')],
+                  [t('settings.whoCanUseIt'), t('settings.whoCanUseItValue')],
+                  [t('settings.exports'), t('settings.exportsValue')],
                   [
-                    'Jira access',
-                    'Read-only (granular read scopes); AccessRadar never changes Jira',
-                  ],
-                  ['Work item content', 'Never read'],
-                  [
-                    'Where data lives',
-                    'Forge SQL in this site’s Atlassian environment; no external egress',
-                  ],
-                  ['Who can use it', 'Jira administrators only (checked on every request)'],
-                  ['Exports', 'Generated in your browser'],
-                  [
-                    'Personal data',
+                    t('settings.personalData'),
                     v.privacy
-                      ? `Last run ${formatLocal(v.privacy.at)}: ${v.privacy.reported} of ${v.privacy.stored ?? v.privacy.reported} accounts reported (each at most once per 7 days), ${v.privacy.closedTotal ?? v.privacy.closed} closed`
-                      : 'Reported to Atlassian at most once per 7 days per account (not run yet)',
+                      ? t('settings.personalDataLastRun', {
+                          at: formatLocal(v.privacy.at),
+                          reported: v.privacy.reported,
+                          stored: v.privacy.stored ?? v.privacy.reported,
+                          closed: v.privacy.closedTotal ?? v.privacy.closed,
+                        })
+                      : t('settings.personalDataNotRun'),
                   ],
-                  [
-                    'Closed accounts',
-                    'Pseudonymised: the name is replaced by “Closed account <code>”; the account ID is kept in snapshots, reviews and the audit log as evidence',
-                  ],
-                  ['Audit log', `Kept for ${s.retentionDays} days (same as snapshot retention)`],
+                  [t('settings.closedAccounts'), t('settings.closedAccountsValue')],
+                  [t('settings.auditLog'), t('settings.auditLogValue', { count: s.retentionDays })],
                 ]}
               />
             </Section>
@@ -925,10 +999,18 @@ const ADVANCED_FEATURES: Array<{
 ];
 
 const SOURCE_TEXT: Record<EditionView['source'], string> = {
-  env: 'Set by the AR_EDITION_OVERRIDE variable',
-  stored: 'Set in AccessRadar (override)',
-  license: 'From your Marketplace license',
-  development: 'Development site (no license): Advanced',
+  get env() {
+    return t('settings.sourceEnv');
+  },
+  get stored() {
+    return t('settings.sourceStored');
+  },
+  get license() {
+    return t('settings.sourceLicense');
+  },
+  get development() {
+    return t('settings.sourceDevelopment');
+  },
 };
 
 /** Control inside a Details row (R-9.6): at most 280px wide. */
@@ -956,7 +1038,7 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
   };
   const rows: Array<[string, ReactNode]> = [
     [
-      'Edition',
+      t('settings.edition'),
       <Inline as="span" space="space.050" shouldWrap key="e">
         <Pill tone={edition.edition === 'advanced' ? 'discovery' : 'neutral'}>
           {edition.edition === 'advanced' ? t('settings.advanced') : t('settings.standard')}
@@ -967,7 +1049,7 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
   ];
   if (edition.canOverride === true) {
     rows.push([
-      'Override',
+      t('settings.override'),
       // Development and staging only (canOverride); stored in KVS by setEditionOverride.
       <Box key="o" xcss={detailsControlStyles}>
         <Select
@@ -984,7 +1066,7 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
     ]);
   }
   rows.push([
-    'Advanced',
+    t('settings.advanced'),
     <DividedList key="a">
       {ADVANCED_FEATURES.map((f) => {
         const soon = (edition.comingSoon ?? []).includes(f.key);

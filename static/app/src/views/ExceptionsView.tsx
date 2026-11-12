@@ -44,7 +44,12 @@ type ExceptionRow = {
 
 /** Subject cell: the name, plus a neutral "App" or "Group" marker so apps never read as people. */
 function subjectCell(e: Pick<ExceptionRow, 'subjectName' | 'subjectKind'>) {
-  const marker = e.subjectKind === 'app' ? 'App' : e.subjectKind === 'group' ? 'Group' : null;
+  const marker =
+    e.subjectKind === 'app'
+      ? t('components.app')
+      : e.subjectKind === 'group'
+        ? t('groups.group')
+        : null;
   return marker ? (
     <Inline space="space.075" alignBlock="center">
       <Text>{e.subjectName}</Text>
@@ -90,10 +95,11 @@ const STATUS_OPTS = [
 
 function expiryLozenge(status: ExceptionRow['status'], expiresAt: number, now: number) {
   if (status === 'expired' || status === 'revoked' || status === 'superseded') {
-    return <Pill tone={status === 'expired' ? 'danger' : 'neutral'}>{status}</Pill>;
+    const label = STATUS_OPTS.find((o) => o.value === status)?.label ?? status;
+    return <Pill tone={status === 'expired' ? 'danger' : 'neutral'}>{label}</Pill>;
   }
   const days = Math.ceil((expiresAt - now) / 86400_000);
-  if (days <= 14) return <Pill tone="warning">expires in {days}d</Pill>;
+  if (days <= 14) return <Pill tone="warning">{t('exceptions.expiresInDays', { days })}</Pill>;
   return <Pill tone="success">{t('campaigns.active')}</Pill>;
 }
 

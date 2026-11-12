@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { en } from './en';
 import { loadLocale, setCatalog, t, UI_LOCALES, resolveUiLocale, type MessageKey } from './index';
 
-const placeholders = (s: string) => [...s.matchAll(/\{(\w+)/g)].map((m) => m[1]).sort();
+const placeholders = (s: string) => [...s.matchAll(/\{(\w+)(?=\s*[,}])/g)].map((m) => m[1]).sort();
 
 describe('resolveUiLocale', () => {
   it.each([

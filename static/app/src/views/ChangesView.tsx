@@ -64,7 +64,9 @@ function AccessTable({ rows, empty }: { rows: AccessChange[]; empty: string }) {
               <WrapAnywhere>
                 <Text color="color.text.subtle">
                   {c.reasons[0]}
-                  {c.reasons.length > 1 ? ` (+${c.reasons.length - 1} more)` : ''}
+                  {c.reasons.length > 1
+                    ? ` ${t('changes.moreReasons', { count: c.reasons.length - 1 })}`
+                    : ''}
                 </Text>
               </WrapAnywhere>
             ),
@@ -336,9 +338,9 @@ export function ChangesView() {
       {(
         (access
           ? [
-              ['Space', options.projects, project, setProject],
-              ['Group', options.groups, group, setGroup],
-              ['Permission', options.perms, perm, setPerm],
+              [t('campaigns.space'), options.projects, project, setProject],
+              [t('groups.group'), options.groups, group, setGroup],
+              [t('changes.permission'), options.perms, perm, setPerm],
             ]
           : []) as Array<[string, Opt[], string, (v: string) => void]>
       ).map(([label, opts, value, set]) => (
@@ -370,20 +372,35 @@ export function ChangesView() {
       <PagePinned>
         {pickers}
         <Text as="p" color="color.text.subtle">
-          Comparing snapshot #{d!.a!.seq} with #{d!.b!.seq} ·{' '}
+          {t('changes.comparingSnapshots', { a: d!.a!.seq, b: d!.b!.seq })} ·{' '}
           {all
             ? t('changes.allPermissions')
-            : `key permissions: ${d!.keyPermissions.map(permissionLabel).join(', ')}`}
+            : t('changes.keyPermissionsList', {
+                list: d!.keyPermissions.map(permissionLabel).join(', '),
+              })}
         </Text>
       </PagePinned>
       <PageTabs>
         <Tabs id="changes-tabs">
           <TabList>
-            <Tab>Granted ({granted.length})</Tab>
-            <Tab>Revoked ({revoked.length})</Tab>
-            <Tab>Groups ({groupFacts.length})</Tab>
-            <Tab>Schemes & roles ({schemeFacts.length})</Tab>
-            <Tab>People ({peopleFacts.length})</Tab>
+            <Tab>
+              {t('changes.tabCount', { label: t('changes.granted'), count: granted.length })}
+            </Tab>
+            <Tab>
+              {t('changes.tabCount', { label: t('changes.revoked'), count: revoked.length })}
+            </Tab>
+            <Tab>
+              {t('changes.tabCount', { label: t('changes.groups'), count: groupFacts.length })}
+            </Tab>
+            <Tab>
+              {t('changes.tabCount', {
+                label: t('changes.schemesRoles'),
+                count: schemeFacts.length,
+              })}
+            </Tab>
+            <Tab>
+              {t('changes.tabCount', { label: t('changes.people'), count: peopleFacts.length })}
+            </Tab>
           </TabList>
           {panel(<AccessTable rows={granted} empty={t('changes.noAccessWasGranted')} />, true)}
           {panel(<AccessTable rows={revoked} empty={t('changes.noAccessWasRevoked')} />, true)}

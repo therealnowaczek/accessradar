@@ -1,4 +1,5 @@
 /** Formatting helpers shared by views and exports (pure, tested). */
+import { t } from './i18n';
 
 export const PERMISSION_LABELS: Record<string, string> = {
   BROWSE_PROJECTS: 'Browse projects',
@@ -199,16 +200,18 @@ export function formatLocalExport(ms: number | null | undefined, tz = timeZone()
 export function relative(ms: number | null | undefined, now = Date.now()): string {
   if (!ms) return '—';
   const s = Math.round((now - ms) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
-  return `${Math.floor(s / 86400)} d ago`;
+  if (s < 60) return t('format.justNow');
+  if (s < 3600) return t('format.minutesAgo', { n: Math.floor(s / 60) });
+  if (s < 86400) return t('format.hoursAgo', { n: Math.floor(s / 3600) });
+  return t('format.daysAgo', { n: Math.floor(s / 86400) });
 }
 
 export function duration(from: number, to: number | null | undefined): string {
   if (!to) return '—';
   const s = Math.max(0, Math.round((to - from) / 1000));
-  return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`;
+  return s < 60
+    ? t('format.seconds', { s })
+    : t('format.minutesSeconds', { m: Math.floor(s / 60), s: s % 60 });
 }
 
 export const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -224,15 +227,23 @@ export function slug(value: string): string {
   );
 }
 
-export const WEEKDAYS = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-];
+/** Weekday names, Monday first. Entries resolve through the catalog when read (not at import). */
+export const WEEKDAYS: string[] = localizedWeekdays();
+
+function localizedWeekdays(): string[] {
+  const keys = [
+    'format.monday',
+    'format.tuesday',
+    'format.wednesday',
+    'format.thursday',
+    'format.friday',
+    'format.saturday',
+    'format.sunday',
+  ] as const;
+  const days: string[] = [];
+  keys.forEach((key, i) => Object.defineProperty(days, i, { get: () => t(key), enumerable: true }));
+  return days;
+}
 
 const PERMISSION_TOKEN = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b|\b(?:ADMINISTER|SYSTEM_ADMIN)\b/g;
 

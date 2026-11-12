@@ -250,7 +250,7 @@ export const SidePanelBody = DrawerBody;
 export function DrawerFooter({
   children,
   onCancel,
-  cancelLabel = 'Cancel',
+  cancelLabel = t('confirm.cancel'),
 }: {
   children: React.ReactNode;
   onCancel?: () => void;

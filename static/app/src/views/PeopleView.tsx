@@ -14,7 +14,7 @@ import {
 import { ReasonList, SearchField, Section, SnapshotPicker, SubjectCell, Hash } from '../components';
 import { useCall } from '../data';
 import { DrawerBody, LevelDrawer, type DrawerLevel } from '../Drawer';
-import { formatLocal, permissionLabel, plural } from '../format';
+import { formatLocal, permissionLabel } from '../format';
 import { navItem } from '../routes';
 import { NoSnapshot, PartialBanner, useApp, useSnapshots } from '../shared';
 import { useToast } from '../Toast';
@@ -101,7 +101,7 @@ export function PeopleView() {
     ]);
 
   useEffect(() => {
-    if (params.accountId) open(params.accountId, 'Person');
+    if (params.accountId) open(params.accountId, t('people.person'));
     // open once when navigated here with a person
   }, []);
 
@@ -210,7 +210,7 @@ export function PeopleView() {
                   {
                     key: p.adminProjects,
                     content: p.adminProjects ? (
-                      plural(p.adminProjects, 'space')
+                      t('people.spaceCount', { count: p.adminProjects })
                     ) : (
                       <Text color="color.text.subtle">—</Text>
                     ),
@@ -278,7 +278,14 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
         {/* Subject, the real Details terms and section titles; only the values load (R-10.1). */}
         <SkeletonRoot>
           <SubjectPhantom />
-          <DetailsPhantom terms={['Account ID', 'Account type', 'Status', 'Jira administrator']} />
+          <DetailsPhantom
+            terms={[
+              t('people.accountId'),
+              t('people.accountType'),
+              t('campaigns.status'),
+              t('people.jiraAdministrator'),
+            ]}
+          />
           <Section
             title={t('people.globalPermissions')}
             description={t('people.jiraCannotListGlobalPermissionHolders')}
@@ -302,21 +309,21 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
       <SubjectCell subject={d.person} />
       <Details
         rows={[
-          ['Account ID', <Hash key="id" value={d.person.id} />],
-          ['Account type', d.person.accountType ?? 'unknown'],
+          [t('people.accountId'), <Hash key="id" value={d.person.id} />],
+          [t('people.accountType'), d.person.accountType ?? t('people.unknown')],
           [
-            'Status',
+            t('campaigns.status'),
             d.person.active === false ? (
               <Pill tone="danger">{t('components.inactive')}</Pill>
             ) : (
-              'Active'
+              t('exceptions.active')
             ),
           ],
           [
-            'Jira administrator',
+            t('people.jiraAdministrator'),
             d.adminVia.length
-              ? `Yes, via ${d.adminVia.join(', ')}`
-              : 'Not via groups (see live check)',
+              ? t('people.yesVia', { groups: d.adminVia.join(', ') })
+              : t('people.notViaGroups'),
           ],
         ]}
       />
@@ -342,31 +349,42 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
               </DividedListItem>
             ))}
             <DividedListItem>
-              <Text color="color.text.subtle">Checked {formatLocal(global.data.at)}</Text>
+              <Text color="color.text.subtle">
+                {t('people.checkedAt', { date: formatLocal(global.data.at) })}
+              </Text>
             </DividedListItem>
           </DividedList>
         ) : null}
       </Section>
       {d.changes && (d.changes.granted.length || d.changes.revoked.length) ? (
-        <Section title={t('people.changes')} description={`Since snapshot #${d.changes.fromSeq}`}>
+        <Section
+          title={t('people.changes')}
+          description={t('overview.sinceSnapshot', { seq: d.changes.fromSeq })}
+        >
           <DividedList>
             {d.changes.granted.map((c, i) => (
               <DividedListItem key={`g${i}`}>
                 <Pill tone="success">{t('changes.granted')}</Pill>
-                {permissionLabel(c.permission)} in {c.project.key}
+                {t('people.permissionInSpace', {
+                  permission: permissionLabel(c.permission),
+                  key: c.project.key,
+                })}
                 <Text color="color.text.subtle"> — {c.reasons[0]}</Text>
               </DividedListItem>
             ))}
             {d.changes.revoked.map((c, i) => (
               <DividedListItem key={`r${i}`}>
                 <Pill tone="danger">{t('changes.revoked')}</Pill>
-                {permissionLabel(c.permission)} in {c.project.key}
+                {t('people.permissionInSpace', {
+                  permission: permissionLabel(c.permission),
+                  key: c.project.key,
+                })}
               </DividedListItem>
             ))}
           </DividedList>
         </Section>
       ) : null}
-      <Section title={`Groups (${d.groups.length})`}>
+      <Section title={t('people.groupsCount', { count: d.groups.length })}>
         {d.groups.length ? (
           <Inline as="span" space="space.050" shouldWrap>
             {d.groups.map((g) => (
@@ -382,7 +400,7 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
         )}
       </Section>
       <Section
-        title={`Spaces (${d.projects.length})`}
+        title={t('people.spacesCount', { count: d.projects.length })}
         description={t('people.permissionsInEachSpaceWithThe')}
       >
         {d.projects.length ? (

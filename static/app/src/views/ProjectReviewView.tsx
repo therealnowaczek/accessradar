@@ -8,7 +8,7 @@ import { REQUIRES_ADVANCED } from '../../../../src/domain/edition';
 import { call, errorText, type ReviewItem, type ReviewSummary } from '../api';
 import { SubjectCell } from '../components';
 import { useCall } from '../data';
-import { formatLocal, permissionLabel, plural } from '../format';
+import { formatLocal, permissionLabel } from '../format';
 import { t } from '../i18n';
 import { useToast } from '../Toast';
 import {
@@ -71,7 +71,7 @@ export function ProjectReviewView() {
       });
       toast.success(
         decision === 'keep' ? t('projectReview.kept') : t('projectReview.markedRevoke'),
-        plural(idxs.length, 'item'),
+        t('reviewsView.itemCount', { count: idxs.length }),
       );
       mine.reload();
     } catch (e) {
@@ -86,7 +86,7 @@ export function ProjectReviewView() {
     setBusy(true);
     try {
       await call('submitAssignment', { reviewId: d.assignment.reviewId });
-      toast.success(t('projectReview.submitted'), 'A Jira admin will sign the review.');
+      toast.success(t('projectReview.submitted'), t('projectReviewView.adminWillSign'));
       mine.reload();
     } catch (e) {
       toast.error(t('projectReview.couldNotSubmit'), errorText(e));
@@ -186,7 +186,11 @@ export function ProjectReviewView() {
           <>
             <SectionMessage appearance="information" title={d.review.name} headingLevel="h2">
               <Text as="p">
-                Due {formatLocal(d.assignment.dueAt)} · snapshot #{d.review.baseSeq} ·{' '}
+                {t('projectReviewView.dueSnapshot', {
+                  date: formatLocal(d.assignment.dueAt),
+                  seq: d.review.baseSeq,
+                })}{' '}
+                ·{' '}
                 {d.access === 'site-admin' ? (
                   <Pill tone="info">{t('projectReview.viewingAsJiraAdmin')}</Pill>
                 ) : (
@@ -202,7 +206,11 @@ export function ProjectReviewView() {
               <Metric
                 label={t('projectReview.decided')}
                 value={decided}
-                hint={pending ? `${pending} to go` : t('projectReview.allDecided')}
+                hint={
+                  pending
+                    ? t('reviewsView.toGo', { count: pending })
+                    : t('projectReview.allDecided')
+                }
               />
               <Metric
                 label={t('projectReview.keep')}

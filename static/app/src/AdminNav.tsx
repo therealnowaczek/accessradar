@@ -13,7 +13,6 @@ import { NAV, navGroupLabel, navItem, type ViewId } from './routes';
 
 /** Accessible name of the admin navigation (side panel, overlay and its menu button). */
 export const NAV_LABEL = 'AccessRadar';
-const BRAND_SUBTITLE = 'Admin settings';
 
 type NavProps = {
   view: ViewId;
@@ -33,7 +32,7 @@ export function AdminNavFull({ view, onChange, label = (_id, text) => text }: Na
     <div className="admin-nav-full">
       <Box as="nav" aria-label={NAV_LABEL}>
         <SideNavHeader>
-          <BrandHeader subtitle={BRAND_SUBTITLE} />
+          <BrandHeader subtitle={t('adminNav.adminSettings')} />
         </SideNavHeader>
         <SideNavBody>
           <Stack space="space.200">
@@ -77,7 +76,7 @@ export function AdminNavOverlay({ view, onChange, label }: NavProps) {
         aria-expanded={open}
         onClick={() => setOpen(true)}
       />
-      <BrandHeader subtitle={BRAND_SUBTITLE} />
+      <BrandHeader subtitle={t('adminNav.adminSettings')} />
       <Drawer isOpen={open} onClose={() => setOpen(false)} width="narrow" label={NAV_LABEL}>
         <DrawerSidebar>
           <DrawerCloseButton label={t('adminNav.close')} />
