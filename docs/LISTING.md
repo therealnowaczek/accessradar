@@ -293,7 +293,7 @@ Advanced (same method, new prices):
 | Weekly digest: one in-app summary of access changes from the last 7 days | Remediation verification (confirm Revokes in later snapshots) |
 | View reviews signed earlier (read-only) | Signed reviews: SHA-256 sign-off v2 |
 | | Site-wide hash chain; Verify signature, snapshot and chain |
-| | Audit evidence pack PDF with SOC 2 / ISO control mapping |
+| | Audit evidence pack PDF and JSON with SOC 2 / ISO control mapping |
 | | Rovo agent (read-only) |
 
 Edition decision 2026-10-26 (Radrly family rule): signing, the hash chain and Verify are always Advanced. Reviews signed earlier stay readable on Standard (PRD §5.1). Edition decision 2026-10-26: Standard gets the weekly digest, real-time alerts stay Advanced (PRD §5.2). Exceptions work on Standard without signing (PRD §5.3).

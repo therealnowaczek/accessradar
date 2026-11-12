@@ -6,7 +6,8 @@ import Tabs, { Tab, TabList, TabPanel } from '@atlaskit/tabs';
 import type { AccessChange, Changes, FactChange } from '../api';
 import { ExportMenu, SearchField, SnapshotPicker, SubjectCell } from '../components';
 import { useCall } from '../data';
-import { downloadCsv, downloadMarkdown, downloadPdf } from '../export/download';
+import { downloadCsv, downloadJson, downloadMarkdown, downloadPdf } from '../export/download';
+import { changesJson, jsonFileName, serializeJson } from '../export/json';
 import { changesCsv, changesFileName, changesMarkdown, changesPdf } from '../export/evidence';
 import { permissionLabel } from '../format';
 import { navItem } from '../routes';
@@ -206,6 +207,15 @@ export function ChangesView() {
                 changesMarkdown(filtered!, exportContext(siteUrl)),
               );
               logExport('changes-md', `#${d!.a!.seq}-#${d!.b!.seq}`);
+            })
+          }
+          onJson={() =>
+            void exporter('Changes JSON', () => {
+              downloadJson(
+                jsonFileName(changesFileName(filtered!, 'json')),
+                serializeJson(changesJson(filtered!, exportContext(siteUrl))),
+              );
+              logExport('changes-json', `#${d!.a!.seq}-#${d!.b!.seq}`);
             })
           }
         />

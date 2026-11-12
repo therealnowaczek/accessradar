@@ -41,7 +41,8 @@ import {
   canStartReview,
   isDecisionChangeValid,
 } from '../formRules';
-import { downloadCsv, downloadMarkdown, downloadPdf } from '../export/download';
+import { downloadCsv, downloadJson, downloadMarkdown, downloadPdf } from '../export/download';
+import { evidencePackJson, jsonFileName, reviewJson, serializeJson } from '../export/json';
 import { reviewCsv, reviewFileName, reviewMarkdown, reviewPdf } from '../export/evidence';
 import {
   evidencePackFileName,
@@ -108,6 +109,22 @@ export function ReviewsView() {
   if (params.reviewId)
     return <ReviewDetailView id={params.reviewId} onBack={() => go('reviews')} />;
   return <ReviewList autoCreate={params.create === '1'} />;
+}
+
+/** All pages of the Advanced evidence pack (the server refuses on Standard). */
+async function fetchEvidencePack(id: string) {
+  const allItems: EvidencePackPayload['items'] = [];
+  let page = 1;
+  let first: EvidencePackPayload | null = null;
+  for (;;) {
+    const pack = await call<EvidencePackPayload>('getEvidencePack', { id, page, pageSize: 500 });
+    if (!first) first = pack;
+    allItems.push(...pack.items);
+    if (!pack.nextPage) break;
+    page = pack.nextPage;
+  }
+  if (!first) throw new Error('Empty evidence pack');
+  return { first, allItems };
 }
 
 function ReviewList({ autoCreate }: { autoCreate: boolean }) {
@@ -698,6 +715,36 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                 logExport('review-md', id, d!.limitations?.version);
               })
             }
+            onJson={() =>
+              void exporter('Review JSON', () => {
+                downloadJson(
+                  jsonFileName(reviewFileName(d!, 'json')),
+                  serializeJson(reviewJson(d!, exportContext(siteUrl))),
+                );
+                logExport('review-json', id, d!.limitations?.version);
+              })
+            }
+            extraItems={
+              d?.review.status === 'signed'
+                ? [
+                    {
+                      label: 'Evidence pack JSON',
+                      description: 'Advanced: signed review with methodology and trail',
+                      onClick: () =>
+                        void exporter('Evidence pack JSON', async () => {
+                          const { first, allItems } = await fetchEvidencePack(id);
+                          downloadJson(
+                            jsonFileName(evidencePackFileName(d.review.name, id)),
+                            serializeJson(
+                              evidencePackJson(first, allItems, exportContext(siteUrl)),
+                            ),
+                          );
+                          logExport('evidence-pack-json', id, d.limitations?.version);
+                        }),
+                    },
+                  ]
+                : undefined
+            }
           />
           {signed && !chainLocked ? (
             <Button onClick={openVerify}>Verify signature & chain</Button>
@@ -712,21 +759,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               appearance="primary"
               onClick={() =>
                 void exporter('Evidence pack', async () => {
-                  const allItems: EvidencePackPayload['items'] = [];
-                  let page = 1;
-                  let first: EvidencePackPayload | null = null;
-                  for (;;) {
-                    const pack = await call<EvidencePackPayload>('getEvidencePack', {
-                      id,
-                      page,
-                      pageSize: 500,
-                    });
-                    if (!first) first = pack;
-                    allItems.push(...pack.items);
-                    if (!pack.nextPage) break;
-                    page = pack.nextPage;
-                  }
-                  if (!first) throw new Error('Empty evidence pack');
+                  const { first, allItems } = await fetchEvidencePack(id);
                   downloadPdf(
                     evidencePackFileName(d!.review.name, id),
                     await evidencePackPdf(first, allItems, exportContext(siteUrl)),

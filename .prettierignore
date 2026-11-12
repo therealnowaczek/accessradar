@@ -7,3 +7,4 @@ dist
 docs/spike-results
 docs
 *.md
+static/app/src/export/__golden__

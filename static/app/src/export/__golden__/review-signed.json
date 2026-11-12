@@ -1,0 +1,89 @@
+{
+  "schema": "accessradar-export",
+  "schemaVersion": 1,
+  "kind": "review",
+  "generatedBy": {
+    "app": "AccessRadar",
+    "version": "1.0.0",
+    "readOnly": true
+  },
+  "site": "https://example.atlassian.net",
+  "exportedAt": "2026-10-09T12:00:00.000Z",
+  "timeZone": "Europe/Warsaw",
+  "review": {
+    "id": "0f6e3c2a-1111-4222-8333-444455556666",
+    "name": "Q4 review",
+    "status": "signed",
+    "scope": {
+      "type": "site",
+      "ids": [],
+      "labels": []
+    },
+    "keyPermissions": [
+      "BROWSE_PROJECTS"
+    ],
+    "engineVersion": "1.0.0",
+    "createdAt": "2026-10-09T10:00:00.000Z",
+    "dueAt": null,
+    "itemCount": 1,
+    "signature": {
+      "signedBy": "a1",
+      "signedByName": "Marcin",
+      "signedAt": "2026-10-09T12:00:00.000Z",
+      "signerTz": "Europe/Warsaw",
+      "evidenceHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "signatureVersion": 1,
+      "chainSeq": null,
+      "prevReviewHash": null
+    }
+  },
+  "baseSnapshot": {
+    "seq": 7,
+    "status": "complete",
+    "capturedAt": "2026-10-09T10:00:00.000Z",
+    "engineVersion": "1.0.0",
+    "contentHash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "compareSnapshot": null,
+  "limitations": {
+    "version": 1,
+    "completeness": "partial",
+    "label": "partial (1 gap)",
+    "statements": [
+      "Team-managed projects use a simplified permission model."
+    ]
+  },
+  "coverage": [
+    {
+      "status": "unreadable",
+      "area": "groups",
+      "target": "g1",
+      "reason": "denied"
+    }
+  ],
+  "items": [
+    {
+      "itemKey": "p:1|u:1",
+      "subjectType": "user",
+      "subjectId": "u1",
+      "displayName": "Józef",
+      "projectKey": "OPS",
+      "groupName": null,
+      "permissions": [
+        "BROWSE_PROJECTS"
+      ],
+      "path": [
+        "group “devs” → role “Developers” → scheme “Default”"
+      ],
+      "pathCodes": [
+        "group:g>role:1>scheme:s#2"
+      ],
+      "change": null,
+      "decision": "revoke",
+      "note": "Left the team",
+      "expiresAt": null,
+      "decidedBy": "a1",
+      "decidedAt": "2026-10-09T12:00:00.000Z"
+    }
+  ]
+}

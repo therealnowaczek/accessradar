@@ -36,7 +36,7 @@ import {
   type ReviewRow,
 } from '../db/reviews';
 import { isDuplicateKey, walkChain } from '../engine/chain';
-import { activeHumansFromStats, isFreeTier, refreshGate } from '../collector/gate';
+import { refreshGate } from '../collector/gate';
 import { LIMITATIONS_VERSION, limitationsPayload } from '../domain/limitations';
 import {
   CONTROL_MAPPINGS,
@@ -1266,12 +1266,9 @@ export async function removeReview(p: any, accountId: string) {
 // ---------- settings ----------
 export async function settingsView(accountId: string, edition: EditionDecision) {
   const s = effectiveSchedule(await getSettings(), edition.features);
-  const snap = await latestCommitted();
-  const freeTier = isFreeTier(edition.edition, activeHumansFromStats(snap?.stats));
   return {
     settings: { ...s, fallbackAccountId: undefined },
     edition: editionView(edition),
-    freeTier,
     fallbackIsMe: s.fallbackAccountId === accountId,
     fallbackEnabled: Boolean(s.fallbackAccountId),
     privacy: await kvGet('privacy:lastRun'),

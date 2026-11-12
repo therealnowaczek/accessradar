@@ -1,0 +1,79 @@
+{
+  "schema": "accessradar-export",
+  "schemaVersion": 1,
+  "kind": "access-matrix",
+  "generatedBy": {
+    "app": "AccessRadar",
+    "version": "1.0.0",
+    "readOnly": true
+  },
+  "site": "https://example.atlassian.net",
+  "exportedAt": "2026-10-09T12:00:00.000Z",
+  "timeZone": "Europe/Warsaw",
+  "snapshot": {
+    "seq": 7,
+    "status": "complete",
+    "capturedAt": "2026-10-09T10:00:00.000Z",
+    "engineVersion": "1.0.0",
+    "contentHash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "limitations": {
+    "version": 1,
+    "completeness": "partial",
+    "label": "partial (1 gap)",
+    "statements": [
+      "Team-managed projects use a simplified permission model."
+    ]
+  },
+  "coverage": [
+    {
+      "status": "unreadable",
+      "area": "groups",
+      "target": "g1",
+      "reason": "denied"
+    }
+  ],
+  "columns": [
+    "snapshot_id",
+    "captured_at_utc",
+    "project_key",
+    "project_name",
+    "project_style",
+    "subject_type",
+    "subject_id",
+    "display_name",
+    "account_type",
+    "active",
+    "permission",
+    "path",
+    "path_codes",
+    "completeness_flag"
+  ],
+  "rows": [
+    {
+      "snapshot_id": 7,
+      "captured_at_utc": "2026-10-09T10:00:00.000Z",
+      "project_key": "OPS",
+      "project_name": "Ops",
+      "project_style": "company",
+      "subject_type": "user",
+      "subject_id": "u1",
+      "display_name": "Ann",
+      "account_type": "atlassian",
+      "active": true,
+      "permission": "BROWSE_PROJECTS",
+      "path": "role “Users”",
+      "path_codes": "role:1",
+      "completeness_flag": ""
+    }
+  ],
+  "risks": [
+    {
+      "id": "anonymous",
+      "severity": "high",
+      "title": "Anonymous access",
+      "count": 2,
+      "partial": false
+    }
+  ]
+}

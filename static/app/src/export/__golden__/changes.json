@@ -1,0 +1,58 @@
+{
+  "schema": "accessradar-export",
+  "schemaVersion": 1,
+  "kind": "changes",
+  "generatedBy": {
+    "app": "AccessRadar",
+    "version": "1.0.0",
+    "readOnly": true
+  },
+  "site": "https://example.atlassian.net",
+  "exportedAt": "2026-10-09T12:00:00.000Z",
+  "timeZone": "Europe/Warsaw",
+  "snapshotA": {
+    "seq": 6,
+    "status": "complete",
+    "capturedAt": "2026-10-09T10:00:00.000Z",
+    "engineVersion": "1.0.0",
+    "contentHash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "snapshotB": {
+    "seq": 7,
+    "status": "complete",
+    "capturedAt": "2026-10-09T10:00:00.000Z",
+    "engineVersion": "1.0.0",
+    "contentHash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "keyPermissions": [
+    "BROWSE_PROJECTS"
+  ],
+  "rows": [
+    {
+      "change": "granted",
+      "fact_type": "effective_access",
+      "project_key": "OPS",
+      "subject_type": "user",
+      "subject_id": "1",
+      "display_name": "Ann",
+      "permission": "BROWSE_PROJECTS",
+      "detail": "Access granted",
+      "path": "direct",
+      "snapshot_a": 6,
+      "snapshot_b": 7
+    },
+    {
+      "change": "added",
+      "fact_type": "group_member",
+      "project_key": "",
+      "subject_type": "",
+      "subject_id": "",
+      "display_name": "Ann joined “devs”",
+      "permission": "",
+      "detail": "",
+      "path": "",
+      "snapshot_a": 6,
+      "snapshot_b": 7
+    }
+  ]
+}

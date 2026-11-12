@@ -48,6 +48,12 @@ function server(rows: Array<Record<string, string>>) {
       const k = payload.projectKey as string | undefined;
       return { snapshot, data: k ? rows.filter((r) => r.project_key === k) : rows };
     }
+    if (key === 'exploreProjects') {
+      return {
+        snapshot,
+        data: [...new Set(rows.map((r) => r.project_key))].map((k) => ({ key: k })),
+      };
+    }
     if (key === 'getSnapshot') return { ...snapshot, coverage: [], limitations: undefined };
     if (key === 'getOverview') return { risks: [] };
     if (key === 'logExport') return { logged: true };
@@ -85,11 +91,13 @@ describe('exportMatrix', () => {
     );
   });
 
-  it('site CSV does not send a space key', async () => {
+  it('site CSV fetches one space per call (response size limit) and joins the rows', async () => {
     server([row('ARTEST', 'Ann'), row('PAY', 'Bob')]);
     expect(await exportMatrix('csv', null, {})).toBe(2);
-    const matrixCall = m.call.mock.calls.find(([k]) => k === 'accessMatrix')!;
-    expect(matrixCall[1]).not.toHaveProperty('projectKey');
+    const keys = m.call.mock.calls
+      .filter(([k]) => k === 'accessMatrix')
+      .map(([, pl]) => (pl as { projectKey: string }).projectKey);
+    expect(keys.sort()).toEqual(['ARTEST', 'PAY']);
     expect(m.downloadCsv).toHaveBeenCalledTimes(1);
   });
 

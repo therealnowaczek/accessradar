@@ -60,7 +60,6 @@ const en = {
   'digest.rule.new-app-account-admin': 'App account admins',
   'planGate.realtimeAlerts':
     'Get real-time alerts after every snapshot and choose which alert rules apply.',
-  'schedule.freeTier': 'Free plan: every two weeks; manual snapshots any time',
   // Sample data shown (faded, aria-hidden) above the note of a locked panel.
   'planGate.sample.subject1': 'Sample user A',
   'planGate.sample.subject2': 'Sample user B',
