@@ -1,6 +1,6 @@
 # AccessRadar 3.0: scope list for Marcin's decision (I, J, K)
 
-Status: built and tested on dev (3.0.0 on marginradar), PR open, NOT merged, NOT deployed to production. Say yes and I (or you) merge and deploy.
+Status: APPROVED by Marcin 2026-11-12 05:06, merged (#63) and deployed to production as 3.0.0 on 2026-11-12. Marketplace listing and privacy/security text still to be updated by a human from `docs/LISTING.md` and `docs/data-handling.md` (nothing published by the run).
 
 ## What ships
 
