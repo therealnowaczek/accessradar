@@ -1,6 +1,7 @@
 import { RISK_LEARN_MORE } from '../domain/riskCopy';
 import { DEFAULT_KEY_PERMISSIONS, aggregate, resolveAll, type EffectiveAccess } from './resolve';
 import type { AccessState } from './state';
+import type { SharedItem } from '../lib/exposure';
 
 export type Severity = 'high' | 'medium' | 'low';
 
@@ -15,7 +16,16 @@ export type RiskId =
   | 'direct-user-grants'
   | 'unused-schemes'
   | 'empty-groups-in-use'
-  | 'app-accounts-admin';
+  | 'app-accounts-admin'
+  | 'anonymous-write'
+  | 'inactive-admin'
+  | 'destructive-large-group'
+  | 'admin-group-large'
+  | 'empty-admin-groups'
+  | 'project-single-admin'
+  | 'filters-public'
+  | 'dashboards-public'
+  | 'shared-loggedin';
 
 export interface RiskItem {
   id: string;
@@ -49,6 +59,26 @@ const BROAD_PERMS = new Set([
   'DELETE_ISSUES',
   'ADMINISTER_PROJECTS',
 ]);
+
+/** Anonymous grants that only read; anything else granted to "Anyone" is write-capable. */
+const READ_ONLY_PERMS = new Set([
+  'BROWSE_PROJECTS',
+  'VIEW_DEV_TOOLS',
+  'VIEW_READONLY_WORKFLOW',
+  'VIEW_VOTERS_AND_WATCHERS',
+]);
+
+/** Permissions that destroy data or change who has access. */
+const DESTRUCTIVE_PERMS = new Set([
+  'DELETE_ISSUES',
+  'DELETE_ALL_COMMENTS',
+  'DELETE_ALL_ATTACHMENTS',
+  'DELETE_ALL_WORKLOGS',
+  'ADMINISTER_PROJECTS',
+]);
+
+/** An admin group with this many people or more is a wide blast radius for one membership change. */
+export const ADMIN_GROUP_LARGE = 10;
 
 const SEVERITY_RANK: Record<Severity, number> = { high: 0, medium: 1, low: 2 };
 
@@ -260,10 +290,134 @@ function appAccountsAdmin(state: AccessState, entries: EffectiveAccess[]): RiskI
   return items;
 }
 
+const isAdminAccess = (access: string[] | undefined) =>
+  (access ?? []).some((a) => a === 'admin' || a === 'site-admin');
+
+/** Deactivated accounts that are still members of an admin or site-admin group. */
+function inactiveAdmins(state: AccessState): RiskItem[] {
+  const items: RiskItem[] = [];
+  for (const [accountId, groups] of adminAccounts(state)) {
+    const person = state.persons.get(accountId);
+    if (!person || person.active !== false) continue;
+    items.push({
+      id: accountId,
+      label: person.displayName,
+      detail: groups.map((g) => state.groups.get(g)?.name ?? g).join(', '),
+    });
+  }
+  return items;
+}
+
+/** Admin groups: many members (collected only), or collected as empty. */
+function adminGroupSize(state: AccessState): { large: RiskItem[]; empty: RiskItem[] } {
+  const large: RiskItem[] = [];
+  const empty: RiskItem[] = [];
+  for (const [groupId, access] of state.groupAccess) {
+    if (!isAdminAccess(access)) continue;
+    const group = state.groups.get(groupId);
+    if (!group || group.members !== 'collected') continue; // unread groups are not claimed either way
+    const members = state.groupMembers.get(groupId) ?? [];
+    const active = members.filter((id) => {
+      const p = state.persons.get(id);
+      return p ? p.active !== false && p.accountType === 'atlassian' : true;
+    });
+    const name = group.name;
+    if (members.length === 0) empty.push({ id: groupId, label: name, detail: 'No members' });
+    else if (active.length >= ADMIN_GROUP_LARGE)
+      large.push({ id: groupId, label: name, detail: `${active.length} active members` });
+  }
+  large.sort((a, b) => Number(b.detail?.split(' ')[0]) - Number(a.detail?.split(' ')[0]));
+  return { large, empty };
+}
+
+/** Anyone (no login) holding a permission that is not read only. */
+function anonymousWrite(state: AccessState): RiskItem[] {
+  return state.grants
+    .filter((g) => g.holderType === 'anyone' && !READ_ONLY_PERMS.has(g.permission))
+    .flatMap((g) =>
+      projectsForScheme(state, g.schemeId).map(([pid, p]) => ({
+        id: `${pid}:${g.permission}`,
+        label: `${p.key}: ${g.permission}`,
+        detail: state.schemes.get(g.schemeId)?.name,
+      })),
+    );
+}
+
+/** Destructive permissions granted to a large group (member count collected, in a scheme in use). */
+function destructiveLargeGroups(state: AccessState, threshold: number): RiskItem[] {
+  const used = usedSchemeIds(state);
+  const items: RiskItem[] = [];
+  for (const g of state.grants) {
+    if (g.holderType !== 'group' || !DESTRUCTIVE_PERMS.has(g.permission)) continue;
+    if (!used.has(g.schemeId)) continue;
+    const groupId = g.holderParam ?? state.groupByName.get(g.holderName ?? '');
+    const group = groupId ? state.groups.get(groupId) : undefined;
+    if (!groupId || !group || group.members !== 'collected') continue;
+    const n = (state.groupMembers.get(groupId) ?? []).length;
+    if (n < threshold) continue;
+    const spaces = projectsForScheme(state, g.schemeId).length;
+    items.push({
+      id: `${g.schemeId}:${g.grantId}`,
+      label: `${state.schemes.get(g.schemeId)?.name ?? g.schemeId}: ${g.permission} → ${group.name}`,
+      detail: `${n} members, ${spaces} space${spaces === 1 ? '' : 's'}`,
+    });
+  }
+  return items;
+}
+
+/**
+ * Company-managed spaces where exactly one active person holds Administer Projects. Skipped when any
+ * holder could not be resolved (partial) or when the space has no admin at all (own rule).
+ */
+function projectSingleAdmin(state: AccessState, entries: EffectiveAccess[]): RiskItem[] {
+  const adminsByProject = new Map<string, EffectiveAccess[]>();
+  for (const e of entries) {
+    if (e.permission !== 'ADMINISTER_PROJECTS') continue;
+    const list = adminsByProject.get(e.projectId) ?? [];
+    list.push(e);
+    adminsByProject.set(e.projectId, list);
+  }
+  const items: RiskItem[] = [];
+  for (const [projectId, project] of state.projects) {
+    if (project.style === 'team' || !project.schemeId) continue;
+    const list = adminsByProject.get(projectId) ?? [];
+    if (!list.length) continue;
+    if (list.some((e) => e.partial || e.subject.type !== 'user')) continue;
+    const humans = new Set<string>();
+    for (const e of list) {
+      if (e.subject.type !== 'user') continue;
+      const person = state.persons.get(e.subject.accountId);
+      if (person?.active && person.accountType === 'atlassian') humans.add(e.subject.accountId);
+    }
+    if (humans.size !== 1) continue;
+    const only = state.persons.get([...humans][0])?.displayName ?? [...humans][0];
+    items.push({ id: projectId, label: `${project.key}: one space admin`, detail: only });
+  }
+  return items;
+}
+
+const sharedOf = (
+  shared: SharedItem[],
+  kind: SharedItem['kind'],
+  exposure: SharedItem['exposure'],
+) =>
+  shared
+    .filter((i) => i.kind === kind && i.exposure === exposure)
+    .map((i) => ({
+      id: `${kind}:${i.id}`,
+      label: i.name || `#${i.id}`,
+      detail: i.owner || undefined,
+    }));
+
+/**
+ * `shared` is the live list of filters and dashboards (not part of a snapshot). Pass null when it could
+ * not be read: the three sharing rules then report "partial" instead of "none found".
+ */
 export function computeRisks(
   state: AccessState,
   opts: RiskOptions,
   entries: EffectiveAccess[] = resolveAll(state),
+  shared: SharedItem[] | null = null,
 ): Risk[] {
   const started = Date.now();
   const keep = (accountId: string) => opts.includeAppAccounts || !isAppAccount(state, accountId);
@@ -341,6 +495,11 @@ export function computeRisks(
   const unused = unusedSchemesAndRoles(state);
   const empty = emptyGroupsInUse(state, entries);
   const appAdmin = appAccountsAdmin(state, entries);
+  const anonWrite = anonymousWrite(state);
+  const inactiveAdm = inactiveAdmins(state).filter((i) => keep(i.id));
+  const adminGroups = adminGroupSize(state);
+  const destructive = destructiveLargeGroups(state, opts.largeGroupThreshold);
+  const single = projectSingleAdmin(state, entries);
 
   const risk = (
     id: RiskId,
@@ -381,6 +540,50 @@ export function computeRisks(
       'App accounts with admin access',
       'App or customer accounts in admin groups or with space administer rights.',
       appAdmin,
+    ),
+    risk(
+      'anonymous-write',
+      'high',
+      'Anonymous access beyond viewing',
+      'Permissions other than viewing granted to “Anyone”, so people who are not logged in could change or add content.',
+      anonWrite,
+    ),
+    risk(
+      'inactive-admin',
+      'high',
+      'Deactivated accounts in admin groups',
+      'Deactivated accounts that are still members of a group with admin or site-admin access.',
+      inactiveAdm,
+    ),
+    risk(
+      'filters-public',
+      'high',
+      'Filters shared with anyone',
+      'Saved filters shared publicly. Their results can be read without a Jira login where public access is allowed.',
+      shared ? sharedOf(shared, 'filter', 'anyone') : [],
+      shared === null,
+    ),
+    risk(
+      'dashboards-public',
+      'high',
+      'Dashboards shared with anyone',
+      'Dashboards shared publicly. Their gadgets can be read without a Jira login where public access is allowed.',
+      shared ? sharedOf(shared, 'dashboard', 'anyone') : [],
+      shared === null,
+    ),
+    risk(
+      'destructive-large-group',
+      'medium',
+      'Destructive permissions for large groups',
+      `Delete or administer permissions granted to a group with ${opts.largeGroupThreshold} or more members.`,
+      destructive,
+    ),
+    risk(
+      'admin-group-large',
+      'medium',
+      'Large admin groups',
+      `Groups with admin or site-admin access and ${ADMIN_GROUP_LARGE} or more active members.`,
+      adminGroups.large,
     ),
     risk(
       'admins',
@@ -432,6 +635,30 @@ export function computeRisks(
       'Direct user grants in schemes',
       'Key permissions granted to a named user in a permission scheme.',
       direct,
+    ),
+    risk(
+      'project-single-admin',
+      'low',
+      'Spaces with a single space admin',
+      'Company-managed spaces where exactly one active person can administer the space. Consider a second admin for cover.',
+      single,
+    ),
+    risk(
+      'empty-admin-groups',
+      'low',
+      'Empty admin groups',
+      'Groups with admin or site-admin access and no members. Anyone added later gains admin rights.',
+      adminGroups.empty,
+    ),
+    risk(
+      'shared-loggedin',
+      'low',
+      'Filters and dashboards shared with all signed-in users',
+      'Shared with every signed-in user, including people who only have limited access. Often intended; check the sensitive ones.',
+      shared
+        ? [...sharedOf(shared, 'filter', 'loggedin'), ...sharedOf(shared, 'dashboard', 'loggedin')]
+        : [],
+      shared === null,
     ),
     risk(
       'unused-schemes',
