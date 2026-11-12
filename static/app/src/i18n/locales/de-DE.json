@@ -936,5 +936,10 @@
   "ui.actionN": "Aktion {n}",
   "ui.moreActions": "Weitere Aktionen",
   "ui.thisTabCouldNotBeShown": "Dieser Tab konnte nicht angezeigt werden",
-  "ui.tryAgain": "Erneut versuchen"
+  "ui.tryAgain": "Erneut versuchen",
+  "reviewPrompt.title": "Ist AccessRadar für Sie nützlich?",
+  "reviewPrompt.body": "Eine kurze Bewertung im Atlassian Marketplace hilft anderen Jira-Admins, die App zu finden. Das dauert etwa eine Minute, und nichts in AccessRadar hängt davon ab.",
+  "reviewPrompt.open": "Bewertung schreiben",
+  "reviewPrompt.alreadyDone": "Bereits erledigt",
+  "reviewPrompt.dismiss": "Nicht jetzt"
 }

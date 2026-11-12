@@ -50,6 +50,13 @@ import { push } from '../lib/queue';
 import { jiraCall, mapLimit } from '../lib/budget';
 import { getSettings, kvGet, kvSet, saveSettings } from '../db/settings';
 import {
+  MARKETPLACE_REVIEW_URL,
+  parseReviewPromptChoice,
+  REVIEW_PROMPT_KV,
+  reviewPromptDue,
+  type ReviewPromptStored,
+} from '../domain/reviewPrompt';
+import {
   buildWeeklyDigest,
   DIGEST_KV_KEY,
   emptyDigest,
@@ -199,6 +206,18 @@ export async function status(spike = false) {
   };
 }
 
+/** Remembers that the site admin dismissed the review request, or already left a review. */
+export async function answerReviewPrompt(payload: any) {
+  const state = parseReviewPromptChoice(payload?.choice);
+  await kvSet(REVIEW_PROMPT_KV, { state, at: Date.now() } satisfies ReviewPromptStored);
+  return { state };
+}
+
+export async function resetReviewPrompt() {
+  await sqlExec('DELETE FROM kv WHERE k = ?', REVIEW_PROMPT_KV);
+  return { reset: true };
+}
+
 export async function overview(payload: any) {
   // Independent reads run together; this view is the first one the admin page opens.
   const [settings, active, reviews, usage, snap, remediation] = await Promise.all([
@@ -223,11 +242,20 @@ export async function overview(payload: any) {
       .filter((r) => r.status !== 'signed' && r.dueAt && r.dueAt < Date.now())
       .map((r) => ({ id: r.id, name: r.name, dueAt: r.dueAt })),
   };
+  const promptStored = await kvGet<ReviewPromptStored>(REVIEW_PROMPT_KV).catch(() => null);
+  const reviewPrompt = (hasPreviousSnapshot: boolean) => ({
+    show: reviewPromptDue(
+      { signedReviews: reviewSummary.signed, totalReviews: reviews.length, hasPreviousSnapshot },
+      promptStored,
+    ),
+    url: MARKETPLACE_REVIEW_URL,
+  });
   if (!snap)
     return {
       snapshot: null,
       active: snapshotSummary(active),
       reviews: reviewSummary,
+      reviewPrompt: reviewPrompt(false),
       remediation,
       usage,
       budget: settings.hourlyPointBudget,
@@ -271,6 +299,7 @@ export async function overview(payload: any) {
     risks,
     changes,
     reviews: reviewSummary,
+    reviewPrompt: reviewPrompt(Boolean(prev)),
     remediation,
     usage,
     budget: settings.hourlyPointBudget,

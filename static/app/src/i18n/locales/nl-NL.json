@@ -936,5 +936,10 @@
   "ui.actionN": "Actie {n}",
   "ui.moreActions": "Meer acties",
   "ui.thisTabCouldNotBeShown": "Dit tabblad kan niet worden getoond",
-  "ui.tryAgain": "Opnieuw proberen"
+  "ui.tryAgain": "Opnieuw proberen",
+  "reviewPrompt.title": "Vindt u AccessRadar nuttig?",
+  "reviewPrompt.body": "Een korte review op de Atlassian Marketplace helpt andere Jira-beheerders de app te vinden. Het duurt ongeveer een minuut en niets in AccessRadar hangt ervan af.",
+  "reviewPrompt.open": "Review schrijven",
+  "reviewPrompt.alreadyDone": "Al gedaan",
+  "reviewPrompt.dismiss": "Nu niet"
 }

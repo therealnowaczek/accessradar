@@ -936,5 +936,10 @@
   "ui.actionN": "動作 {n}",
   "ui.moreActions": "更多動作",
   "ui.thisTabCouldNotBeShown": "無法顯示此索引標籤",
-  "ui.tryAgain": "再試一次"
+  "ui.tryAgain": "再試一次",
+  "reviewPrompt.title": "AccessRadar 對您有幫助嗎？",
+  "reviewPrompt.body": "在 Atlassian Marketplace 留下簡短評價，可以幫助其他 Jira 管理員找到這個應用程式。大約只需一分鐘，AccessRadar 的任何功能都不取決於此。",
+  "reviewPrompt.open": "撰寫評價",
+  "reviewPrompt.alreadyDone": "我已評價",
+  "reviewPrompt.dismiss": "暫不"
 }

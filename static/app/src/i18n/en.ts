@@ -1080,4 +1080,10 @@ export const en = {
   'changes.comparingSnapshots': 'Comparing snapshot #{a} with #{b}',
   'changes.keyPermissionsList': 'key permissions: {list}',
   'changes.tabCount': '{label} ({count})',
+  'reviewPrompt.title': 'Finding AccessRadar useful?',
+  'reviewPrompt.body':
+    'A short review on Atlassian Marketplace helps other Jira admins find the app. It takes about a minute, and nothing in AccessRadar depends on it.',
+  'reviewPrompt.open': 'Write a review',
+  'reviewPrompt.alreadyDone': 'I already did',
+  'reviewPrompt.dismiss': 'Not now',
 } as const;

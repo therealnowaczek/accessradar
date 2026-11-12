@@ -119,6 +119,7 @@ export type Overview = {
     lastSigned: { id: string; name: string; signedAt: number } | null;
     overdue: Array<{ id: string; name: string; dueAt: number }>;
   };
+  reviewPrompt?: { show: boolean; url: string };
   remediation?: { open: number; stillPresent: number; verified: number };
   usage: { points: number; calls: number };
   budget: number;

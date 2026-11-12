@@ -936,5 +936,10 @@
   "ui.actionN": "Akcja {n}",
   "ui.moreActions": "Więcej akcji",
   "ui.thisTabCouldNotBeShown": "Nie udało się wyświetlić tej karty",
-  "ui.tryAgain": "Spróbuj ponownie"
+  "ui.tryAgain": "Spróbuj ponownie",
+  "reviewPrompt.title": "Czy AccessRadar jest dla Ciebie przydatny?",
+  "reviewPrompt.body": "Krótka opinia w Atlassian Marketplace pomaga innym administratorom Jira znaleźć aplikację. Zajmuje około minuty i nic w AccessRadar od niej nie zależy.",
+  "reviewPrompt.open": "Napisz opinię",
+  "reviewPrompt.alreadyDone": "Już to zrobiłem",
+  "reviewPrompt.dismiss": "Nie teraz"
 }

@@ -72,9 +72,18 @@ export function SpikePanel() {
         title={t('spikePanel.developerSpike')}
         description={t('spikePanel.whichJiraReadEndpointsWorkFor')}
         action={
-          <Button appearance="primary" isLoading={busy} onClick={run}>
-            {t('spikePanel.runProbes')}
-          </Button>
+          <Inline space="space.100">
+            <Button
+              onClick={() =>
+                void call('devResetReviewPrompt').then(() => toast.success('Review prompt reset'))
+              }
+            >
+              Reset review prompt
+            </Button>
+            <Button appearance="primary" isLoading={busy} onClick={run}>
+              {t('spikePanel.runProbes')}
+            </Button>
+          </Inline>
         }
       />
       <SectionMessage appearance="discovery">

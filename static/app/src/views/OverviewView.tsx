@@ -9,6 +9,7 @@ import SectionMessage from '@atlaskit/section-message';
 import type { Overview, Risk } from '../api';
 import { CoverageList, Section, SnapshotLozenge } from '../components';
 import { DigestCard, DigestSectionPhantom } from './DigestCard';
+import { ReviewPrompt } from './ReviewPrompt';
 import { useCall } from '../data';
 import { LevelDrawer, DrawerBody, type DrawerLevel } from '../Drawer';
 import { formatLocal, relative } from '../format';
@@ -201,6 +202,7 @@ export function OverviewView() {
     <PageFrame header={header} notice={staleNotice(ov, t('overview.overviewCouldNotRefresh'))}>
       <Stack space="space.300">
         {active ? <SnapshotProgress active={active} /> : null}
+        {d.reviewPrompt?.show ? <ReviewPrompt url={d.reviewPrompt.url} /> : null}
         {(status.data?.alertCount ?? 0) > 0 ? (
           <SectionMessage
             appearance="warning"

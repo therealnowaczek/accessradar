@@ -81,3 +81,12 @@ Changing the heuristic without a real MCP context shape would be a guess. Revisi
 - Six new `read:` scopes, see `docs/phase-3-scopes-for-marcin.md`. Major version 3.0.0. Branch `feat/phase-3b-sharing-security-audit`: deployed to dev only, PR not merged, no production deploy until Marcin approves.
 - J reuses the `changeAlerts` Advanced flag (no new edition flag).
 - **Approved by Marcin (2026-11-12 05:06, Jira Apps room): "Jeśli na coś czekacie na mnie, to nie czekajcie, realizujemy plan do spodu!"** Phase 3 (I, J, K; six read-only scopes, major 3.0.0) ships to production after green dev E2E. No write scopes, no egress, no remotes. Deploy never uses `forge install --upgrade`; sites approve the update themselves.
+
+## 2026-11-12: C-items batch (competitor research roadmap, approved by Marcin 15:58 via the CMO) (Claude run)
+
+Dev only, one branch and one PR per item, nothing merged, no production deploy (Marketplace P&S review ECOHELP-184698 is open and prod needs Marcin's own "tak"). Order: C11, C5, C1, C3, C7, C4, C2, C8, C6. Not built: C9 (egress), C10 (CMO), C12 (read-only).
+
+### C11: review request after first value
+- First value = the first signed review; a site that never started a review gets the request once a second complete snapshot exists (the first that can show what changed). Shown only on Overview, only to Jira admins (every resolver is admin-gated), as a dismissible Atlaskit SectionMessage.
+- Plain link (`router.open`) to the Marketplace reviews tab of app 3691498947. No tracking, no Marketplace API, no incentive, no egress, no new scope. "Write a review" and "I already did" count as done, "Not now" as dismissed; either answer is stored once per site in the `kv` table (key `review-prompt`) and the request never returns. It never blocks a review, remediation or sign-off path.
+- A dev-only reset (Settings, Developer spike panel, spike flag and development environment only) exists so E2E can show the request again.
