@@ -143,8 +143,8 @@ export async function evidencePackPdf(
     doc.table(
       [
         { header: 'Framework', width: 1.6 },
-        { header: 'ID', width: 0.9 },
-        { header: 'Title', width: 2.2 },
+        { header: 'ID', width: 1.1 },
+        { header: 'Title', width: 2.0 },
         { header: 'AccessRadar', width: 3.8 },
       ],
       s.controls.mappings.map((m) => [m.framework, m.id, m.title, m.accessRadar]),
