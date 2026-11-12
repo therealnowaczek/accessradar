@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useMemo, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
@@ -84,7 +85,11 @@ export function GroupsView() {
     >
       <Stack space="space.300">
         {list.error && !list.data ? (
-          <ErrorState title="Groups unavailable" message={list.error} retry={list.reload} />
+          <ErrorState
+            title={t('groups.groupsUnavailable')}
+            message={list.error}
+            retry={list.reload}
+          />
         ) : !list.data ? (
           <SkeletonRoot>
             <FilterBarPhantom controls={3} />
@@ -101,9 +106,9 @@ export function GroupsView() {
               onDetails={() => go('snapshots', { seq: String(snapshot.seq) })}
             />
             <FilterBar>
-              <SearchField value={query} onChange={setQuery} label="Search groups" />
+              <SearchField value={query} onChange={setQuery} label={t('groups.searchGroups')} />
               <FilterSelect<Opt>
-                label="Filter groups"
+                label={t('groups.filterGroups')}
                 options={FILTERS}
                 value={FILTERS.find((f) => f.value === filter)}
                 onChange={(o) => setFilter(o?.value ?? 'all')}
@@ -140,7 +145,9 @@ export function GroupsView() {
                           {g.inactiveMembers ? (
                             <Text color="color.text.subtle">({g.inactiveMembers} inactive)</Text>
                           ) : null}
-                          {(g.members ?? 0) >= large ? <Pill tone="warning">Large</Pill> : null}
+                          {(g.members ?? 0) >= large ? (
+                            <Pill tone="warning">{t('groups.large')}</Pill>
+                          ) : null}
                         </Inline>
                       ) : (
                         <Pill tone="warning">
@@ -179,7 +186,7 @@ export function GroupsView() {
               defaultSortOrder="ASC"
               emptyView={
                 <Text as="p" color="color.text.subtle">
-                  No groups match.
+                  {t('groups.noGroupsMatch')}
                 </Text>
               }
             />
@@ -201,7 +208,7 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
   if (r.error && !r.data)
     return (
       <DrawerBody>
-        <ErrorState title="Group unavailable" message={r.error} retry={r.reload} />
+        <ErrorState title={t('groups.groupUnavailable')} message={r.error} retry={r.reload} />
       </DrawerBody>
     );
   const g = r.data?.data;
@@ -211,15 +218,18 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
         {/* The loaded level's own sections with placeholder content (R-10.1). */}
         <SkeletonRoot>
           <Section
-            title="Access"
-            description="Application and administration access from this group."
+            title={t('groups.access')}
+            description={t('groups.applicationAndAdministrationAccessFromThis')}
           >
             <Phantom width={160} height={20} radius="full" />
           </Section>
-          <Section title="Spaces" description="Where membership of this group grants access.">
+          <Section
+            title={t('campaigns.spaces')}
+            description={t('groups.whereMembershipOfThisGroupGrants')}
+          >
             <LinesPhantom lines={4} />
           </Section>
-          <Section title="Members">
+          <Section title={t('groups.members')}>
             <LinesPhantom lines={4} />
           </Section>
         </SkeletonRoot>
@@ -227,7 +237,10 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
     );
   return (
     <DrawerBody>
-      <Section title="Access" description="Application and administration access from this group.">
+      <Section
+        title={t('groups.access')}
+        description={t('groups.applicationAndAdministrationAccessFromThis')}
+      >
         {g.access.length || g.applications.length ? (
           <Inline as="span" space="space.050" shouldWrap>
             {g.access.map((a) => (
@@ -243,11 +256,14 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
           </Inline>
         ) : (
           <Text as="p" color="color.text.subtle">
-            No application or admin access.
+            {t('groups.noApplicationOrAdminAccess')}
           </Text>
         )}
       </Section>
-      <Section title="Spaces" description="Where membership of this group grants access.">
+      <Section
+        title={t('campaigns.spaces')}
+        description={t('groups.whereMembershipOfThisGroupGrants')}
+      >
         {g.usage.length ? (
           <DividedList>
             {g.usage.map((u) => (
@@ -266,12 +282,15 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
           </DividedList>
         ) : (
           <Text as="p" color="color.text.subtle">
-            This group grants no space permissions.
+            {t('groups.thisGroupGrantsNoSpacePermissions')}
           </Text>
         )}
       </Section>
       {g.schemeGrants.length || g.roles.length ? (
-        <Section title="Configuration" description="Scheme grants and space role memberships.">
+        <Section
+          title={t('groups.configuration')}
+          description={t('groups.schemeGrantsAndSpaceRoleMemberships')}
+        >
           <DividedList>
             {g.schemeGrants.map((s, i) => (
               <DividedListItem key={`s${i}`}>
@@ -316,7 +335,7 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
             </DividedList>
           ) : (
             <Text as="p" color="color.text.subtle">
-              This group has no members.
+              {t('groups.thisGroupHasNoMembers')}
             </Text>
           )
         ) : null}

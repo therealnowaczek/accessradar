@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { AutoDismissFlag, FlagGroup } from '@atlaskit/flag';
 import ErrorIcon from '@atlaskit/icon/core/status-error';
@@ -47,9 +48,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             description={toast.description}
             icon={
               toast.tone === 'success' ? (
-                <SuccessIcon label="Success" color={token('color.icon.success')} />
+                <SuccessIcon label={t('toast.success')} color={token('color.icon.success')} />
               ) : (
-                <ErrorIcon label="Error" color={token('color.icon.danger')} />
+                <ErrorIcon label={t('toast.error')} color={token('color.icon.danger')} />
               )
             }
           />

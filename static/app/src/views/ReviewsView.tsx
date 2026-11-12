@@ -174,13 +174,13 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
         <>
           {hasChained && !chainLocked ? (
             <Button appearance="subtle" onClick={openVerifyChain}>
-              Verify chain
+              {t('reviews.verifyChain')}
             </Button>
           ) : null}
           {/* No duplicate CTA: an empty list carries "Start a review" in its empty state. */}
           {list.data && !reviews.length ? null : (
             <Button appearance="primary" isDisabled={!hasSnapshot} onClick={openCreate}>
-              Start a review
+              {t('overview.startAReview')}
             </Button>
           )}
         </>
@@ -192,7 +192,11 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
       <Stack space="space.300">
         {chainLocked && list.data ? <PlanNote benefit={t('planGate.signing')} /> : null}
         {list.error && !list.data ? (
-          <ErrorState title="Reviews unavailable" message={list.error} retry={list.reload} />
+          <ErrorState
+            title={t('reviews.reviewsUnavailable')}
+            message={list.error}
+            retry={list.reload}
+          />
         ) : !list.data || (status.loading && !status.data) ? (
           <SkeletonRoot>
             <SkeletonTable
@@ -204,10 +208,10 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
         ) : !reviews.length ? (
           <EmptyState
             header="No reviews yet"
-            description="Start a review to list who has key permissions in a scope, mark each item keep or revoke, and sign off on a hashed evidence pack."
+            description={t('reviews.startAReviewToListWho')}
             primaryAction={
               <Button appearance="primary" onClick={openCreate}>
-                Start a review
+                {t('overview.startAReview')}
               </Button>
             }
           />
@@ -257,7 +261,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                       r.chainSeq != null ? (
                         String(r.chainSeq)
                       ) : (
-                        <Text color="color.text.subtle">pre-chain</Text>
+                        <Text color="color.text.subtle">{t('reviews.preChain')}</Text>
                       )
                     ) : (
                       <Text color="color.text.subtle">—</Text>
@@ -271,7 +275,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                     <Inline as="span" space="space.075" alignBlock="center" shouldWrap>
                       {formatLocalDate(r.dueAt)}
                       {r.status !== 'signed' && r.dueAt < now ? (
-                        <Pill tone="danger">Overdue</Pill>
+                        <Pill tone="danger">{t('reviews.overdue')}</Pill>
                       ) : null}
                     </Inline>
                   ) : (
@@ -367,7 +371,7 @@ function CreateReview({
     <>
       <DrawerBody>
         <Stack space="space.150">
-          <FormField label="Name">
+          <FormField label={t('campaigns.name')}>
             {(id) => (
               <>
                 <Textfield
@@ -384,7 +388,7 @@ function CreateReview({
               </>
             )}
           </FormField>
-          <RadioField label="Scope">
+          <RadioField label={t('campaigns.scope')}>
             <RadioGroup
               value={scope}
               onChange={(e) => {
@@ -420,7 +424,7 @@ function CreateReview({
               )}
             </FormField>
           ) : null}
-          <FormField label="Base snapshot">
+          <FormField label={t('reviews.baseSnapshot')}>
             {(id) => (
               <SnapshotPicker
                 inputId={id}
@@ -435,7 +439,7 @@ function CreateReview({
             )}
           </FormField>
           <FormField
-            label="Compare with (optional)"
+            label={t('reviews.compareWithOptional')}
             helper="Marks items as new since the older snapshot, and lists access removed since then."
           >
             {(id) => (
@@ -459,14 +463,13 @@ function CreateReview({
               />
             )}
           </FormField>
-          <FormField label="Due date (optional)" helper={dateHelper()}>
+          <FormField label={t('reviews.dueDateOptional')} helper={dateHelper()}>
             {(id, helperId) => (
               <DateField id={id} describedBy={helperId} value={due} onChange={(v) => setDue(v)} />
             )}
           </FormField>
           <Text as="p" color="color.text.subtle">
-            Reviewers are Jira administrators. Key permissions from Settings define which access is
-            listed.
+            {t('reviews.reviewersAreJiraAdministratorsKeyPermissions')}
           </Text>
           {error ? (
             <SectionMessage appearance="error">
@@ -482,7 +485,7 @@ function CreateReview({
           isLoading={busy}
           onClick={() => void submit()}
         >
-          Start review
+          {t('reviews.startReview')}
         </Button>
       </DrawerFooter>
     </>
@@ -666,12 +669,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           toast.error('Review not deleted', errorText(e));
         }
       },
-      body: (
-        <Text as="p">
-          This deletes the draft review and its decisions. Snapshots are not affected. Signed
-          reviews cannot be deleted.
-        </Text>
-      ),
+      body: <Text as="p">{t('reviews.thisDeletesTheDraftReviewAnd')}</Text>,
     });
 
   const header = (
@@ -747,11 +745,11 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             }
           />
           {signed && !chainLocked ? (
-            <Button onClick={openVerify}>Verify signature & chain</Button>
+            <Button onClick={openVerify}>{t('reviews.verifySignatureChain')}</Button>
           ) : null}
           {!signed ? (
             <Button appearance="subtle" onClick={openDelete} isDisabled={!d}>
-              Delete
+              {t('reviews.delete')}
             </Button>
           ) : null}
           {signed ? (
@@ -768,7 +766,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                 })
               }
             >
-              Download evidence pack
+              {t('reviews.downloadEvidencePack')}
             </Button>
           ) : (
             <Button
@@ -776,7 +774,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               isDisabled={!d || pending > 0 || chainLocked}
               onClick={openSign}
             >
-              Sign off
+              {t('reviews.signOff')}
             </Button>
           )}
         </>
@@ -787,7 +785,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   if (r.error && !d)
     return (
       <PageFrame header={header}>
-        <ErrorState title="Review unavailable" message={r.error} retry={r.reload} />
+        <ErrorState title={t('reviews.reviewUnavailable')} message={r.error} retry={r.reload} />
       </PageFrame>
     );
   if (!d)
@@ -799,7 +797,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           <SkeletonTable
             columns={['Who', 'Where', 'Access', 'Why', 'Decision', <ActionsHeader key="a" />]}
           />
-          <Section title="Review record">
+          <Section title={t('reviews.reviewRecord')}>
             <DetailsPhantom
               terms={['Created', 'Due', 'Key permissions', 'Base snapshot hash', 'Engine version']}
             />
@@ -852,7 +850,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         <CoverageLimitations coverage={d.coverage} limitations={d.limitations} />
         <MetricGrid>
           <Metric
-            label="Items"
+            label={t('projectReview.items')}
             value={decidable.length}
             hint={
               d.review.compareSeq
@@ -861,18 +859,25 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             }
           />
           <Metric
-            label="Decided"
+            label={t('projectReview.decided')}
             value={decided}
             hint={pending ? `${pending} to go` : 'All decided'}
           />
-          <Metric label="Keep" value={decidable.filter((i) => i.decision === 'keep').length} />
-          <Metric label="Revoke" value={flagged} hint="Remove manually in Jira" />
+          <Metric
+            label={t('projectReview.keep')}
+            value={decidable.filter((i) => i.decision === 'keep').length}
+          />
+          <Metric
+            label={t('projectReview.revoke')}
+            value={flagged}
+            hint="Remove manually in Jira"
+          />
         </MetricGrid>
         <FilterBar>
           <SearchField
             value={query}
             onChange={setQuery}
-            label="Search people, spaces, paths, notes"
+            label={t('reviews.searchPeopleSpacesPathsNotes')}
           />
           {(
             [
@@ -939,9 +944,9 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                   <Stack as="span" space="space.200">
                     <SubjectCell subject={i.subject} compact />
                     {i.change === 'new' ? (
-                      <Pill tone="info">New</Pill>
+                      <Pill tone="info">{t('reviews.new')}</Pill>
                     ) : i.change === 'removed' ? (
-                      <Pill tone="neutral">Removed since comparison</Pill>
+                      <Pill tone="neutral">{t('reviews.removedSinceComparison')}</Pill>
                     ) : null}
                   </Stack>
                 ),
@@ -974,9 +979,9 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                   ) : (
                     <Stack as="span" space="space.200">
                       {i.decision === 'keep' ? (
-                        <Pill tone="success">Keep</Pill>
+                        <Pill tone="success">{t('projectReview.keep')}</Pill>
                       ) : i.decision === 'revoke' ? (
-                        <Pill tone="danger">Revoke</Pill>
+                        <Pill tone="danger">{t('projectReview.revoke')}</Pill>
                       ) : i.decision === 'exception' ? (
                         <Pill tone="warning">
                           {i.expiresAt
@@ -984,9 +989,9 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                             : 'Exception'}
                         </Pill>
                       ) : i.reasons.includes('Exception expired') ? (
-                        <Pill tone="danger">Exception expired</Pill>
+                        <Pill tone="danger">{t('reviews.exceptionExpired')}</Pill>
                       ) : (
-                        <Pill>Undecided</Pill>
+                        <Pill>{t('reviews.undecided')}</Pill>
                       )}
                       {i.note ? <Text color="color.text.subtle">“{i.note}”</Text> : null}
                     </Stack>
@@ -997,7 +1002,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                 content:
                   i.change === 'removed' ? null : signed ? (
                     <Button appearance="subtle" onClick={() => openNote(i)}>
-                      Details
+                      {t('reviews.details')}
                     </Button>
                   ) : (
                     <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
@@ -1007,20 +1012,20 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                         isSelected={i.decision === 'keep'}
                         onClick={() => void decide([i.idx], 'keep')}
                       >
-                        Keep
+                        {t('projectReview.keep')}
                       </Button>
                       <Button
                         spacing="compact"
                         isDisabled={busy}
                         onClick={() => openNote(i, 'revoke')}
                       >
-                        Revoke…
+                        {t('reviews.revoke')}
                       </Button>
                       <RowMenu label={`More actions for ${i.subject.name}`}>
                         <DropdownItem isDisabled={busy} onClick={() => openNote(i, 'exception')}>
-                          Exception…
+                          {t('reviews.exception')}
                         </DropdownItem>
-                        <DropdownItem onClick={() => openNote(i)}>Note</DropdownItem>
+                        <DropdownItem onClick={() => openNote(i)}>{t('reviews.note')}</DropdownItem>
                       </RowMenu>
                     </Inline>
                   ),
@@ -1031,11 +1036,11 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           defaultPage={1}
           emptyView={
             <Text as="p" color="color.text.subtle">
-              No items match.
+              {t('reviews.noItemsMatch')}
             </Text>
           }
         />
-        <Section title="Review record">
+        <Section title={t('reviews.reviewRecord')}>
           <Details
             rows={[
               [
@@ -1100,7 +1105,7 @@ function ItemDrawer({
             ],
           ]}
         />
-        <Section title="Why">
+        <Section title={t('projects.why')}>
           <PathList paths={item.reasons} />
         </Section>
         {readOnly ? (
@@ -1109,7 +1114,7 @@ function ItemDrawer({
           ) : null
         ) : (
           <Stack space="space.150">
-            <RadioField label="Decision">
+            <RadioField label={t('reviews.decision')}>
               <RadioGroup
                 value={value ?? ''}
                 onChange={(e) => setValue((e.target.value || null) as typeof value)}
@@ -1130,7 +1135,7 @@ function ItemDrawer({
               />
             </RadioField>
             <FormField
-              label="Justification"
+              label={t('reviews.justification')}
               helper={
                 needsJustification
                   ? 'Required · at least 10 characters. Becomes part of the evidence.'
@@ -1160,7 +1165,7 @@ function ItemDrawer({
             </FormField>
             {value === 'exception' ? (
               <FormField
-                label="Expires on"
+                label={t('reviews.expiresOn')}
                 helper={`${dateHelper()} Date-only · stored as end of that day in your timezone. ${t('exceptions.registeredOnSave')}`}
               >
                 {(fid, helperId) => (
@@ -1283,8 +1288,8 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
     if (gated) {
       return (
         <Section
-          title="Remediation"
-          description="Whether Revoke decisions disappeared in a later snapshot."
+          title={t('reviews.remediation')}
+          description={t('reviews.whetherRevokeDecisionsDisappearedInA')}
         >
           <PlanGate locked benefit={t('planGate.remediation')}>
             <RemediationSample />
@@ -1293,9 +1298,9 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
       );
     }
     return (
-      <Section title="Remediation">
+      <Section title={t('reviews.remediation')}>
         <Text as="p" color="color.text.subtle">
-          No Revoke decisions in this review, so nothing needs to be removed in Jira.
+          {t('reviews.noRevokeDecisionsInThisReview')}
         </Text>
       </Section>
     );
@@ -1303,9 +1308,9 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
   if (rem.error && !rem.data) {
     // R-10.13: a failed load is an error with retry, never an empty result.
     return (
-      <Section title="Remediation" description={description}>
+      <Section title={t('reviews.remediation')} description={description}>
         <ErrorState
-          title="Remediation unavailable"
+          title={t('reviews.remediationUnavailable')}
           message={rem.error}
           retry={() => void rem.reload()}
         />
@@ -1314,7 +1319,7 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
   }
   if (!rem.data) {
     return (
-      <Section title="Remediation" description={description}>
+      <Section title={t('reviews.remediation')} description={description}>
         <SkeletonRoot>
           <Phantom height={8} radius="full" />
           {/* Gating is only known after the load; Advanced (the default) has the snapshot column. */}
@@ -1327,7 +1332,7 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
     );
   }
   return (
-    <Section title="Remediation" description={description}>
+    <Section title={t('reviews.remediation')} description={description}>
       <Stack space="space.200">
         {!gated && untracked < total ? (
           <>
@@ -1446,7 +1451,7 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
       <DrawerBody>
         {error ? (
           <ErrorState
-            title="Chain could not be verified"
+            title={t('reviews.chainCouldNotBeVerified')}
             message={error}
             retry={() => void run()}
           />
@@ -1498,7 +1503,7 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
               />
             ) : (
               <Text as="p" color="color.text.subtle">
-                No chained signatures yet.
+                {t('reviews.noChainedSignaturesYet')}
               </Text>
             )}
           </Stack>
@@ -1506,7 +1511,7 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
       </DrawerBody>
       <DrawerFooter>
         <Button appearance="primary" onClick={onDone}>
-          Close
+          {t('adminNav.close')}
         </Button>
       </DrawerFooter>
     </>
@@ -1604,10 +1609,10 @@ function VerifyDrawer({
   return (
     <>
       <DrawerBody>
-        <Section title="Signature">
+        <Section title={t('reviews.signature')}>
           {sigError ? (
             <ErrorState
-              title="Signature could not be checked"
+              title={t('reviews.signatureCouldNotBeChecked')}
               message={sigError}
               retry={() => void checkSignature()}
             />
@@ -1628,28 +1633,30 @@ function VerifyDrawer({
               />
               {!sig.ok ? (
                 <SectionMessage appearance="error">
-                  <Text as="p">Stored records no longer match the signed evidence hash.</Text>
+                  <Text as="p">{t('reviews.storedRecordsNoLongerMatchThe')}</Text>
                 </SectionMessage>
               ) : null}
             </Stack>
           )}
         </Section>
-        <Section title="Snapshot integrity">
+        <Section title={t('reviews.snapshotIntegrity')}>
           <Text as="p" color="color.text.subtle">
             Recomputes the content hash of snapshot #{snapshotSeq} from stored facts and compares it
             to the hash recorded when the review was signed.
           </Text>
           {/* Default appearance: the footer already holds the panel's one primary (Done). */}
-          {!job ? <Button onClick={() => void startDeep()}>Check snapshot integrity</Button> : null}
+          {!job ? (
+            <Button onClick={() => void startDeep()}>{t('reviews.checkSnapshotIntegrity')}</Button>
+          ) : null}
           {polling && !deepDone ? (
             <Stack space="space.200">
               <ProgressBar isIndeterminate />
-              <Text color="color.text.subtle">Checking snapshot facts…</Text>
+              <Text color="color.text.subtle">{t('reviews.checkingSnapshotFacts')}</Text>
             </Stack>
           ) : null}
           {deepError ? (
             <ErrorState
-              title="Snapshot integrity could not be checked"
+              title={t('reviews.snapshotIntegrityCouldNotBeChecked')}
               message={deepError}
               retry={() => {
                 setJob(null);
@@ -1659,9 +1666,7 @@ function VerifyDrawer({
           ) : null}
           {job?.status === 'purged' ? (
             <SectionMessage appearance="warning">
-              <Text as="p">
-                Snapshot data was deleted by retention; only the signature can be checked.
-              </Text>
+              <Text as="p">{t('reviews.snapshotDataWasDeletedByRetention')}</Text>
             </SectionMessage>
           ) : null}
           {deepDone && job.status !== 'purged' ? (
@@ -1677,7 +1682,7 @@ function VerifyDrawer({
               />
               {job.status === 'mismatch' ? (
                 <SectionMessage appearance="error">
-                  <Text as="p">Recomputed snapshot hash does not match the signed value.</Text>
+                  <Text as="p">{t('reviews.recomputedSnapshotHashDoesNotMatch')}</Text>
                 </SectionMessage>
               ) : null}
             </Stack>
@@ -1686,7 +1691,7 @@ function VerifyDrawer({
       </DrawerBody>
       <DrawerFooter>
         <Button appearance="primary" onClick={onClose}>
-          Done
+          {t('getStarted.done')}
         </Button>
       </DrawerFooter>
     </>
@@ -1737,9 +1742,7 @@ function SignDrawer({
           ]}
         />
         <Text as="p" color="color.text.subtle">
-          Signing locks the review (signature v2). AccessRadar records your account ID and the time,
-          and computes a SHA-256 hash over the review, decisions, coverage hash, and base snapshot
-          hash. Revocations must still be done in Jira.
+          {t('reviews.signingLocksTheReviewSignatureV2')}
         </Text>
         <Checkbox
           isChecked={attest}
@@ -1759,7 +1762,7 @@ function SignDrawer({
           isLoading={busy}
           onClick={() => void sign()}
         >
-          Sign off
+          {t('reviews.signOff')}
         </Button>
       </DrawerFooter>
     </>

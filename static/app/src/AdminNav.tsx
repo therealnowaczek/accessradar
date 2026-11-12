@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useState } from 'react';
 import { IconButton } from '@atlaskit/button/new';
 import Drawer, { DrawerCloseButton, DrawerContent, DrawerSidebar } from '@atlaskit/drawer';
@@ -8,7 +9,7 @@ import { ButtonMenuItem, COLLAPSE_ELEM_BEFORE } from '@atlaskit/side-nav-items/b
 import { MenuList } from '@atlaskit/side-nav-items/menu-list';
 import { MenuSection, MenuSectionHeading } from '@atlaskit/side-nav-items/menu-section';
 import { BrandHeader } from './brand';
-import { NAV, type ViewId } from './routes';
+import { NAV, navGroupLabel, navItem, type ViewId } from './routes';
 
 /** Accessible name of the admin navigation (side panel, overlay and its menu button). */
 export const NAV_LABEL = 'AccessRadar';
@@ -37,8 +38,8 @@ export function AdminNavFull({ view, onChange, label = (_id, text) => text }: Na
         <SideNavBody>
           <Stack space="space.200">
             {NAV.map((group) => (
-              <MenuSection key={group.group} ariaLabel={group.group}>
-                <MenuSectionHeading>{group.group}</MenuSectionHeading>
+              <MenuSection key={group.group} ariaLabel={navGroupLabel(group.group)}>
+                <MenuSectionHeading>{navGroupLabel(group.group)}</MenuSectionHeading>
                 <MenuList>
                   {group.items.map((item) => (
                     <ButtonMenuItem
@@ -47,7 +48,7 @@ export function AdminNavFull({ view, onChange, label = (_id, text) => text }: Na
                       isSelected={view === item.id}
                       onClick={() => onChange(item.id)}
                     >
-                      {label(item.id, item.label)}
+                      {label(item.id, navItem(item.id).label)}
                     </ButtonMenuItem>
                   ))}
                 </MenuList>
@@ -79,7 +80,7 @@ export function AdminNavOverlay({ view, onChange, label }: NavProps) {
       <BrandHeader subtitle={BRAND_SUBTITLE} />
       <Drawer isOpen={open} onClose={() => setOpen(false)} width="narrow" label={NAV_LABEL}>
         <DrawerSidebar>
-          <DrawerCloseButton label="Close" />
+          <DrawerCloseButton label={t('adminNav.close')} />
         </DrawerSidebar>
         <DrawerContent>
           <div className="admin-nav-overlay">

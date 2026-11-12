@@ -1,3 +1,4 @@
+import { t, type MessageKey } from './i18n';
 /** In-app navigation. Jira's admin menu shows one entry per Forge module; everything else is client-side. */
 export type ViewId =
   | 'overview'
@@ -114,8 +115,18 @@ export const NAV: Array<{ group: string; items: NavItem[] }> = [
 
 export const NAV_ITEMS = NAV.flatMap((group) => group.items);
 
-export const navItem = (id: ViewId): NavItem =>
-  NAV_ITEMS.find((item) => item.id === id) ?? NAV_ITEMS[0];
+/** Navigation entry with its copy in the user's language (English when a key is missing). */
+export const navItem = (id: ViewId): NavItem => {
+  const item = NAV_ITEMS.find((x) => x.id === id) ?? NAV_ITEMS[0]!;
+  return {
+    id: item.id,
+    label: t(`nav.${item.id}.label` as MessageKey),
+    title: t(`nav.${item.id}.title` as MessageKey),
+    description: t(`nav.${item.id}.description` as MessageKey),
+  };
+};
+
+export const navGroupLabel = (group: string): string => t(`nav.group.${group}` as MessageKey);
 
 export const MODULE_KEYS = {
   main: 'accessradar-admin',

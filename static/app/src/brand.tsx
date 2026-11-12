@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useId } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Heading from '@atlaskit/heading';
@@ -92,9 +93,9 @@ export function BrandMark({ size = 32 }: { size?: number }) {
       viewBox="0 0 1043 1043"
       fill="none"
       role="img"
-      aria-label="AccessRadar"
+      aria-label={t('getStarted.accessradar')}
     >
-      <title>AccessRadar</title>
+      <title>{t('getStarted.accessradar')}</title>
       <defs>
         <linearGradient id={bg} x1="0" y1="0" x2="1043" y2="1043" gradientUnits="userSpaceOnUse">
           <stop stopColor="#8D6FDC" />
@@ -132,7 +133,7 @@ export function BrandHeader({ subtitle }: { subtitle: string }) {
       <BrandMark />
       <Stack>
         <Heading size="xsmall" as="span">
-          AccessRadar
+          {t('getStarted.accessradar')}
         </Heading>
         <Text size="small" color="color.text.subtle">
           {subtitle}

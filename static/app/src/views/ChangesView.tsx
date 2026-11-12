@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import EmptyState from '@atlaskit/empty-state';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Stack, Text } from '@atlaskit/primitives';
@@ -109,7 +110,7 @@ function FactTable({ rows }: { rows: FactChange[] }) {
       defaultPage={1}
       emptyView={
         <Text as="p" color="color.text.subtle">
-          No configuration changes match.
+          {t('changes.noConfigurationChangesMatch')}
         </Text>
       }
     />
@@ -230,13 +231,19 @@ export function ChangesView() {
         snapshots={list}
         value={a}
         onChange={setA}
-        label="From"
+        label={t('changes.from')}
         allowLatest={false}
         size="medium"
       />
       <Text color="color.text.subtle">→</Text>
-      <SnapshotPicker snapshots={list} value={b} onChange={setB} label="To" size="medium" />
-      <ToggleField label="Show all permissions" isChecked={all} onChange={setAll} />
+      <SnapshotPicker
+        snapshots={list}
+        value={b}
+        onChange={setB}
+        label={t('changes.to')}
+        size="medium"
+      />
+      <ToggleField label={t('changes.showAllPermissions')} isChecked={all} onChange={setAll} />
     </FilterBar>
   );
 
@@ -250,11 +257,11 @@ export function ChangesView() {
         <PageTabs>
           <Tabs id="changes-tabs">
             <TabList>
-              <Tab>Granted</Tab>
-              <Tab>Revoked</Tab>
-              <Tab>Groups</Tab>
-              <Tab>Schemes & roles</Tab>
-              <Tab>People</Tab>
+              <Tab>{t('changes.granted')}</Tab>
+              <Tab>{t('changes.revoked')}</Tab>
+              <Tab>{t('changes.groups')}</Tab>
+              <Tab>{t('changes.schemesRoles')}</Tab>
+              <Tab>{t('changes.people')}</Tab>
             </TabList>
             <TabPanel>
               <PageScroll>
@@ -276,7 +283,11 @@ export function ChangesView() {
         <Stack space="space.300">
           {pickers}
           {r.error && !d ? (
-            <ErrorState title="Changes unavailable" message={r.error} retry={r.reload} />
+            <ErrorState
+              title={t('changes.changesUnavailable')}
+              message={r.error}
+              retry={r.reload}
+            />
           ) : !d ? (
             <SkeletonRoot>
               <SkeletonTable columns={['Space', 'Who', 'Permission', 'Why']} />
@@ -287,7 +298,7 @@ export function ChangesView() {
             <EmptyState
               headingSize="xsmall"
               header="One snapshot so far"
-              description="Changes compare two snapshots, so the next scheduled or manual snapshot will show what changed since this one."
+              description={t('changes.changesCompareTwoSnapshotsSoThe')}
             />
           )}
         </Stack>

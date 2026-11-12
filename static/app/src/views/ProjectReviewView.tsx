@@ -103,8 +103,8 @@ export function ProjectReviewView() {
 
   const header = (
     <PageHeader
-      title="Access review"
-      description="Review who has key permissions in this space. Decisions stay in AccessRadar until a Jira admin signs."
+      title={t('projectReview.accessReview')}
+      description={t('projectReview.reviewWhoHasKeyPermissionsIn')}
       actions={
         d?.assignment && d.access !== 'not-assigned' ? (
           <Button
@@ -113,7 +113,7 @@ export function ProjectReviewView() {
             isDisabled={pending > 0 || d.assignment.status !== 'open'}
             onClick={() => void submit()}
           >
-            Submit review
+            {t('projectReview.submitReview')}
           </Button>
         ) : null
       }
@@ -129,7 +129,11 @@ export function ProjectReviewView() {
   if (mine.error && !d)
     return (
       <PageFrame header={header}>
-        <ErrorState title="Access review unavailable" message={mine.error} retry={mine.reload} />
+        <ErrorState
+          title={t('projectReview.accessReviewUnavailable')}
+          message={mine.error}
+          retry={mine.reload}
+        />
       </PageFrame>
     );
   if (!d)
@@ -155,7 +159,7 @@ export function ProjectReviewView() {
             headingLevel="h2"
             actions={
               <SectionMessageAction onClick={() => void dismiss(n.id)}>
-                Dismiss
+                {t('alerts.dismiss')}
               </SectionMessageAction>
             }
           >
@@ -177,26 +181,28 @@ export function ProjectReviewView() {
               <Text as="p">
                 Due {formatLocal(d.assignment.dueAt)} · snapshot #{d.review.baseSeq} ·{' '}
                 {d.access === 'site-admin' ? (
-                  <Pill tone="info">Viewing as Jira admin</Pill>
+                  <Pill tone="info">{t('projectReview.viewingAsJiraAdmin')}</Pill>
                 ) : (
-                  <Pill tone="info">Assigned to you</Pill>
+                  <Pill tone="info">{t('projectReview.assignedToYou')}</Pill>
                 )}
               </Text>
               <Text as="p" color="color.text.subtle">
-                Submit when every item has a decision. A Jira admin signs the evidence pack.
-                Delegates are not notified outside Jira.
+                {t('projectReview.submitWhenEveryItemHasA')}
               </Text>
             </SectionMessage>
             <MetricGrid>
-              <Metric label="Items" value={decidable.length} />
+              <Metric label={t('projectReview.items')} value={decidable.length} />
               <Metric
-                label="Decided"
+                label={t('projectReview.decided')}
                 value={decided}
                 hint={pending ? `${pending} to go` : 'All decided'}
               />
-              <Metric label="Keep" value={decidable.filter((i) => i.decision === 'keep').length} />
               <Metric
-                label="Revoke"
+                label={t('projectReview.keep')}
+                value={decidable.filter((i) => i.decision === 'keep').length}
+              />
+              <Metric
+                label={t('projectReview.revoke')}
                 value={decidable.filter((i) => i.decision === 'revoke').length}
               />
             </MetricGrid>
@@ -210,7 +216,7 @@ export function ProjectReviewView() {
                   )
                 }
               >
-                Keep remaining
+                {t('projectReview.keepRemaining')}
               </Button>
               <Button
                 isDisabled={busy || !pending}
@@ -221,7 +227,7 @@ export function ProjectReviewView() {
                   )
                 }
               >
-                Revoke remaining
+                {t('projectReview.revokeRemaining')}
               </Button>
             </Inline>
             <DynamicTable
@@ -271,14 +277,14 @@ export function ProjectReviewView() {
                           isDisabled={busy}
                           onClick={() => void decide([i.idx], 'keep')}
                         >
-                          Keep
+                          {t('projectReview.keep')}
                         </Button>
                         <Button
                           appearance="subtle"
                           isDisabled={busy}
                           onClick={() => void decide([i.idx], 'revoke')}
                         >
-                          Revoke
+                          {t('projectReview.revoke')}
                         </Button>
                       </Inline>
                     ),

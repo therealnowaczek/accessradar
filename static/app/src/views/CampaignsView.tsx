@@ -79,8 +79,9 @@ const DELEGATE_RADIOS = [
 ];
 
 function statusLozenge(status: string) {
-  if (status === 'active') return <Pill tone="success">active</Pill>;
-  if (status === 'paused' || status === 'paused_edition') return <Pill tone="warning">paused</Pill>;
+  if (status === 'active') return <Pill tone="success">{t('campaigns.active')}</Pill>;
+  if (status === 'paused' || status === 'paused_edition')
+    return <Pill tone="warning">{t('campaigns.paused')}</Pill>;
   return <Pill>{status}</Pill>;
 }
 
@@ -228,7 +229,7 @@ export function CampaignsView() {
               ])
             }
           >
-            New campaign
+            {t('campaigns.newCampaign')}
           </Button>
         ) : null
       }
@@ -246,7 +247,11 @@ export function CampaignsView() {
   if (list.error && !list.data)
     return (
       <PageFrame header={header}>
-        <ErrorState title="Campaigns unavailable" message={list.error} retry={list.reload} />
+        <ErrorState
+          title={t('campaigns.campaignsUnavailable')}
+          message={list.error}
+          retry={list.reload}
+        />
       </PageFrame>
     );
   if (!list.data)
@@ -298,12 +303,7 @@ export function CampaignsView() {
       title: `Delete campaign "${c.name}"?`,
       confirmLabel: 'Delete campaign',
       onConfirm: () => remove(c.id),
-      body: (
-        <Text as="p">
-          The campaign stops scheduling runs and disappears from this list. Reviews it already
-          created are not deleted.
-        </Text>
-      ),
+      body: <Text as="p">{t('campaigns.theCampaignStopsSchedulingRunsAnd')}</Text>,
     });
   const openRun = (runId: string) => {
     setDrawer([
@@ -326,15 +326,12 @@ export function CampaignsView() {
     <PageFrame notice={staleNotice(list)} header={header}>
       <Stack space="space.300">
         <SectionMessage appearance="information">
-          <Text as="p">
-            Delegates are reminded in the app only (no email). Tell space owners through your usual
-            channels. Detection uses your snapshot schedule.
-          </Text>
+          <Text as="p">{t('campaigns.delegatesAreRemindedInTheApp')}</Text>
         </SectionMessage>
         {!items.length ? (
           <EmptyState
             header="Schedule your first recurring review"
-            description="Campaigns create per-space reviews on a schedule and assign them to space leads."
+            description={t('campaigns.campaignsCreatePerSpaceReviewsOn')}
           />
         ) : (
           <DynamicTable
@@ -363,14 +360,18 @@ export function CampaignsView() {
                     <Inline as="span" space="space.050" alignBlock="center" alignInline="end">
                       {c.status === 'active' ? (
                         <Button isDisabled={busy} onClick={() => void run(c.id)}>
-                          Run now
+                          {t('campaigns.runNow')}
                         </Button>
                       ) : null}
                       <RowMenu label={`More actions for ${c.name}`}>
                         {c.status === 'active' ? (
-                          <DropdownItem onClick={() => void pause(c.id)}>Pause</DropdownItem>
+                          <DropdownItem onClick={() => void pause(c.id)}>
+                            {t('campaigns.pause')}
+                          </DropdownItem>
                         ) : null}
-                        <DropdownItem onClick={() => confirmDelete(c)}>Delete…</DropdownItem>
+                        <DropdownItem onClick={() => confirmDelete(c)}>
+                          {t('campaigns.delete')}
+                        </DropdownItem>
                       </RowMenu>
                     </Inline>
                   ),
@@ -411,7 +412,7 @@ function CampaignForm({
     <>
       <DrawerBody>
         <Stack space="space.300">
-          <FormField label="Name">
+          <FormField label={t('campaigns.name')}>
             {(id) => (
               <>
                 <Textfield
@@ -428,7 +429,7 @@ function CampaignForm({
               </>
             )}
           </FormField>
-          <RadioField label="Scope">
+          <RadioField label={t('campaigns.scope')}>
             <RadioGroup
               options={SCOPE_RADIOS}
               value={d.scopeType}
@@ -436,7 +437,7 @@ function CampaignForm({
             />
           </RadioField>
           {d.scopeType === 'projects' ? (
-            <FormField label="Spaces">
+            <FormField label={t('campaigns.spaces')}>
               {(id) => (
                 <Select
                   menuPosition="fixed"
@@ -455,7 +456,10 @@ function CampaignForm({
             </FormField>
           ) : null}
           {d.scopeType === 'category' ? (
-            <FormField label="Categories" helper="From the latest snapshot’s space categories.">
+            <FormField
+              label={t('campaigns.categories')}
+              helper="From the latest snapshot’s space categories."
+            >
               {(id) => (
                 <Select
                   menuPosition="fixed"
@@ -473,7 +477,7 @@ function CampaignForm({
               )}
             </FormField>
           ) : null}
-          <FormField label="Frequency">
+          <FormField label={t('campaigns.frequency')}>
             {(id) => (
               <Select
                 menuPosition="fixed"
@@ -484,7 +488,7 @@ function CampaignForm({
               />
             )}
           </FormField>
-          <FormField label="Start date (UTC)" helper={dateHelper()}>
+          <FormField label={t('campaigns.startDateUtc')} helper={dateHelper()}>
             {(id, helperId) => (
               <DateField
                 id={id}
@@ -494,7 +498,7 @@ function CampaignForm({
               />
             )}
           </FormField>
-          <FormField label="Review window (days)">
+          <FormField label={t('campaigns.reviewWindowDays')}>
             {(id) => (
               <Textfield
                 id={id}
@@ -506,14 +510,17 @@ function CampaignForm({
               />
             )}
           </FormField>
-          <RadioField label="Assign to">
+          <RadioField label={t('campaigns.assignTo')}>
             <RadioGroup
               options={DELEGATE_RADIOS}
               value={d.delegateRule}
               onChange={(e) => set('delegateRule', e.currentTarget.value)}
             />
           </RadioField>
-          <FormField label="Reminder days before due" helper="Comma-separated, e.g. 7,3,1">
+          <FormField
+            label={t('campaigns.reminderDaysBeforeDue')}
+            helper="Comma-separated, e.g. 7,3,1"
+          >
             {(id) => (
               <Textfield
                 id={id}
@@ -523,7 +530,11 @@ function CampaignForm({
             )}
           </FormField>
           {error ? (
-            <SectionMessage appearance="error" title="Preview failed" headingLevel="h3">
+            <SectionMessage
+              appearance="error"
+              title={t('campaigns.previewFailed')}
+              headingLevel="h3"
+            >
               <Text as="p">{error}</Text>
             </SectionMessage>
           ) : null}
@@ -542,7 +553,7 @@ function CampaignForm({
               .finally(() => setBusy(false));
           }}
         >
-          Preview
+          {t('campaigns.preview')}
         </Button>
       </DrawerFooter>
     </>
@@ -604,25 +615,29 @@ function PreviewBody({
               <EmptyState
                 headingSize="xsmall"
                 header="No spaces"
-                description="Adjust the scope and try again."
+                description={t('campaigns.adjustTheScopeAndTryAgain')}
               />
             }
           />
           {error ? (
-            <SectionMessage appearance="error" title="Could not create campaign" headingLevel="h3">
+            <SectionMessage
+              appearance="error"
+              title={t('campaigns.couldNotCreateCampaign')}
+              headingLevel="h3"
+            >
               <Text as="p">{error}</Text>
             </SectionMessage>
           ) : null}
         </Stack>
       </DrawerBody>
-      <DrawerFooter onCancel={onBack} cancelLabel="Back">
+      <DrawerFooter onCancel={onBack} cancelLabel={t('drawer.back')}>
         <Button
           appearance="primary"
           isDisabled={!preview.totalProjects || busy}
           isLoading={busy}
           onClick={create}
         >
-          Create campaign
+          {t('campaigns.createCampaign')}
         </Button>
       </DrawerFooter>
     </>
@@ -661,7 +676,7 @@ function RunDetail({
   const footer = (
     <DrawerFooter>
       <Button appearance="primary" onClick={onClose}>
-        Close
+        {t('adminNav.close')}
       </Button>
     </DrawerFooter>
   );
@@ -669,7 +684,7 @@ function RunDetail({
     return (
       <>
         <DrawerBody>
-          <ErrorState title="Run unavailable" message={r.error} retry={r.reload} />
+          <ErrorState title={t('campaigns.runUnavailable')} message={r.error} retry={r.reload} />
         </DrawerBody>
         {footer}
       </>
@@ -745,7 +760,7 @@ function RunDetail({
                   key: 'act',
                   content: (
                     <Button appearance="subtle" onClick={() => goReview(a.reviewId)}>
-                      Open review
+                      {t('campaigns.openReview')}
                     </Button>
                   ),
                 },
@@ -758,7 +773,7 @@ function RunDetail({
           run.status === 'waiting_snapshot' ||
           run.status === 'starting' ? (
             <Button isLoading={refreshing} isDisabled={refreshing} onClick={() => void refresh()}>
-              Refresh
+              {t('getStarted.refresh')}
             </Button>
           ) : null}
         </Stack>

@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { router } from '@forge/bridge';
 import Button, { IconButton } from '@atlaskit/button/new';
 import Heading from '@atlaskit/heading';
@@ -77,12 +78,16 @@ function GetStartedBody() {
       <PageFrame
         header={
           <PageHeader
-            title="Get started with AccessRadar"
-            description="Three steps to your first access review."
+            title={t('getStarted.getStartedWithAccessradar')}
+            description={t('getStarted.threeStepsToYourFirstAccess')}
           />
         }
       >
-        <ErrorState title="Checklist unavailable" message={status.error} retry={status.reload} />
+        <ErrorState
+          title={t('getStarted.checklistUnavailable')}
+          message={status.error}
+          retry={status.reload}
+        />
       </PageFrame>
     );
   if (!status.data)
@@ -90,8 +95,8 @@ function GetStartedBody() {
       <PageFrame
         header={
           <PageHeader
-            title="Get started with AccessRadar"
-            description="Three steps to your first access review."
+            title={t('getStarted.getStartedWithAccessradar')}
+            description={t('getStarted.threeStepsToYourFirstAccess')}
           />
         }
       >
@@ -101,10 +106,10 @@ function GetStartedBody() {
               <BrandMark size={56} />
               <Stack space="space.050">
                 <Heading size="medium" as="h2">
-                  AccessRadar
+                  {t('getStarted.accessradar')}
                 </Heading>
                 <Text as="p" color="color.text.subtle">
-                  Who has access to what in Jira, why, and what changed. Read-only.
+                  {t('getStarted.whoHasAccessToWhatIn')}
                 </Text>
               </Stack>
             </Inline>
@@ -161,12 +166,12 @@ function GetStartedBody() {
     <PageFrame
       header={
         <PageHeader
-          title="Get started with AccessRadar"
-          description="Three steps to your first access review."
+          title={t('getStarted.getStartedWithAccessradar')}
+          description={t('getStarted.threeStepsToYourFirstAccess')}
           actions={
             <IconButton
               icon={RefreshIcon}
-              label="Refresh"
+              label={t('getStarted.refresh')}
               isLoading={refreshing}
               onClick={() => void refresh()}
             />
@@ -181,10 +186,10 @@ function GetStartedBody() {
             <BrandMark size={56} />
             <Stack space="space.050">
               <Heading size="medium" as="h2">
-                AccessRadar
+                {t('getStarted.accessradar')}
               </Heading>
               <Text as="p" color="color.text.subtle">
-                Who has access to what in Jira, why, and what changed. Read-only.
+                {t('getStarted.whoHasAccessToWhatIn')}
               </Text>
             </Stack>
           </Inline>
@@ -198,14 +203,15 @@ function GetStartedBody() {
             </Text>
           </Stack>
           {done === steps.length ? (
-            <SectionMessage appearance="success" title="You are set up" headingLevel="h2">
+            <SectionMessage
+              appearance="success"
+              title={t('getStarted.youAreSetUp')}
+              headingLevel="h2"
+            >
               <Stack space="space.200" alignInline="start">
-                <Text as="p">
-                  The first snapshot is ready. Explore who has access to what, or start your first
-                  review.
-                </Text>
+                <Text as="p">{t('getStarted.theFirstSnapshotIsReadyExplore')}</Text>
                 <Button appearance="primary" onClick={openApp}>
-                  Open AccessRadar
+                  {t('getStarted.openAccessradar')}
                 </Button>
               </Stack>
             </SectionMessage>
@@ -229,7 +235,7 @@ function GetStartedBody() {
                       <Heading size="small" as="h2">
                         {step.title}
                       </Heading>
-                      {step.done ? <Pill tone="success">Done</Pill> : null}
+                      {step.done ? <Pill tone="success">{t('getStarted.done')}</Pill> : null}
                     </Inline>
                     <Text as="p" color="color.text.subtle">
                       {step.detail}

@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import EmptyState from '@atlaskit/empty-state';
 import { useEffect, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
@@ -89,7 +90,7 @@ export function SnapshotsView() {
         <>
           <IconButton
             icon={RefreshIcon}
-            label="Refresh"
+            label={t('getStarted.refresh')}
             isLoading={refreshing}
             onClick={() => void refresh()}
           />
@@ -101,7 +102,7 @@ export function SnapshotsView() {
               isDisabled={Boolean(active)}
               onClick={() => void take.run()}
             >
-              Take snapshot now
+              {t('shared.takeSnapshotNow')}
             </Button>
           )}
         </>
@@ -113,7 +114,11 @@ export function SnapshotsView() {
       <Stack space="space.300">
         {active ? <SnapshotProgress active={active} /> : null}
         {snaps.error && !snaps.data ? (
-          <ErrorState title="Snapshots unavailable" message={snaps.error} retry={snaps.reload} />
+          <ErrorState
+            title={t('snapshots.snapshotsUnavailable')}
+            message={snaps.error}
+            retry={snaps.reload}
+          />
         ) : !snaps.data ? (
           <SkeletonRoot>
             <SkeletonTable
@@ -123,12 +128,12 @@ export function SnapshotsView() {
         ) : !list.length ? (
           <EmptyState
             header="No snapshots yet"
-            description="A snapshot records permission schemes, roles, groups and application access at one point in time."
+            description={t('snapshots.aSnapshotRecordsPermissionSchemesRoles')}
             // R-3.2: while a snapshot runs the header keeps its (disabled) button; no second CTA.
             primaryAction={
               active ? undefined : (
                 <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>
-                  Take snapshot now
+                  {t('shared.takeSnapshotNow')}
                 </Button>
               )
             }
@@ -210,7 +215,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
   if (r.error && !r.data)
     return (
       <DrawerBody>
-        <ErrorState title="Snapshot unavailable" message={r.error} retry={r.reload} />
+        <ErrorState title={t('snapshots.snapshotUnavailable')} message={r.error} retry={r.reload} />
       </DrawerBody>
     );
   const s = r.data;
@@ -261,7 +266,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
         ]}
       />
       {s.stats ? (
-        <Section title="Contents">
+        <Section title={t('snapshots.contents')}>
           <Details
             rows={Object.entries(s.stats).map(([k, v]) => [STAT_LABEL[k] ?? k, v.toLocaleString()])}
           />
@@ -270,12 +275,12 @@ function SnapshotDrawer({ seq }: { seq: number }) {
       <CoverageLimitations coverage={s.coverage ?? []} limitations={s.limitations} />
       {committed ? (
         <Section
-          title="Export"
-          description="Access matrix: who has which permission in which space, and why."
+          title={t('snapshots.export')}
+          description={t('snapshots.accessMatrixWhoHasWhichPermission')}
         >
           <Inline space="space.100" alignBlock="center" shouldWrap>
             <ExportMenu
-              label="Export access matrix"
+              label={t('projects.exportAccessMatrix')}
               onCsv={() =>
                 void exporter('Access matrix CSV', () =>
                   exportMatrix('csv', s.seq, exportContext(siteUrl)),
@@ -307,7 +312,7 @@ function SnapshotDrawer({ seq }: { seq: number }) {
                 })
               }
             >
-              Download coverage CSV
+              {t('snapshots.downloadCoverageCsv')}
             </Button>
           </Inline>
         </Section>

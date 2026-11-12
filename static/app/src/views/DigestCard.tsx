@@ -82,7 +82,9 @@ export function DigestCard({ planNote = true }: { planNote?: boolean }) {
         title={t('digest.unavailable')}
         headingLevel="h3"
         actions={
-          <SectionMessageAction onClick={() => void res.reload()}>Try again</SectionMessageAction>
+          <SectionMessageAction onClick={() => void res.reload()}>
+            {t('ui.tryAgain')}
+          </SectionMessageAction>
         }
       >
         <Text as="p">{res.error}</Text>

@@ -6,6 +6,7 @@ import SectionMessage from '@atlaskit/section-message';
 import { Text } from '@atlaskit/primitives';
 import { errorText } from './api';
 import { setContextTimeZone, setFormatLocale } from './format';
+import { loadLocale, t } from './i18n';
 import { initialView, navItem, screenFor } from './routes';
 import { AdminPhantom, AppPhantom, PagePhantom } from './skeletons';
 import { ErrorState } from './ui';
@@ -29,9 +30,8 @@ export type ForgeContext = {
 };
 
 /**
- * AccessRadar is English-only for now (translations on hold). The language always follows the
- * user's Jira settings (`context.locale`) with English as the fallback; there is no in-app
- * language picker anywhere.
+ * The language always follows the user's Jira settings (`context.locale`) with English as the
+ * fallback; there is no in-app language picker anywhere.
  */
 
 function App() {
@@ -45,7 +45,8 @@ function App() {
         const next = c as ForgeContext;
         setContextTimeZone(next.timezone);
         setFormatLocale(next.locale);
-        setContext(next);
+        // The catalog is loaded before the first screen renders, so no screen flashes English.
+        return loadLocale(next.locale).then(() => setContext(next));
       })
       .catch((e) => setError(errorText(e)));
   };
@@ -57,7 +58,7 @@ function App() {
   if (error)
     return (
       <ErrorState
-        title="AccessRadar could not start"
+        title={t('main.accessradarCouldNotStart')}
         message={error}
         retry={load}
         headingLevel="h1"
@@ -67,15 +68,8 @@ function App() {
   if (!context) return <AppPhantom />;
   if (context.license && context.license.active !== true) {
     return (
-      <SectionMessage
-        appearance="warning"
-        title="AccessRadar needs an active license"
-        headingLevel="h1"
-      >
-        <Text as="p">
-          The license for AccessRadar on this site is not active. Ask your Jira administrator to
-          renew or start a trial in Manage apps.
-        </Text>
+      <SectionMessage appearance="warning" title={t('main.licenseTitle')} headingLevel="h1">
+        <Text as="p">{t('main.licenseBody')}</Text>
       </SectionMessage>
     );
   }

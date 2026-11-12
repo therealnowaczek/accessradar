@@ -69,7 +69,7 @@ function expiryLozenge(status: ExceptionRow['status'], expiresAt: number, now: n
   }
   const days = Math.ceil((expiresAt - now) / 86400_000);
   if (days <= 14) return <Pill tone="warning">expires in {days}d</Pill>;
-  return <Pill tone="success">active</Pill>;
+  return <Pill tone="success">{t('campaigns.active')}</Pill>;
 }
 
 export function ExceptionsView() {
@@ -87,7 +87,11 @@ export function ExceptionsView() {
   if (list.error && !list.data)
     return (
       <PageFrame header={header}>
-        <ErrorState title="Exceptions unavailable" message={list.error} retry={list.reload} />
+        <ErrorState
+          title={t('exceptions.exceptionsUnavailable')}
+          message={list.error}
+          retry={list.reload}
+        />
       </PageFrame>
     );
   if (!list.data)
@@ -116,7 +120,7 @@ export function ExceptionsView() {
       <Stack space="space.300">
         <FilterBar>
           <FilterSelect
-            label="Exception status"
+            label={t('exceptions.exceptionStatus')}
             inputId="exc-status"
             options={STATUS_OPTS}
             value={STATUS_OPTS.find((o) => o.value === status) ?? STATUS_OPTS[0]}
@@ -166,7 +170,7 @@ export function ExceptionsView() {
                   key: 'r',
                   content: (
                     <LinkButton onClick={() => go('reviews', { reviewId: e.reviewId })}>
-                      Open review
+                      {t('campaigns.openReview')}
                     </LinkButton>
                   ),
                 },
@@ -178,7 +182,7 @@ export function ExceptionsView() {
               <EmptyState
                 headingSize="xsmall"
                 header="No exceptions"
-                description="Nothing matches this filter."
+                description={t('exceptions.nothingMatchesThisFilter')}
               />
             }
           />
