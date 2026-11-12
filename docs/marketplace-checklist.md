@@ -50,7 +50,7 @@
 - [ ] Odpowiadać TYLKO w portalu (maile nie docierają). Functional review ~10 dni roboczych
 
 ## 8. W trakcie review
-- [ ] Prod deploy z poprawkami dozwolony; NIE zmieniać scope'ów ani egressu; listing i privacy zablokowane
+- [ ] Prod deploy z poprawkami dozwolony; NIE zmieniać scope'ów ani egressu; listing i privacy zablokowane (uwaga: 3.0.0 z sześcioma nowymi scope'ami read już jest na prod od 2026-11-12 za zgodą Marcina; jeśli listing jest w review, zgłosić zmianę w tickecie App Approval i zaktualizować Privacy/Security wg `docs/LISTING.md` §9 i `docs/data-handling.md`)
 
 ## 9. Po zatwierdzeniu
 - [ ] Finalne zrzuty z prod (w tym Campaigns, Alerts, Verify chain), edycja Advanced, kolekcja Rovo (R2-08 jest na main), opcjonalnie bug bounty / Cloud Fortified

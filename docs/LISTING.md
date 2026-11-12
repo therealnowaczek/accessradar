@@ -48,23 +48,24 @@ Compliance with the brand guidelines: "Jira" comes after "for", Title Case, none
 
 ### 2.3 More details (≤1000 chars; plain text plus bullets and line breaks)
 ```
-Access reviews in Jira Cloud usually mean clicking through permission schemes, space roles and groups, then rebuilding it all in a spreadsheet. AccessRadar shows effective access with the path behind it, keeps history, and turns a review into evidence an auditor can check.
+Access reviews in Jira Cloud mean clicking through permission schemes, roles and groups, then rebuilding it in a spreadsheet. AccessRadar shows effective access with the path behind it, keeps history, and turns a review into evidence an auditor can check.
 
 Built for Jira admins and compliance teams:
-• Space, group and person views of who holds which permission
+• Space, group and person views of permissions
 • The "why": group → space role → permission scheme grant
-• Daily or weekly snapshots, plus one on demand
-• Diff two snapshots: access granted and removed, group and scheme changes
-• Access reviews: Keep, Revoke or Exception (justification + expiry); exceptions go straight into the register
-• Advanced: SHA-256 evidence hash (v2) tied to the snapshot; verify in the app
-• Coverage & limitations in every export; risk indicators and completeness
-• CSV/PDF evidence; Advanced pack with SOC 2 / ISO mapping
+• Daily or weekly snapshots, or on demand
+• Diff two snapshots: access granted and removed
+• Access reviews: Keep, Revoke or Exception (justification + expiry)
+• Advanced: SHA-256 evidence hash tied to the snapshot
+• Sharing and security: public filters and dashboards, issue security levels, audit-log changes (Advanced)
+• Coverage & limitations in every export
+• CSV/PDF/JSON evidence; Advanced pack with SOC 2 / ISO mapping
 
 Read-only scopes only: AccessRadar never changes Jira. Runs on Atlassian: no data egress; data stays in Atlassian.
 
 Free for up to 10 users.
 ```
-*(990/1000.)* The long-form version for the docs landing page is in §4.
+*(974/1000.)* The long-form version for the docs landing page is in §4.
 
 ---
 
@@ -142,7 +143,8 @@ In Jira Cloud, effective access comes from several layers at once: the permissio
 - Jira Cloud; AccessRadar is used by Jira administrators.
 - Global permissions are shown partially (admin and site-admin access levels, per-person checks): Jira's REST API has no endpoint that lists all global permission holders.
 - Team-managed spaces are shown with their space-scoped roles.
-- Out of scope: work item security levels, filter and dashboard permissions, Confluence, Jira Service Management portal customers, organization-level admin.
+- Audit log changes need a paid Jira plan (Jira exposes the audit log on paid plans only); on free plans that section says it is not available.
+- Out of scope: Confluence, Jira Service Management portal customers, organization-level admin.
 
 *(PL) Ograniczenia (globalne uprawnienia częściowo, team-managed, zakres „Won't”) pochodzą z §3, §6 i week1-findings. Warto je mieć w docs, bo „uczciwość co do kompletności” to nasz wyróżnik.*
 
@@ -341,7 +343,11 @@ Revenue share: as for MarginRadar (Forge partners keep 100% up to $1M lifetime F
 - `read:project-role:jira`: space roles and their actors.
 - `read:group:jira`, `read:user:jira`: groups, group members, admin access levels and user status, to resolve who actually has access.
 - `read:application-role:jira`: expand application-role grants into groups.
+- `read:filter:jira`, `read:jql:jira`, `read:dashboard:jira` (3.0): list filters and dashboards and who they are shared with, to find items shared with anyone or all signed-in users (`read:jql:jira` is required by Jira in the filter search response; the JQL is not shown or stored).
+- `read:issue-security-scheme:jira`, `read:issue-security-level:jira` (3.0): show issue security schemes, levels, who is granted each level and which spaces use the scheme. Work items are not read.
+- `read:audit-log:jira` (3.0, Advanced): show permission, group and role changes of the last 7 days with before/after values.
 - `report:personal-data`: Atlassian privacy reporting for closed accounts.
+- All scopes added in 3.0 are `read:` with `allowImpersonation: true`, like the rest. Updating from 2.x is a major version: every site admin approves the six new read scopes (sites that have not approved keep 2.x behaviour; the new page shows "Approval needed"). Marketplace re-review expected.
 - No write or manage scopes, no `read:jira-work` (the app cannot read work items: verified, `search/jql` returns 401). Remote hosts contacted: **None**.
 
 **App user disclosure** (for /security and the Security Questionnaire): after install, Atlassian adds the AccessRadar app user to admin groups (`atlassian-addons-admin`, `jira-admins-…`) and to the `atlassian-addons-project-access` role. AccessRadar still holds read scopes only, so the API rejects any write; every UI call first checks that the caller is a Jira administrator.

@@ -18,6 +18,16 @@ All data lives in Forge SQL inside the customer's Atlassian environment (no egre
 
 Work item content, comments, attachments and e-mail addresses are never read.
 
+## Sharing and security page (3.0, read live, not stored)
+
+The page "Sharing and security" reads from Jira with GET calls only and keeps nothing in Forge SQL:
+
+- Filters and dashboards: names, owners, and share targets (anyone, all signed-in users, group, space, role) to flag public sharing. Scopes `read:filter:jira`, `read:dashboard:jira`, `read:jql:jira` (Jira returns the JQL in the filter search response; AccessRadar does not display or keep it).
+- Issue security: scheme and level names, who is granted each level, and which spaces use the scheme. Scopes `read:issue-security-scheme:jira`, `read:issue-security-level:jira`. Work item content is still never read.
+- Advanced only: permission, group and role changes from the Jira audit log of the last 7 days (actor, object, changed values). Scope `read:audit-log:jira`. Jira exposes the audit log on paid plans only.
+
+Results go to the signed-in Jira administrator in the browser. No outbound call, no new remote, no write scope. Sites that have not approved the 3.0 update see an "Approval needed" notice in that section and keep working as before.
+
 ## Rovo and MCP tools
 
 The Rovo agent and the `rovo:mcp` tools return read-only answers (space keys, group names, display names, permission keys, review names and statuses, at most 50 rows) to the signed-in Jira admin. With external MCP enabled by a site admin, the answer goes through Atlassian's MCP endpoint to the AI client that user connected with Atlassian OAuth; the client's own terms apply from there. AccessRadar itself makes no outbound call, calls Jira only as the user on that path (no asApp) and stores one audit row per call (`rovo.action`: actor accountId, action, row count). Details: `mcp-tools.md`.
