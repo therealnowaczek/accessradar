@@ -120,6 +120,7 @@ def('projectAccess', (p) => svc.projectDetail(p));
 def('exploreGroups', (p) => svc.exploreGroups(p));
 def('groupDetail', (p) => svc.groupInfo(p));
 def('setGroupTracked', (p, c) => svc.setGroupTracked(p, c.accountId));
+def('exploreSeats', (p) => svc.exploreSeats(p));
 def('explorePeople', (p) => svc.explorePeople(p));
 def('personAccess', (p) => svc.personInfo(p));
 def('globalPermissions', (p) => svc.globalPermissions(p));

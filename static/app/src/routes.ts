@@ -5,6 +5,7 @@ export type ViewId =
   | 'explore-projects'
   | 'explore-groups'
   | 'explore-people'
+  | 'seats'
   | 'exposure'
   | 'changes'
   | 'reviews'
@@ -50,6 +51,12 @@ export const NAV: Array<{ group: string; items: NavItem[] }> = [
         label: 'People',
         title: 'People',
         description: 'What a person can do, and through which path.',
+      },
+      {
+        id: 'seats',
+        label: 'Seats',
+        title: 'Seats',
+        description: 'Which groups grant product access, who is in them, and seats worth a review.',
       },
       {
         id: 'exposure',

@@ -434,3 +434,37 @@ export interface TrackedGroupsSummary {
   changed: number;
   changes: TrackedGroupChange[];
 }
+
+export type SeatFlag = 'no-space-access' | 'multiple-products';
+export interface SeatReport {
+  products: Array<{
+    key: string;
+    name: string;
+    groups: Array<{
+      id: string;
+      name: string;
+      membersStatus: string;
+      members: number | null;
+      deactivated: number;
+    }>;
+    seats: number;
+    deactivated: number;
+    emptyGroups: number;
+    partial: boolean;
+  }>;
+  people: Array<{
+    accountId: string;
+    name: string;
+    products: string[];
+    spaces: number;
+    flags: SeatFlag[];
+  }>;
+  totals: {
+    seatHolders: number;
+    noSpaceAccess: number;
+    multipleProducts: number;
+    deactivated: number;
+  };
+  accessPartial: boolean;
+  noProducts: boolean;
+}

@@ -11,6 +11,7 @@ import { ExposureView } from './views/ExposureView';
 import { ChangesView } from './views/ChangesView';
 import { GroupsView } from './views/GroupsView';
 import { OverviewView } from './views/OverviewView';
+import { SeatsView } from './views/SeatsView';
 import { PeopleView } from './views/PeopleView';
 import { ProjectsView } from './views/ProjectsView';
 import { AlertsView } from './views/AlertsView';
@@ -33,6 +34,7 @@ const VIEWS: Record<ViewId, () => JSX.Element> = {
   'explore-projects': ProjectsView,
   'explore-groups': GroupsView,
   'explore-people': PeopleView,
+  seats: SeatsView,
   exposure: ExposureView,
   changes: ChangesView,
   reviews: ReviewsView,
