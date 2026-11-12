@@ -26,12 +26,42 @@ import { SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
-  { label: 'All groups', value: 'all' },
-  { label: 'Used in spaces', value: 'used' },
-  { label: 'Admin access', value: 'admin' },
-  { label: 'Application access', value: 'app-access' },
-  { label: 'Large groups', value: 'large' },
-  { label: 'Members not read', value: 'unread' },
+  {
+    get label() {
+      return t('groups.allGroups');
+    },
+    value: 'all',
+  },
+  {
+    get label() {
+      return t('groups.usedInSpaces');
+    },
+    value: 'used',
+  },
+  {
+    get label() {
+      return t('groups.adminAccess');
+    },
+    value: 'admin',
+  },
+  {
+    get label() {
+      return t('groups.applicationAccess');
+    },
+    value: 'app-access',
+  },
+  {
+    get label() {
+      return t('groups.largeGroups');
+    },
+    value: 'large',
+  },
+  {
+    get label() {
+      return t('groups.membersNotRead');
+    },
+    value: 'unread',
+  },
 ];
 
 const ACCESS_LABEL: Record<string, string> = {
@@ -72,7 +102,7 @@ export function GroupsView() {
       {
         key: g.id,
         title: g.name,
-        description: 'Group',
+        description: t('groups.group'),
         content: <GroupDrawer groupId={g.id} seq={seq} />,
       },
     ]);
@@ -94,11 +124,17 @@ export function GroupsView() {
           <SkeletonRoot>
             <FilterBarPhantom controls={3} />
             <SkeletonTable
-              columns={['Group', 'Members', 'Access', 'Spaces reached', 'Direct grants']}
+              columns={[
+                t('groups.group'),
+                t('groups.members'),
+                t('groups.access'),
+                t('groups.spacesReached'),
+                t('groups.directGrants'),
+              ]}
             />
           </SkeletonRoot>
         ) : !snapshot ? (
-          <NoSnapshot what="where each group reaches" />
+          <NoSnapshot what={t('groups.whereEachGroupReaches')} />
         ) : (
           <>
             <PartialBanner
@@ -122,11 +158,11 @@ export function GroupsView() {
             <DynamicTable
               head={{
                 cells: [
-                  { key: 'name', content: 'Group', isSortable: true },
-                  { key: 'members', content: 'Members', isSortable: true },
-                  { key: 'access', content: 'Access' },
-                  { key: 'projects', content: 'Spaces reached', isSortable: true },
-                  { key: 'grants', content: 'Direct grants', isSortable: true },
+                  { key: 'name', content: t('groups.group'), isSortable: true },
+                  { key: 'members', content: t('groups.members'), isSortable: true },
+                  { key: 'access', content: t('groups.access') },
+                  { key: 'projects', content: t('groups.spacesReached'), isSortable: true },
+                  { key: 'grants', content: t('groups.directGrants'), isSortable: true },
                 ],
               }}
               rows={rows.map((g) => ({
@@ -152,8 +188,8 @@ export function GroupsView() {
                       ) : (
                         <Pill tone="warning">
                           {g.membersStatus === 'not-collected'
-                            ? 'Not read (not used)'
-                            : 'Not readable'}
+                            ? t('groups.notReadNotUsed')
+                            : t('groups.notReadable')}
                         </Pill>
                       ),
                   },
@@ -308,9 +344,7 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
       <Section
         title={`Members${g.membersStatus === 'collected' ? ` (${g.members.length})` : ''}`}
         description={
-          g.membersStatus === 'collected'
-            ? undefined
-            : 'Members of this group were not read in this snapshot.'
+          g.membersStatus === 'collected' ? undefined : t('groups.membersOfThisGroupWereNot')
         }
       >
         {g.membersStatus === 'collected' ? (

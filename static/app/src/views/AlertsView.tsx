@@ -37,9 +37,24 @@ type AlertRow = {
 };
 
 const STATUS_OPTS = [
-  { label: 'Unread', value: 'undismissed' },
-  { label: 'Dismissed', value: 'dismissed' },
-  { label: 'All', value: 'all' },
+  {
+    get label() {
+      return t('alerts.unread');
+    },
+    value: 'undismissed',
+  },
+  {
+    get label() {
+      return t('alerts.dismissed');
+    },
+    value: 'dismissed',
+  },
+  {
+    get label() {
+      return t('alerts.all');
+    },
+    value: 'all',
+  },
 ];
 
 const RULE_LABEL: Record<string, string> = {
@@ -91,7 +106,14 @@ export function AlertsView() {
         <SkeletonRoot>
           <FilterBarPhantom controls={1} />
           <SkeletonTable
-            columns={['Severity', 'Rule', 'Alert', 'When', 'Snapshot', <ActionsHeader key="a" />]}
+            columns={[
+              t('alerts.severity'),
+              t('alerts.rule'),
+              t('alerts.alert'),
+              t('activity.when'),
+              t('alerts.snapshot'),
+              <ActionsHeader key="a" />,
+            ]}
           />
         </SkeletonRoot>
       </PageFrame>
@@ -102,11 +124,11 @@ export function AlertsView() {
     setBusy(true);
     try {
       await call('dismissAlerts', { ids });
-      toast.success(ids.length === 1 ? 'Alert dismissed' : 'Alerts dismissed');
+      toast.success(ids.length === 1 ? t('alerts.alertDismissed') : t('alerts.alertsDismissed'));
       list.reload();
       status.reload();
     } catch (e) {
-      toast.error('Could not dismiss', errorText(e));
+      toast.error(t('alerts.couldNotDismiss'), errorText(e));
     } finally {
       setBusy(false);
     }
@@ -127,18 +149,18 @@ export function AlertsView() {
         {!items.length ? (
           <EmptyState
             headingSize="xsmall"
-            header="No alerts"
+            header={t('alerts.noAlerts')}
             description={t('alerts.whenASnapshotDetectsNewAdmins')}
           />
         ) : (
           <DynamicTable
             head={{
               cells: [
-                { key: 'sev', content: 'Severity' },
-                { key: 'rule', content: 'Rule' },
-                { key: 'title', content: 'Alert' },
-                { key: 'when', content: 'When' },
-                { key: 'snap', content: 'Snapshot' },
+                { key: 'sev', content: t('alerts.severity') },
+                { key: 'rule', content: t('alerts.rule') },
+                { key: 'title', content: t('alerts.alert') },
+                { key: 'when', content: t('activity.when') },
+                { key: 'snap', content: t('alerts.snapshot') },
                 { key: 'act', content: <ActionsHeader /> },
               ],
             }}
@@ -149,7 +171,11 @@ export function AlertsView() {
                   key: 'sev',
                   content: (
                     <Pill tone={a.severity === 'high' ? 'danger' : 'warning'}>
-                      {a.severity === 'high' ? 'High' : a.severity === 'medium' ? 'Medium' : 'Low'}
+                      {a.severity === 'high'
+                        ? t('alerts.high')
+                        : a.severity === 'medium'
+                          ? t('alerts.medium')
+                          : t('alerts.low')}
                     </Pill>
                   ),
                 },
@@ -188,7 +214,7 @@ export function AlertsView() {
                       {t('alerts.dismiss')}
                     </LinkButton>
                   ) : (
-                    'Dismissed'
+                    t('alerts.dismissed')
                   ),
                 },
               ],

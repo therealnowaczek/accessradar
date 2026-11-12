@@ -51,8 +51,8 @@ export const useSnapshots = () =>
 export function useRefresh(reload: () => Promise<boolean>) {
   const toast = useToast();
   const [refresh, refreshing] = useAction(async () => {
-    if (await reload()) toast.success('Data refreshed');
-    else toast.error('Could not refresh', 'Try again in a moment.');
+    if (await reload()) toast.success(t('shared.dataRefreshed'));
+    else toast.error(t('shared.couldNotRefresh'), 'Try again in a moment.');
   });
   return { refresh, refreshing };
 }
@@ -74,7 +74,7 @@ export function useTakeSnapshot(
       void status.reload();
       onStarted?.();
     } catch (e) {
-      toast.error('Snapshot could not start', errorText(e));
+      toast.error(t('getStarted.snapshotCouldNotStart'), errorText(e));
     }
   });
   return { run, busy };
@@ -108,10 +108,10 @@ export function SnapshotProgress({ active }: { active: Snapshot }) {
           <ProgressBar
             value={value}
             isIndeterminate={value === undefined}
-            ariaLabel="Snapshot progress"
+            ariaLabel={t('shared.snapshotProgress')}
           />
           <Text as="p" color="color.text.subtle">
-            {p ? (STEP_LABEL[p.step] ?? p.step) : 'Waiting for the collector'}
+            {p ? (STEP_LABEL[p.step] ?? p.step) : t('shared.waitingForTheCollector')}
             {p?.batches ? ` · batch ${p.batch + 1} of ${p.batches}` : ''}
             {p?.message ? ` · ${p.message}` : ''} · started {relative(active.startedAt)}
           </Text>
@@ -138,7 +138,7 @@ export function NoSnapshot({ what, headingSize }: { what: string; headingSize?: 
   return (
     <EmptyState
       headingSize={headingSize}
-      header="No snapshot yet"
+      header={t('shared.noSnapshotYet')}
       description={`Take the first snapshot to see ${what}; it reads permission schemes, roles, groups and application access, and nothing in Jira changes.`}
       primaryAction={
         <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>

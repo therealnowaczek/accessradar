@@ -117,7 +117,10 @@ export function OverviewView() {
             title={t('overview.riskIndicators')}
             description={t('overview.signalsWorthCheckingInTheNext')}
           >
-            <SkeletonTable columns={['Severity', 'Indicator', 'Count']} rows={4} />
+            <SkeletonTable
+              columns={[t('alerts.severity'), t('overview.indicator'), t('overview.count')]}
+              rows={4}
+            />
           </Section>
           <Section
             title={t('overview.changesSinceThePreviousSnapshot')}
@@ -208,14 +211,13 @@ export function OverviewView() {
             headingLevel="h2"
           >
             <Text as="p">
-              {status.data.lastAttempt.error ??
-                'The collector stopped. Try again; completed data is kept.'}
+              {status.data.lastAttempt.error ?? t('overview.theCollectorStoppedTryAgainCompleted')}
             </Text>
           </SectionMessage>
         ) : null}
         {!d.snapshot ? (
           active ? null : (
-            <NoSnapshot what="who has access to what" headingSize="xsmall" />
+            <NoSnapshot what={t('overview.whoHasAccessToWhat')} headingSize="xsmall" />
           )
         ) : (
           <>
@@ -225,7 +227,7 @@ export function OverviewView() {
                 setDrawer([
                   {
                     key: 'coverage',
-                    title: 'What we could not see',
+                    title: t('shared.whatWeCouldNotSee'),
                     description: `Snapshot #${d.snapshot!.seq}`,
                     content: (
                       <DrawerBody>
@@ -273,7 +275,7 @@ export function OverviewView() {
                 <Metric
                   label={t('overview.accessEntries')}
                   value={d.metrics.accessEntries}
-                  hint="Who × space × permission"
+                  hint={t('overview.whoSpacePermission')}
                 />
               </MetricGrid>
             ) : null}
@@ -285,9 +287,9 @@ export function OverviewView() {
                 <DynamicTable
                   head={{
                     cells: [
-                      { key: 'severity', content: 'Severity', width: 12 },
-                      { key: 'indicator', content: 'Indicator' },
-                      { key: 'count', content: 'Count', width: 10 },
+                      { key: 'severity', content: t('alerts.severity'), width: 12 },
+                      { key: 'indicator', content: t('overview.indicator') },
+                      { key: 'count', content: t('overview.count'), width: 10 },
                     ],
                   }}
                   rows={d.risks
@@ -395,7 +397,7 @@ export function OverviewView() {
           ) : d.snapshot ? (
             <EmptyState
               headingSize="xsmall"
-              header="No reviews yet"
+              header={t('overview.noReviewsYet')}
               description={t('overview.startAReviewOfTheLatest')}
               primaryAction={
                 <Button onClick={() => go('reviews', { create: '1' })}>

@@ -122,12 +122,19 @@ export function SnapshotsView() {
         ) : !snaps.data ? (
           <SkeletonRoot>
             <SkeletonTable
-              columns={['Snapshot', 'Status', 'Trigger', 'Duration', 'Contents', 'API cost']}
+              columns={[
+                t('alerts.snapshot'),
+                t('campaigns.status'),
+                t('snapshots.trigger'),
+                t('snapshots.duration'),
+                t('snapshots.contents'),
+                t('snapshots.apiCost'),
+              ]}
             />
           </SkeletonRoot>
         ) : !list.length ? (
           <EmptyState
-            header="No snapshots yet"
+            header={t('snapshots.noSnapshotsYet')}
             description={t('snapshots.aSnapshotRecordsPermissionSchemesRoles')}
             // R-3.2: while a snapshot runs the header keeps its (disabled) button; no second CTA.
             primaryAction={
@@ -142,12 +149,12 @@ export function SnapshotsView() {
           <DynamicTable
             head={{
               cells: [
-                { key: 'seq', content: 'Snapshot', isSortable: true },
-                { key: 'status', content: 'Status' },
-                { key: 'trigger', content: 'Trigger' },
-                { key: 'duration', content: 'Duration' },
-                { key: 'size', content: 'Contents' },
-                { key: 'cost', content: 'API cost' },
+                { key: 'seq', content: t('alerts.snapshot'), isSortable: true },
+                { key: 'status', content: t('campaigns.status') },
+                { key: 'trigger', content: t('snapshots.trigger') },
+                { key: 'duration', content: t('snapshots.duration') },
+                { key: 'size', content: t('snapshots.contents') },
+                { key: 'cost', content: t('snapshots.apiCost') },
               ],
             }}
             rows={list.map((s) => ({

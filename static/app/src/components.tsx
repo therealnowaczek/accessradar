@@ -200,7 +200,10 @@ export function SnapshotPicker({
 }) {
   const committed = snapshots.filter((s) => s.status === 'complete' || s.status === 'partial');
   const options: Option[] = [
-    { label: allowLatest ? 'Latest snapshot' : 'Previous snapshot', value: 0 },
+    {
+      label: allowLatest ? t('components.latestSnapshot') : t('components.previousSnapshot'),
+      value: 0,
+    },
     ...committed.map((s) => ({ label: snapshotLabel(s), value: s.seq })),
   ];
   const selected = options.find((o) => o.value === (value ?? 0)) ?? null;

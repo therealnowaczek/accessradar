@@ -44,11 +44,36 @@ import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
-  { label: 'Everyone', value: 'all' },
-  { label: 'With space access', value: 'access' },
-  { label: 'Inactive with access', value: 'inactive' },
-  { label: 'Jira administrators', value: 'admins' },
-  { label: 'Admin of several spaces', value: 'project-admins' },
+  {
+    get label() {
+      return t('people.everyone');
+    },
+    value: 'all',
+  },
+  {
+    get label() {
+      return t('people.withSpaceAccess');
+    },
+    value: 'access',
+  },
+  {
+    get label() {
+      return t('people.inactiveWithAccess');
+    },
+    value: 'inactive',
+  },
+  {
+    get label() {
+      return t('people.jiraAdministrators');
+    },
+    value: 'admins',
+  },
+  {
+    get label() {
+      return t('people.adminOfSeveralSpaces');
+    },
+    value: 'project-admins',
+  },
 ];
 
 export function PeopleView() {
@@ -70,7 +95,7 @@ export function PeopleView() {
       {
         key: accountId,
         title: name,
-        description: 'What this person can do, and why',
+        description: t('people.whatThisPersonCanDoAnd'),
         content: <PersonDrawer accountId={accountId} seq={seq} />,
       },
     ]);
@@ -112,16 +137,16 @@ export function PeopleView() {
             <FilterBarPhantom controls={4} />
             <SkeletonTable
               columns={[
-                'Person',
-                'Spaces',
-                'Admin of',
-                'Groups',
+                t('people.person'),
+                t('campaigns.spaces'),
+                t('people.adminOf'),
+                t('changes.groups'),
                 <ActionsHeader key="f" label={t('people.flags')} />,
               ]}
             />
           </SkeletonRoot>
         ) : !snapshot ? (
-          <NoSnapshot what="what each person can do" />
+          <NoSnapshot what={t('people.whatEachPersonCanDo')} />
         ) : (
           <>
             <PartialBanner
@@ -154,10 +179,10 @@ export function PeopleView() {
             <DynamicTable
               head={{
                 cells: [
-                  { key: 'name', content: 'Person', isSortable: true },
-                  { key: 'projects', content: 'Spaces', isSortable: true },
-                  { key: 'admin', content: 'Admin of', isSortable: true },
-                  { key: 'groups', content: 'Groups', isSortable: true },
+                  { key: 'name', content: t('people.person'), isSortable: true },
+                  { key: 'projects', content: t('campaigns.spaces'), isSortable: true },
+                  { key: 'admin', content: t('people.adminOf'), isSortable: true },
+                  { key: 'groups', content: t('changes.groups'), isSortable: true },
                   { key: 'flags', content: <ActionsHeader label={t('people.flags')} /> },
                 ],
               }}
@@ -237,7 +262,7 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
     } catch (e) {
       // R-8.7: an action without a form reports failure as a toast.
       setGlobal({ busy: false });
-      toast.error('Could not check global permissions', errorText(e));
+      toast.error(t('people.couldNotCheckGlobalPermissions'), errorText(e));
     }
   };
   if (r.error && !r.data)

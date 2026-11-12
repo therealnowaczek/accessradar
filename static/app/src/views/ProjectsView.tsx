@@ -49,11 +49,36 @@ import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Opt = { label: string; value: string };
 const FILTERS: Opt[] = [
-  { label: 'All spaces', value: 'all' },
-  { label: 'Anonymous access', value: 'anonymous' },
-  { label: 'Company-managed', value: 'company' },
-  { label: 'Team-managed', value: 'team' },
-  { label: 'Groups with unknown members', value: 'unexpanded' },
+  {
+    get label() {
+      return t('projects.allSpaces');
+    },
+    value: 'all',
+  },
+  {
+    get label() {
+      return t('projects.anonymousAccess');
+    },
+    value: 'anonymous',
+  },
+  {
+    get label() {
+      return t('projects.companyManaged');
+    },
+    value: 'company',
+  },
+  {
+    get label() {
+      return t('projects.teamManaged');
+    },
+    value: 'team',
+  },
+  {
+    get label() {
+      return t('projects.groupsWithUnknownMembers');
+    },
+    value: 'unexpanded',
+  },
 ];
 
 export function ProjectsView() {
@@ -136,17 +161,17 @@ export function ProjectsView() {
             <FilterBarPhantom controls={3} />
             <SkeletonTable
               columns={[
-                'Space',
-                'Type',
-                'Permission scheme',
-                'People with access',
-                'Space admins (people)',
-                'Flags',
+                t('campaigns.space'),
+                t('exposure.type'),
+                t('projects.permissionScheme'),
+                t('projects.peopleWithAccess'),
+                t('projects.spaceAdminsPeople'),
+                t('people.flags'),
               ]}
             />
           </SkeletonRoot>
         ) : !snapshot ? (
-          <NoSnapshot what="who has access to each space" />
+          <NoSnapshot what={t('projects.whoHasAccessToEachSpace')} />
         ) : (
           <>
             <PartialBanner
@@ -170,12 +195,12 @@ export function ProjectsView() {
             <DynamicTable
               head={{
                 cells: [
-                  { key: 'key', content: 'Space', isSortable: true },
-                  { key: 'style', content: 'Type', isSortable: true },
-                  { key: 'scheme', content: 'Permission scheme', isSortable: true },
-                  { key: 'people', content: 'People with access', isSortable: true },
-                  { key: 'admins', content: 'Space admins (people)', isSortable: true },
-                  { key: 'flags', content: 'Flags' },
+                  { key: 'key', content: t('campaigns.space'), isSortable: true },
+                  { key: 'style', content: t('exposure.type'), isSortable: true },
+                  { key: 'scheme', content: t('projects.permissionScheme'), isSortable: true },
+                  { key: 'people', content: t('projects.peopleWithAccess'), isSortable: true },
+                  { key: 'admins', content: t('projects.spaceAdminsPeople'), isSortable: true },
+                  { key: 'flags', content: t('people.flags') },
                 ],
               }}
               rows={rows.map((p) => ({
@@ -198,7 +223,8 @@ export function ProjectsView() {
                   },
                   {
                     key: p.style,
-                    content: p.style === 'team' ? 'Team-managed' : 'Company-managed',
+                    content:
+                      p.style === 'team' ? t('projects.teamManaged') : t('projects.companyManaged'),
                   },
                   {
                     key: p.schemeName ?? '',
@@ -317,15 +343,15 @@ function ProjectDetail({
     ]);
   const header = (
     <PageHeader
-      title={d ? `${d.project.key} · ${d.project.name}` : 'Space'}
+      title={d ? `${d.project.key} · ${d.project.name}` : t('campaigns.space')}
       description={
         d
           ? `${d.project.style === 'team' ? 'Team-managed' : 'Company-managed'} · ${d.project.schemeName ?? 'per-space permissions'}`
           : undefined
       }
       breadcrumbs={pageBreadcrumbs([
-        { text: 'Spaces', onClick: onBack },
-        { text: d ? `${d.project.key} · ${d.project.name}` : 'Space' },
+        { text: t('campaigns.spaces'), onClick: onBack },
+        { text: d ? `${d.project.key} · ${d.project.name}` : t('campaigns.space') },
       ])}
       actions={
         <>
@@ -391,10 +417,10 @@ function ProjectDetail({
             {/* Same columns as the loaded table, key permissions included (R-10.1). */}
             <SkeletonTable
               columns={[
-                'Who',
+                t('activity.who'),
                 ...keyPerms.map(permissionLabel),
-                'All permissions',
-                'Through',
+                t('projects.allPermissions'),
+                t('projects.through'),
                 <ActionsHeader key="w" label={t('projects.why')} />,
               ]}
             />
@@ -417,10 +443,10 @@ function ProjectDetail({
             <DynamicTable
               head={{
                 cells: [
-                  { key: 'who', content: 'Who', isSortable: true },
+                  { key: 'who', content: t('activity.who'), isSortable: true },
                   ...keyPerms.map((perm) => ({ key: perm, content: permissionLabel(perm) })),
-                  { key: 'all', content: 'All permissions', isSortable: true },
-                  { key: 'via', content: 'Through' },
+                  { key: 'all', content: t('projects.allPermissions'), isSortable: true },
+                  { key: 'via', content: t('projects.through') },
                   { key: 'why', content: <ActionsHeader label={t('projects.why')} /> },
                 ],
               }}

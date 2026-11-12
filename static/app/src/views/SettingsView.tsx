@@ -195,9 +195,11 @@ function ScheduleForm({
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as Settings['frequency'])}
           options={[
-            ...(advanced ? [{ name: 'frequency', value: 'daily', label: 'Daily' }] : []),
-            { name: 'frequency', value: 'weekly', label: 'Weekly' },
-            { name: 'frequency', value: 'off', label: 'Off (manual snapshots only)' },
+            ...(advanced
+              ? [{ name: 'frequency', value: 'daily', label: t('settings.daily') }]
+              : []),
+            { name: 'frequency', value: 'weekly', label: t('settings.weekly') },
+            { name: 'frequency', value: 'off', label: t('settings.offManualSnapshotsOnly') },
           ]}
         />
       </RadioField>
@@ -220,7 +222,7 @@ function ScheduleForm({
           ) : null}
           <FormField
             label={t('settings.startTime')}
-            helper="Pick a quiet hour; collection shares the site’s API quota."
+            helper={t('settings.pickAQuietHourCollectionShares')}
           >
             {(id) => (
               <Select<Opt<number>>
@@ -259,7 +261,7 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
     >
       <FormField
         label={t('settings.keyPermissionsUpTo20')}
-        helper="Used by reviews, change reports, the PDF matrix and space columns. Existing reviews keep the permissions they started with."
+        helper={t('settings.usedByReviewsChangeReportsThe')}
       >
         {(id) => (
           <>
@@ -343,9 +345,9 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
             {
               name: 'members',
               value: 'referenced',
-              label: 'Groups that grant access (recommended, fewer API calls)',
+              label: t('settings.groupsThatGrantAccessRecommendedFewer'),
             },
-            { name: 'members', value: 'all', label: 'Every group' },
+            { name: 'members', value: 'all', label: t('settings.everyGroup') },
           ]}
         />
       </RadioField>
@@ -355,7 +357,7 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
         onChange={setBudget}
         min={500}
         max={65000}
-        hint="AccessRadar pauses and resumes the next hour when the budget is used. 500 to 65,000."
+        hint={t('settings.accessradarPausesAndResumesTheNext')}
       />
       <ToggleField
         label={t('settings.useMyAccountWhenTheApp')}
@@ -393,7 +395,7 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
         onChange={setLarge}
         min={2}
         max={100000}
-        hint="Groups this size or bigger that grant access are flagged."
+        hint={t('settings.groupsThisSizeOrBiggerThat')}
       />
       <NumberField
         label={t('settings.adminOfManySpaces')}
@@ -401,7 +403,7 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
         onChange={setWide}
         min={1}
         max={10000}
-        hint="People who administer at least this many spaces are flagged."
+        hint={t('settings.peopleWhoAdministerAtLeastThis')}
       />
       <ToggleField
         label={t('settings.includeAppAccountsInRiskIndicators')}
@@ -424,18 +426,43 @@ function ReviewsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: ()
         label={t('settings.requireJustificationWhenKeepingAccess')}
         isChecked={requireKeepNote}
         onChange={setRequireKeepNote}
-        helper="Revoke and exception already require a justification of at least 10 characters. Turn this on to require the same for Keep."
+        helper={t('settings.revokeAndExceptionAlreadyRequireA')}
       />
     </EditForm>
   );
 }
 
 const ALERT_RULE_LABELS: Array<{ key: keyof NonNullable<Settings['alerts']>; label: string }> = [
-  { key: 'new-admin', label: 'New Jira admin' },
-  { key: 'new-anonymous-grant', label: 'New anonymous (Anyone) grant' },
-  { key: 'inactive-with-access', label: 'Inactive account with access' },
-  { key: 'new-project-admin', label: 'New space admin' },
-  { key: 'new-app-account-admin', label: 'New app account admin' },
+  {
+    key: 'new-admin',
+    get label() {
+      return t('settings.newJiraAdmin');
+    },
+  },
+  {
+    key: 'new-anonymous-grant',
+    get label() {
+      return t('settings.newAnonymousAnyoneGrant');
+    },
+  },
+  {
+    key: 'inactive-with-access',
+    get label() {
+      return t('settings.inactiveAccountWithAccess');
+    },
+  },
+  {
+    key: 'new-project-admin',
+    get label() {
+      return t('settings.newSpaceAdmin');
+    },
+  },
+  {
+    key: 'new-app-account-admin',
+    get label() {
+      return t('settings.newAppAccountAdmin');
+    },
+  },
 ];
 
 function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () => void }) {
@@ -518,7 +545,7 @@ export function SettingsView() {
       settings: { ...r.data!.settings, ...patch },
       ...(fallback ? { fallback } : {}),
     });
-    toast.success('Settings saved');
+    toast.success(t('settings.settingsSaved'));
     close();
     r.reload();
     status.reload();
@@ -841,30 +868,60 @@ const ADVANCED_FEATURES: Array<{
   key: keyof EditionView['features'];
   label: string;
 }> = [
-  { key: 'customSchedules', label: 'Daily and custom snapshot schedules' },
-  { key: 'unlimitedHistory', label: 'Unlimited history (Standard keeps 90 days)' },
+  {
+    key: 'customSchedules',
+    get label() {
+      return t('settings.dailyAndCustomSnapshotSchedules');
+    },
+  },
+  {
+    key: 'unlimitedHistory',
+    get label() {
+      return t('settings.unlimitedHistoryStandardKeeps90Days');
+    },
+  },
   {
     key: 'remediationVerification',
-    label: 'Remediation verification (confirm Revokes in the next snapshot)',
+    get label() {
+      return t('settings.remediationVerificationConfirmRevokesInThe');
+    },
   },
   {
     key: 'delegatedReviews',
-    label: 'Reviews delegated to space owners (space settings + in-app reminders)',
+    get label() {
+      return t('settings.reviewsDelegatedToSpaceOwnersSpace');
+    },
   },
-  { key: 'reviewCampaigns', label: 'Recurring review campaigns' },
+  {
+    key: 'reviewCampaigns',
+    get label() {
+      return t('settings.recurringReviewCampaigns');
+    },
+  },
   {
     key: 'changeAlerts',
-    label: 'Change alerts: new admin, public grant, inactive user with access',
+    get label() {
+      return t('settings.changeAlertsNewAdminPublicGrant');
+    },
   },
   {
     key: 'evidencePack',
-    label: 'Audit evidence pack PDF and JSON (methodology and decision trail)',
+    get label() {
+      return t('settings.auditEvidencePackPdfAndJson');
+    },
   },
   {
     key: 'signatureChain',
-    label: 'Signed reviews (SHA-256), hash chain and Verify',
+    get label() {
+      return t('settings.signedReviewsSha256HashChain');
+    },
   },
-  { key: 'rovo', label: 'Rovo agent (read-only answers from your snapshots)' },
+  {
+    key: 'rovo',
+    get label() {
+      return t('settings.rovoAgentReadOnlyAnswersFrom');
+    },
+  },
 ];
 
 const SOURCE_TEXT: Record<EditionView['source'], string> = {
@@ -881,18 +938,18 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const options: Opt<string>[] = [
-    { label: 'Use the license', value: '' },
-    { label: 'Standard', value: 'standard' },
-    { label: 'Advanced', value: 'advanced' },
+    { label: t('settings.useTheLicense'), value: '' },
+    { label: t('settings.standard'), value: 'standard' },
+    { label: t('settings.advanced'), value: 'advanced' },
   ];
   const change = async (value: string) => {
     setBusy(true);
     try {
       await call<EditionView>('setEditionOverride', { edition: value || null });
-      toast.success('Edition override saved');
+      toast.success(t('settings.editionOverrideSaved'));
       onChanged();
     } catch (e) {
-      toast.error('Could not save the override', errorText(e));
+      toast.error(t('settings.couldNotSaveTheOverride'), errorText(e));
     } finally {
       setBusy(false);
     }
@@ -902,7 +959,7 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
       'Edition',
       <Inline as="span" space="space.050" shouldWrap key="e">
         <Pill tone={edition.edition === 'advanced' ? 'discovery' : 'neutral'}>
-          {edition.edition === 'advanced' ? 'Advanced' : 'Standard'}
+          {edition.edition === 'advanced' ? t('settings.advanced') : t('settings.standard')}
         </Pill>
         <Text color="color.text.subtle">{SOURCE_TEXT[edition.source]}</Text>
       </Inline>,
@@ -951,8 +1008,8 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
       title={t('settings.edition')}
       description={
         edition.canOverride
-          ? 'Which AccessRadar features this site can use. On development and staging you can override the edition to test Standard vs Advanced.'
-          : 'Which AccessRadar features this site can use.'
+          ? t('settings.whichAccessradarFeaturesThisSiteCan2')
+          : t('settings.whichAccessradarFeaturesThisSiteCan')
       }
     >
       <Details rows={rows} />

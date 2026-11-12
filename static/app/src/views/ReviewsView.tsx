@@ -138,9 +138,8 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
     setDrawer([
       {
         key: 'create',
-        title: 'Start an access review',
-        description:
-          'Items are pinned to the base snapshot; later changes do not alter this review.',
+        title: t('reviews.startAnAccessReview'),
+        description: t('reviews.itemsArePinnedToTheBase'),
         content: (
           <CreateReview
             onCreated={(id) => go('reviews', { reviewId: id })}
@@ -161,8 +160,8 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
     setDrawer([
       {
         key: 'verify-chain',
-        title: 'Verify signature chain',
-        description: 'Checks that signed reviews form a contiguous hash-linked sequence.',
+        title: t('reviews.verifySignatureChain2'),
+        description: t('reviews.checksThatSignedReviewsFormA'),
         content: <VerifyChainPanel onDone={() => setDrawer([])} />,
       },
     ]);
@@ -200,14 +199,22 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
         ) : !list.data || (status.loading && !status.data) ? (
           <SkeletonRoot>
             <SkeletonTable
-              columns={['Review', 'Status', 'Chain #', 'Decided', 'Revoke', 'Due', 'Signed']}
+              columns={[
+                t('exceptions.review'),
+                t('campaigns.status'),
+                t('reviews.chain'),
+                t('projectReview.decided'),
+                t('projectReview.revoke'),
+                t('campaigns.due'),
+                t('overview.signed'),
+              ]}
             />
           </SkeletonRoot>
         ) : !hasSnapshot && !reviews.length ? (
-          <NoSnapshot what="and review access" />
+          <NoSnapshot what={t('reviews.andReviewAccess')} />
         ) : !reviews.length ? (
           <EmptyState
-            header="No reviews yet"
+            header={t('overview.noReviewsYet')}
             description={t('reviews.startAReviewToListWho')}
             primaryAction={
               <Button appearance="primary" onClick={openCreate}>
@@ -219,13 +226,13 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
           <DynamicTable
             head={{
               cells: [
-                { key: 'name', content: 'Review', isSortable: true },
-                { key: 'status', content: 'Status', isSortable: true },
-                { key: 'chain', content: 'Chain #', isSortable: true },
-                { key: 'progress', content: 'Decided' },
-                { key: 'flagged', content: 'Revoke', isSortable: true },
-                { key: 'due', content: 'Due', isSortable: true },
-                { key: 'signed', content: 'Signed', isSortable: true },
+                { key: 'name', content: t('exceptions.review'), isSortable: true },
+                { key: 'status', content: t('campaigns.status'), isSortable: true },
+                { key: 'chain', content: t('reviews.chain'), isSortable: true },
+                { key: 'progress', content: t('projectReview.decided') },
+                { key: 'flagged', content: t('projectReview.revoke'), isSortable: true },
+                { key: 'due', content: t('campaigns.due'), isSortable: true },
+                { key: 'signed', content: t('overview.signed'), isSortable: true },
               ],
             }}
             rows={reviews.map((r) => ({
@@ -240,7 +247,7 @@ function ReviewList({ autoCreate }: { autoCreate: boolean }) {
                       </LinkButton>
                       <Text as="p" color="color.text.subtle">
                         {r.scope.type === 'site'
-                          ? 'Whole site'
+                          ? t('reviews.wholeSite')
                           : plural(
                               r.scope.ids.length,
                               r.scope.type === 'projects' ? 'space' : 'group',
@@ -347,7 +354,7 @@ function CreateReview({
   const canStart = canStartReview({ name, scope, selected: ids.length });
   const submit = async () => {
     setError('');
-    if (!name.trim()) return setError('Give the review a name.');
+    if (!name.trim()) return setError(t('reviews.giveTheReviewAName'));
     if (scope !== 'site' && !ids.length)
       return setError(`Pick at least one ${scope === 'projects' ? 'space' : 'group'}.`);
     setBusy(true);
@@ -359,7 +366,7 @@ function CreateReview({
         compareSeq: compare,
         dueAt: due ? new Date(`${due}T23:59:59`).getTime() : null,
       });
-      toast.success('Review started', `${plural(r.items, 'item')} to review.`);
+      toast.success(t('reviews.reviewStarted'), `${plural(r.items, 'item')} to review.`);
       onCreated(r.id);
     } catch (e) {
       setError(errorText(e));
@@ -399,17 +406,21 @@ function CreateReview({
                 {
                   name: 'scope',
                   value: 'site',
-                  label: 'Whole site (all spaces, Jira admins and application access)',
+                  label: t('reviews.wholeSiteAllSpacesJiraAdmins'),
                 },
-                { name: 'scope', value: 'projects', label: 'Selected spaces' },
-                { name: 'scope', value: 'groups', label: 'Selected groups (membership review)' },
+                { name: 'scope', value: 'projects', label: t('campaigns.selectedSpaces') },
+                {
+                  name: 'scope',
+                  value: 'groups',
+                  label: t('reviews.selectedGroupsMembershipReview'),
+                },
               ]}
             />
           </RadioField>
           {scope !== 'site' ? (
             <FormField
-              label={scope === 'projects' ? 'Spaces' : 'Groups'}
-              helper="Type to search. You can select more than one."
+              label={scope === 'projects' ? t('campaigns.spaces') : t('changes.groups')}
+              helper={t('reviews.typeToSearchYouCanSelect')}
             >
               {(id) => (
                 <Select<Opt, true>
@@ -440,14 +451,14 @@ function CreateReview({
           </FormField>
           <FormField
             label={t('reviews.compareWithOptional')}
-            helper="Marks items as new since the older snapshot, and lists access removed since then."
+            helper={t('reviews.marksItemsAsNewSinceThe')}
           >
             {(id) => (
               <Select<{ label: string; value: number }>
                 menuPosition="fixed"
                 inputId={id}
                 options={[
-                  { label: 'No comparison', value: 0 },
+                  { label: t('reviews.noComparison'), value: 0 },
                   ...older.map((s) => ({
                     label: `#${s.seq} · ${formatLocal(s.startedAt)}`,
                     value: s.seq,
@@ -456,7 +467,7 @@ function CreateReview({
                 value={
                   compare
                     ? { label: `#${compare}`, value: compare }
-                    : { label: 'No comparison', value: 0 }
+                    : { label: t('reviews.noComparison'), value: 0 }
                 }
                 onChange={(o) => setCompare(o && o.value ? o.value : null)}
                 isSearchable={false}
@@ -493,17 +504,62 @@ function CreateReview({
 }
 
 const DECISIONS: Opt[] = [
-  { label: 'All decisions', value: '' },
-  { label: 'Undecided', value: 'none' },
-  { label: 'Keep', value: 'keep' },
-  { label: 'Revoke', value: 'revoke' },
-  { label: 'Exception', value: 'exception' },
+  {
+    get label() {
+      return t('reviews.allDecisions');
+    },
+    value: '',
+  },
+  {
+    get label() {
+      return t('reviews.undecided');
+    },
+    value: 'none',
+  },
+  {
+    get label() {
+      return t('projectReview.keep');
+    },
+    value: 'keep',
+  },
+  {
+    get label() {
+      return t('projectReview.revoke');
+    },
+    value: 'revoke',
+  },
+  {
+    get label() {
+      return t('reviews.exception2');
+    },
+    value: 'exception',
+  },
 ];
 const CHANGES: Opt[] = [
-  { label: 'All items', value: '' },
-  { label: 'New since comparison', value: 'new' },
-  { label: 'Unchanged', value: 'unchanged' },
-  { label: 'Removed since comparison', value: 'removed' },
+  {
+    get label() {
+      return t('reviews.allItems');
+    },
+    value: '',
+  },
+  {
+    get label() {
+      return t('reviews.newSinceComparison');
+    },
+    value: 'new',
+  },
+  {
+    get label() {
+      return t('reviews.unchanged');
+    },
+    value: 'unchanged',
+  },
+  {
+    get label() {
+      return t('reviews.removedSinceComparison');
+    },
+    value: 'removed',
+  },
 ];
 
 function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
@@ -573,7 +629,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         toast.success(t('exceptions.withdrawn', { count: res.exceptions.withdrawn }));
       r.reload();
     } catch (e) {
-      if (!inlineErrors) toast.error('Decision not saved', errorText(e));
+      if (!inlineErrors) toast.error(t('reviews.decisionNotSaved'), errorText(e));
       throw e;
     } finally {
       setBusy(false);
@@ -591,17 +647,17 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           preset === 'exception'
             ? multi
               ? `Grant exception (${idxs.length})`
-              : 'Grant exception'
+              : t('reviews.grantException')
             : preset === 'revoke'
               ? multi
                 ? `Revoke access (${idxs.length})`
-                : 'Revoke access'
+                : t('reviews.revokeAccess')
               : sample.subject.name,
         description: multi
-          ? 'One justification applies to every selected item.'
+          ? t('reviews.oneJustificationAppliesToEverySelected')
           : sample.project
             ? `${sample.project.key} · ${sample.project.name}`
-            : (sample.groupName ?? 'Site'),
+            : (sample.groupName ?? t('reviews.site')),
         content: (
           <ItemDrawer
             item={{ ...sample, decision: preset ?? sample.decision }}
@@ -624,7 +680,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
     setDrawer([
       {
         key: 'sign',
-        title: 'Sign off review',
+        title: t('reviews.signOffReview'),
         description: d?.review.name,
         content: (
           <SignDrawer
@@ -643,7 +699,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
     setDrawer([
       {
         key: 'verify',
-        title: 'Verify signature & chain',
+        title: t('reviews.verifySignatureChain'),
         description: d?.review.name,
         content: (
           <VerifyDrawer
@@ -659,14 +715,14 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   const openDelete = () =>
     confirm({
       title: `Delete review "${d?.review.name ?? ''}"?`,
-      confirmLabel: 'Delete review',
+      confirmLabel: t('reviews.deleteReview'),
       onConfirm: async () => {
         try {
           await call('deleteReview', { id });
-          toast.success('Review deleted');
+          toast.success(t('reviews.reviewDeleted'));
           onBack();
         } catch (e) {
-          toast.error('Review not deleted', errorText(e));
+          toast.error(t('reviews.reviewNotDeleted'), errorText(e));
         }
       },
       body: <Text as="p">{t('reviews.thisDeletesTheDraftReviewAnd')}</Text>,
@@ -674,7 +730,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
 
   const header = (
     <PageHeader
-      title={d?.review.name ?? 'Review'}
+      title={d?.review.name ?? t('exceptions.review')}
       description={
         d
           ? `${d.review.scope.type === 'site' ? 'Whole site' : `${d.review.scope.type}: ${d.review.scopeLabels.slice(0, 6).join(', ')}${d.review.scopeLabels.length > 6 ? '…' : ''}`} · snapshot #${d.review.baseSeq}${d.review.compareSeq ? ` vs #${d.review.compareSeq}` : ''}`
@@ -684,8 +740,8 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         d ? <Pill tone={STATUS[d.review.status][1]}>{STATUS[d.review.status][0]}</Pill> : null
       }
       breadcrumbs={pageBreadcrumbs([
-        { text: 'Reviews', onClick: onBack },
-        { text: d?.review.name ?? 'Review' },
+        { text: t('settings.reviews'), onClick: onBack },
+        { text: d?.review.name ?? t('exceptions.review') },
       ])}
       actions={
         <>
@@ -726,8 +782,8 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               d?.review.status === 'signed'
                 ? [
                     {
-                      label: 'Evidence pack JSON',
-                      description: 'Advanced: signed review with methodology and trail',
+                      label: t('reviews.evidencePackJson'),
+                      description: t('reviews.advancedSignedReviewWithMethodologyAnd'),
                       onClick: () =>
                         void exporter('Evidence pack JSON', async () => {
                           const { first, allItems } = await fetchEvidencePack(id);
@@ -795,7 +851,14 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           <MetricGridPhantom count={4} />
           <FilterBarPhantom controls={3} />
           <SkeletonTable
-            columns={['Who', 'Where', 'Access', 'Why', 'Decision', <ActionsHeader key="a" />]}
+            columns={[
+              t('activity.who'),
+              t('reviews.where'),
+              t('groups.access'),
+              t('projects.why'),
+              t('reviews.decision'),
+              <ActionsHeader key="a" />,
+            ]}
           />
           <Section title={t('reviews.reviewRecord')}>
             <DetailsPhantom
@@ -861,7 +924,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           <Metric
             label={t('projectReview.decided')}
             value={decided}
-            hint={pending ? `${pending} to go` : 'All decided'}
+            hint={pending ? `${pending} to go` : t('projectReview.allDecided')}
           />
           <Metric
             label={t('projectReview.keep')}
@@ -870,7 +933,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           <Metric
             label={t('projectReview.revoke')}
             value={flagged}
-            hint="Remove manually in Jira"
+            hint={t('reviews.removeManuallyInJira')}
           />
         </MetricGrid>
         <FilterBar>
@@ -923,15 +986,15 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
         <DynamicTable
           head={{
             cells: [
-              { key: 'who', content: 'Who', isSortable: true },
+              { key: 'who', content: t('activity.who'), isSortable: true },
               {
                 key: 'where',
-                content: d.review.scope.type === 'groups' ? 'Group' : 'Where',
+                content: d.review.scope.type === 'groups' ? t('groups.group') : t('reviews.where'),
                 isSortable: true,
               },
-              { key: 'access', content: 'Access' },
-              { key: 'why', content: 'Why' },
-              { key: 'decision', content: 'Decision', isSortable: true },
+              { key: 'access', content: t('groups.access') },
+              { key: 'why', content: t('projects.why') },
+              { key: 'decision', content: t('reviews.decision'), isSortable: true },
               { key: 'actions', content: <ActionsHeader /> },
             ],
           }}
@@ -956,7 +1019,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                 content: i.project ? (
                   <Text weight="bold">{i.project.key}</Text>
                 ) : (
-                  (i.groupName ?? 'Site')
+                  (i.groupName ?? t('reviews.site'))
                 ),
               },
               { key: 'access', content: i.permissions.map(permissionLabel).join(', ') },
@@ -986,7 +1049,7 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
                         <Pill tone="warning">
                           {i.expiresAt
                             ? `Exception until ${formatLocal(i.expiresAt)}`
-                            : 'Exception'}
+                            : t('reviews.exception2')}
                         </Pill>
                       ) : i.reasons.includes('Exception expired') ? (
                         <Pill tone="danger">{t('reviews.exceptionExpired')}</Pill>
@@ -1119,18 +1182,22 @@ function ItemDrawer({
                 value={value ?? ''}
                 onChange={(e) => setValue((e.target.value || null) as typeof value)}
                 options={[
-                  { name: 'decision', value: 'keep', label: 'Keep: this access is still needed' },
+                  {
+                    name: 'decision',
+                    value: 'keep',
+                    label: t('reviews.keepThisAccessIsStillNeeded'),
+                  },
                   {
                     name: 'decision',
                     value: 'revoke',
-                    label: 'Revoke: remove this access in Jira',
+                    label: t('reviews.revokeRemoveThisAccessInJira'),
                   },
                   {
                     name: 'decision',
                     value: 'exception',
-                    label: 'Exception: keep with justification and expiry',
+                    label: t('reviews.exceptionKeepWithJustificationAndExpiry'),
                   },
-                  { name: 'decision', value: '', label: 'Undecided' },
+                  { name: 'decision', value: '', label: t('reviews.undecided') },
                 ]}
               />
             </RadioField>
@@ -1138,8 +1205,8 @@ function ItemDrawer({
               label={t('reviews.justification')}
               helper={
                 needsJustification
-                  ? 'Required · at least 10 characters. Becomes part of the evidence.'
-                  : 'Optional. Notes become part of the evidence.'
+                  ? t('reviews.requiredAtLeast10CharactersBecomes')
+                  : t('reviews.optionalNotesBecomePartOfThe')
               }
             >
               {(fid, helperId) => (
@@ -1196,11 +1263,11 @@ function ItemDrawer({
             onClick={async () => {
               setError('');
               if (needsJustification && note.trim().length < 10) {
-                setError('Add a justification (at least 10 characters)');
+                setError(t('reviews.addAJustificationAtLeast10'));
                 return;
               }
               if (value === 'exception' && !expiresOn) {
-                setError('Exception expiry date is required');
+                setError(t('reviews.exceptionExpiryDateIsRequired'));
                 return;
               }
               setBusy(true);
@@ -1324,7 +1391,13 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
           <Phantom height={8} radius="full" />
           {/* Gating is only known after the load; Advanced (the default) has the snapshot column. */}
           <SkeletonTable
-            columns={['Subject', 'Where', 'Access', 'Status', 'Checked in snapshot']}
+            columns={[
+              t('exceptions.subject'),
+              t('reviews.where'),
+              t('groups.access'),
+              t('campaigns.status'),
+              t('reviews.checkedInSnapshot'),
+            ]}
             rows={3}
           />
         </SkeletonRoot>
@@ -1336,7 +1409,10 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
       <Stack space="space.200">
         {!gated && untracked < total ? (
           <>
-            <ProgressBar value={total ? closed / total : 0} ariaLabel="Remediation progress" />
+            <ProgressBar
+              value={total ? closed / total : 0}
+              ariaLabel={t('reviews.remediationProgress')}
+            />
             <Text color="color.text.subtle">
               {closed} of {plural(total, 'revocation')} closed
             </Text>
@@ -1349,9 +1425,9 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
         {!gated && untracked ? (
           <Text as="p" color="color.text.subtle">
             {untracked === total
-              ? 'These revocations are'
+              ? t('reviews.theseRevocationsAre')
               : untracked === 1
-                ? '1 revocation is'
+                ? t('reviews.1RevocationIs')
                 : `${untracked} revocations are`}{' '}
             not tracked for verification: remediation verification was off when the review was
             signed. Remove the access in Jira; after the next snapshot, Changes shows it as revoked.
@@ -1360,11 +1436,11 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
         <DynamicTable
           head={{
             cells: [
-              { key: 'who', content: 'Subject' },
-              { key: 'where', content: 'Where' },
-              { key: 'access', content: 'Access' },
-              { key: 'status', content: 'Status' },
-              ...(gated ? [] : [{ key: 'snap', content: 'Checked in snapshot' }]),
+              { key: 'who', content: t('exceptions.subject') },
+              { key: 'where', content: t('reviews.where') },
+              { key: 'access', content: t('groups.access') },
+              { key: 'status', content: t('campaigns.status') },
+              ...(gated ? [] : [{ key: 'snap', content: t('reviews.checkedInSnapshot') }]),
             ],
           }}
           rows={entries.map((e) => {
@@ -1378,7 +1454,7 @@ function RemediationPanel({ reviewId, items }: { reviewId: string; items: Review
                   content: e.item.project ? (
                     <Text weight="bold">{e.item.project.key}</Text>
                   ) : (
-                    (e.item.groupName ?? 'Site')
+                    (e.item.groupName ?? t('reviews.site'))
                   ),
                 },
                 { key: 'a', content: e.item.permissions.map(permissionLabel).join(', ') },
@@ -1459,7 +1535,10 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
           // Mirrors the loaded result: status lozenge, then the chain table (R-10.1, R-10.8).
           <SkeletonRoot>
             <Phantom width={120} height={20} radius="full" />
-            <SkeletonTable columns={['Chain #', 'Status', 'Detail']} rows={3} />
+            <SkeletonTable
+              columns={[t('reviews.chain'), t('campaigns.status'), t('activity.detail')]}
+              rows={3}
+            />
           </SkeletonRoot>
         ) : (
           <Stack space="space.200">
@@ -1477,9 +1556,9 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
               <DynamicTable
                 head={{
                   cells: [
-                    { key: 'seq', content: 'Chain #' },
-                    { key: 'ok', content: 'Status' },
-                    { key: 'reason', content: 'Detail' },
+                    { key: 'seq', content: t('reviews.chain') },
+                    { key: 'ok', content: t('campaigns.status') },
+                    { key: 'reason', content: t('activity.detail') },
                   ],
                 }}
                 rows={result.links.map((l) => ({
@@ -1489,7 +1568,9 @@ function VerifyChainPanel({ onDone }: { onDone: () => void }) {
                     {
                       key: l.ok ? 'ok' : 'bad',
                       content: (
-                        <Pill tone={l.ok ? 'success' : 'danger'}>{l.ok ? 'OK' : 'Break'}</Pill>
+                        <Pill tone={l.ok ? 'success' : 'danger'}>
+                          {l.ok ? t('reviews.ok') : t('reviews.break')}
+                        </Pill>
                       ),
                     },
                     {
@@ -1623,7 +1704,9 @@ function VerifyDrawer({
             </SkeletonRoot>
           ) : (
             <Stack space="space.200">
-              <Pill tone={sig.ok ? 'success' : 'danger'}>{sig.ok ? 'Verified' : 'Mismatch'}</Pill>
+              <Pill tone={sig.ok ? 'success' : 'danger'}>
+                {sig.ok ? t('reviews.verified') : t('reviews.mismatch')}
+              </Pill>
               <Details
                 rows={[
                   ['Signature version', String(sig.signatureVersion)],
@@ -1672,7 +1755,7 @@ function VerifyDrawer({
           {deepDone && job.status !== 'purged' ? (
             <Stack space="space.200">
               <Pill tone={job.status === 'ok' ? 'success' : 'danger'}>
-                {job.status === 'ok' ? 'Verified' : 'Mismatch'}
+                {job.status === 'ok' ? t('reviews.verified') : t('reviews.mismatch')}
               </Pill>
               <Details
                 rows={[
@@ -1721,7 +1804,7 @@ function SignDrawer({
         attest: true,
         tz: timeZone(),
       });
-      toast.success('Review signed', `Evidence hash ${r.evidenceHash.slice(0, 16)}…`);
+      toast.success(t('reviews.reviewSigned'), `Evidence hash ${r.evidenceHash.slice(0, 16)}…`);
       onSigned();
     } catch (e) {
       setError(errorText(e));

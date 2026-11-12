@@ -56,11 +56,36 @@ function subjectCell(e: Pick<ExceptionRow, 'subjectName' | 'subjectKind'>) {
 }
 
 const STATUS_OPTS = [
-  { label: 'Active', value: 'active' },
-  { label: 'Expired', value: 'expired' },
-  { label: 'Superseded', value: 'superseded' },
-  { label: 'Revoked', value: 'revoked' },
-  { label: 'All', value: 'all' },
+  {
+    get label() {
+      return t('exceptions.active');
+    },
+    value: 'active',
+  },
+  {
+    get label() {
+      return t('exceptions.expired');
+    },
+    value: 'expired',
+  },
+  {
+    get label() {
+      return t('exceptions.superseded');
+    },
+    value: 'superseded',
+  },
+  {
+    get label() {
+      return t('changes.revoked');
+    },
+    value: 'revoked',
+  },
+  {
+    get label() {
+      return t('alerts.all');
+    },
+    value: 'all',
+  },
 ];
 
 function expiryLozenge(status: ExceptionRow['status'], expiresAt: number, now: number) {
@@ -101,13 +126,13 @@ export function ExceptionsView() {
           <FilterBarPhantom controls={1} />
           <SkeletonTable
             columns={[
-              'Subject',
-              'Space/Group',
-              'Permissions',
-              'Justification',
-              'Expires',
-              'Granted by',
-              'Review',
+              t('exceptions.subject'),
+              t('exceptions.spaceGroup'),
+              t('exceptions.permissions'),
+              t('reviews.justification'),
+              t('exceptions.expires'),
+              t('exceptions.grantedBy'),
+              t('exceptions.review'),
             ]}
           />
         </SkeletonRoot>
@@ -131,20 +156,20 @@ export function ExceptionsView() {
         {!items.length && status === 'active' ? (
           <EmptyState
             headingSize="xsmall"
-            header="No exceptions yet"
+            header={t('exceptions.noExceptionsYet')}
             description={t('exceptions.emptyDescription')}
           />
         ) : (
           <DynamicTable
             head={{
               cells: [
-                { key: 'subject', content: 'Subject' },
-                { key: 'scope', content: 'Space/Group' },
-                { key: 'perms', content: 'Permissions' },
-                { key: 'why', content: 'Justification' },
-                { key: 'exp', content: 'Expires' },
-                { key: 'by', content: 'Granted by' },
-                { key: 'review', content: 'Review' },
+                { key: 'subject', content: t('exceptions.subject') },
+                { key: 'scope', content: t('exceptions.spaceGroup') },
+                { key: 'perms', content: t('exceptions.permissions') },
+                { key: 'why', content: t('reviews.justification') },
+                { key: 'exp', content: t('exceptions.expires') },
+                { key: 'by', content: t('exceptions.grantedBy') },
+                { key: 'review', content: t('exceptions.review') },
               ],
             }}
             rows={items.map((e) => ({
@@ -181,7 +206,7 @@ export function ExceptionsView() {
             emptyView={
               <EmptyState
                 headingSize="xsmall"
-                header="No exceptions"
+                header={t('exceptions.noExceptions')}
                 description={t('exceptions.nothingMatchesThisFilter')}
               />
             }
