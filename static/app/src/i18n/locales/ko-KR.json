@@ -1026,5 +1026,9 @@
   "seats.why": "표시 이유",
   "seats.flagNoSpace": "스페이스 액세스 없음",
   "seats.flagMultiple": "여러 제품",
-  "seats.nothingToReview": "이 스냅샷에는 검토할 시트 보유자가 없습니다."
+  "seats.nothingToReview": "이 스냅샷에는 검토할 시트 보유자가 없습니다.",
+  "projectReview.startSelf": "이 스페이스 검토 시작",
+  "projectReview.startSelfDescription": "이 스페이스에 누가 액세스할 수 있는지 검토하고 유지할지 취소할지 결정하세요. Jira에서는 아무것도 변경되지 않습니다.",
+  "projectReview.selfStarted": "검토가 시작되었습니다",
+  "projectReview.couldNotStart": "검토를 시작하지 못했습니다"
 }

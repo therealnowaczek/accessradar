@@ -1026,5 +1026,9 @@
   "seats.why": "Waarom vermeld",
   "seats.flagNoSpace": "Geen toegang tot ruimtes",
   "seats.flagMultiple": "Meerdere producten",
-  "seats.nothingToReview": "Geen licentiehouders om te controleren in deze snapshot."
+  "seats.nothingToReview": "Geen licentiehouders om te controleren in deze snapshot.",
+  "projectReview.startSelf": "Review van deze ruimte starten",
+  "projectReview.startSelfDescription": "Bekijk wie toegang heeft tot deze ruimte en beslis of je die behoudt of intrekt. Er wordt niets gewijzigd in Jira.",
+  "projectReview.selfStarted": "Review gestart",
+  "projectReview.couldNotStart": "Review kon niet worden gestart"
 }

@@ -1026,5 +1026,9 @@
   "seats.why": "列出原因",
   "seats.flagNoSpace": "無空間存取權限",
   "seats.flagMultiple": "多個產品",
-  "seats.nothingToReview": "此快照中沒有需要審查的席位持有者。"
+  "seats.nothingToReview": "此快照中沒有需要審查的席位持有者。",
+  "projectReview.startSelf": "開始審查此空間",
+  "projectReview.startSelfDescription": "查看誰可以存取此空間，並決定保留或撤銷。不會變更 Jira 中的任何內容。",
+  "projectReview.selfStarted": "審查已開始",
+  "projectReview.couldNotStart": "無法開始審查"
 }

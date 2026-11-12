@@ -1026,5 +1026,9 @@
   "seats.why": "Por qué aparece",
   "seats.flagNoSpace": "Sin acceso a espacios",
   "seats.flagMultiple": "Varios productos",
-  "seats.nothingToReview": "No hay titulares de licencia para revisar en esta instantánea."
+  "seats.nothingToReview": "No hay titulares de licencia para revisar en esta instantánea.",
+  "projectReview.startSelf": "Iniciar una revisión de este espacio",
+  "projectReview.startSelfDescription": "Revise quién tiene acceso a este espacio y decida si lo mantiene o lo revoca. No se cambia nada en Jira.",
+  "projectReview.selfStarted": "Revisión iniciada",
+  "projectReview.couldNotStart": "No se pudo iniciar la revisión"
 }

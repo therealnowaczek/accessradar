@@ -1026,5 +1026,9 @@
   "seats.why": "Warum aufgeführt",
   "seats.flagNoSpace": "Kein Space-Zugriff",
   "seats.flagMultiple": "Mehrere Produkte",
-  "seats.nothingToReview": "In diesem Snapshot gibt es keine zu prüfenden Lizenzinhaber."
+  "seats.nothingToReview": "In diesem Snapshot gibt es keine zu prüfenden Lizenzinhaber.",
+  "projectReview.startSelf": "Überprüfung dieses Space starten",
+  "projectReview.startSelfDescription": "Prüfen Sie, wer Zugriff auf diesen Space hat, und entscheiden Sie, ob er bleibt oder entzogen wird. In Jira wird nichts geändert.",
+  "projectReview.selfStarted": "Überprüfung gestartet",
+  "projectReview.couldNotStart": "Überprüfung konnte nicht gestartet werden"
 }

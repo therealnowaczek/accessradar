@@ -1026,5 +1026,9 @@
   "seats.why": "表示理由",
   "seats.flagNoSpace": "スペースへのアクセスなし",
   "seats.flagMultiple": "複数の製品",
-  "seats.nothingToReview": "このスナップショットに見直し対象のシート保有者はいません。"
+  "seats.nothingToReview": "このスナップショットに見直し対象のシート保有者はいません。",
+  "projectReview.startSelf": "このスペースのレビューを開始",
+  "projectReview.startSelfDescription": "このスペースに誰がアクセスできるかを確認し、維持するか取り消すかを判断します。Jira では何も変更されません。",
+  "projectReview.selfStarted": "レビューを開始しました",
+  "projectReview.couldNotStart": "レビューを開始できませんでした"
 }

@@ -4,23 +4,13 @@ import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
 import DynamicTable from '../Table';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
-import { REQUIRES_ADVANCED } from '../../../../src/domain/edition';
 import { call, errorText, type ReviewItem, type ReviewSummary } from '../api';
 import { SubjectCell, recheckDetail } from '../components';
 import { useCall } from '../data';
 import { formatLocal, permissionLabel } from '../format';
 import { t } from '../i18n';
 import { useToast } from '../Toast';
-import {
-  ErrorState,
-  Metric,
-  PageFrame,
-  PageHeader,
-  Pill,
-  PlanNote,
-  MetricGrid,
-  staleNotice,
-} from '../ui';
+import { ErrorState, Metric, PageFrame, PageHeader, Pill, MetricGrid, staleNotice } from '../ui';
 import { MetricGridPhantom, Phantom, SkeletonRoot } from '../skeletons';
 import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
@@ -46,6 +36,7 @@ type MyAssignment = {
   items: ReviewItem[];
   notices: Notice[];
   limitation: string | null;
+  canStart?: boolean;
 };
 
 export function ProjectReviewView() {
@@ -96,6 +87,19 @@ export function ProjectReviewView() {
     }
   };
 
+  const startSelf = async () => {
+    setBusy(true);
+    try {
+      await call('startSelfReview');
+      toast.success(t('projectReview.selfStarted'));
+      mine.reload();
+    } catch (e) {
+      toast.error(t('projectReview.couldNotStart'), errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const dismiss = async (id: number) => {
     try {
       await call('dismissNotice', { id });
@@ -124,12 +128,6 @@ export function ProjectReviewView() {
     />
   );
 
-  if (mine.error === REQUIRES_ADVANCED && !d)
-    return (
-      <PageFrame header={header}>
-        <PlanNote benefit={t('planGate.projectReview')} />
-      </PageFrame>
-    );
   if (mine.error && !d)
     return (
       <PageFrame header={header}>
@@ -181,7 +179,18 @@ export function ProjectReviewView() {
         {d.limitation || !d.assignment || !d.review ? (
           <EmptyState
             header={t('projectReview.noAssignedReview')}
-            description={d.limitation ?? t('projectReview.whenAJiraAdminRunsA')}
+            description={
+              d.canStart
+                ? t('projectReview.startSelfDescription')
+                : (d.limitation ?? t('projectReview.whenAJiraAdminRunsA'))
+            }
+            primaryAction={
+              d.canStart ? (
+                <Button appearance="primary" isLoading={busy} onClick={() => void startSelf()}>
+                  {t('projectReview.startSelf')}
+                </Button>
+              ) : undefined
+            }
           />
         ) : (
           <>

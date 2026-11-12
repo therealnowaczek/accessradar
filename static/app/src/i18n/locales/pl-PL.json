@@ -1026,5 +1026,9 @@
   "seats.why": "Dlaczego na liście",
   "seats.flagNoSpace": "Brak dostępu do przestrzeni",
   "seats.flagMultiple": "Kilka produktów",
-  "seats.nothingToReview": "Brak posiadaczy licencji do przeglądu w tej migawce."
+  "seats.nothingToReview": "Brak posiadaczy licencji do przeglądu w tej migawce.",
+  "projectReview.startSelf": "Rozpocznij przegląd tej przestrzeni",
+  "projectReview.startSelfDescription": "Przejrzyj, kto ma dostęp do tej przestrzeni, i zdecyduj, czy go zachować, czy odebrać. W Jirze nic nie zostanie zmienione.",
+  "projectReview.selfStarted": "Przegląd rozpoczęty",
+  "projectReview.couldNotStart": "Nie udało się rozpocząć przeglądu"
 }

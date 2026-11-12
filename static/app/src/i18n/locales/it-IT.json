@@ -1026,5 +1026,9 @@
   "seats.why": "Perché è elencato",
   "seats.flagNoSpace": "Nessun accesso agli spazi",
   "seats.flagMultiple": "Più prodotti",
-  "seats.nothingToReview": "Nessun titolare di licenza da verificare in questo snapshot."
+  "seats.nothingToReview": "Nessun titolare di licenza da verificare in questo snapshot.",
+  "projectReview.startSelf": "Avvia una revisione di questo spazio",
+  "projectReview.startSelfDescription": "Controlla chi ha accesso a questo spazio e decidi se mantenerlo o revocarlo. Nulla viene modificato in Jira.",
+  "projectReview.selfStarted": "Revisione avviata",
+  "projectReview.couldNotStart": "Impossibile avviare la revisione"
 }
