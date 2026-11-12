@@ -6,7 +6,7 @@ import DynamicTable from '../Table';
 import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import { REQUIRES_ADVANCED } from '../../../../src/domain/edition';
 import { call, errorText, type ReviewItem, type ReviewSummary } from '../api';
-import { SubjectCell } from '../components';
+import { SubjectCell, recheckDetail } from '../components';
 import { useCall } from '../data';
 import { formatLocal, permissionLabel } from '../format';
 import { t } from '../i18n';
@@ -57,7 +57,8 @@ export function ProjectReviewView() {
     () => (d?.items ?? []).filter((i) => i.change !== 'removed'),
     [d?.items],
   );
-  const pending = decidable.filter((i) => !i.decision).length;
+  const recheck = decidable.filter((i) => i.recheck).length;
+  const pending = decidable.filter((i) => !i.decision || i.recheck).length;
   const decided = decidable.length - pending;
 
   const decide = async (idxs: number[], decision: 'keep' | 'revoke') => {
@@ -201,6 +202,15 @@ export function ProjectReviewView() {
                 {t('projectReview.submitWhenEveryItemHasA')}
               </Text>
             </SectionMessage>
+            {recheck ? (
+              <SectionMessage
+                appearance="warning"
+                title={t('reviews.recheckTitle', { count: recheck })}
+                headingLevel="h2"
+              >
+                <Text as="p">{t('projectReview.recheckBody')}</Text>
+              </SectionMessage>
+            ) : null}
             <MetricGrid>
               <Metric label={t('projectReview.items')} value={decidable.length} />
               <Metric
@@ -267,7 +277,14 @@ export function ProjectReviewView() {
                   },
                   {
                     key: i.decision ?? '',
-                    content: i.decision ? (
+                    content: i.recheck ? (
+                      <Stack as="span" space="space.100">
+                        <Pill tone="warning">{t('reviews.recheck')}</Pill>
+                        <Text color="color.text.subtle">
+                          {recheckDetail(i.decision, i.recheck.currentPermissions)}
+                        </Text>
+                      </Stack>
+                    ) : i.decision ? (
                       <Pill
                         tone={
                           i.decision === 'revoke'

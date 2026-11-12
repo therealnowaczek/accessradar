@@ -941,5 +941,12 @@
   "reviewPrompt.body": "Atlassian Marketplace に短いレビューを投稿いただくと、他の Jira 管理者がこのアプリを見つけやすくなります。1 分ほどで完了し、AccessRadar の機能には影響しません。",
   "reviewPrompt.open": "レビューを書く",
   "reviewPrompt.alreadyDone": "投稿済み",
-  "reviewPrompt.dismiss": "今はしない"
+  "reviewPrompt.dismiss": "今はしない",
+  "reviews.recheck": "再確認",
+  "reviews.recheckDetail": "以前の判断: {decision}。スナップショット後にアクセスが変更されました。現在: {access}",
+  "reviews.recheckDetailPath": "以前の判断: {decision}。スナップショット後に、このアクセスが付与される経路が変更されました。",
+  "reviews.recheckTitle": "{count, plural, other {# 件の判断を再確認する必要があります}}",
+  "reviews.recheckBody": "これらの判断の後、より新しいスナップショットでアクセスが変更されました。現在のアクセスに基づいて再度判断してください。それまでレビューに署名できません。",
+  "reviews.showRecheck": "再確認が必要な項目を表示",
+  "projectReview.recheckBody": "これらの判断の後、より新しいスナップショットでアクセスが変更されました。現在のアクセスに基づいて再度判断してください。それまでレビューを提出できません。"
 }

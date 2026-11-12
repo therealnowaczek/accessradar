@@ -941,5 +941,12 @@
   "reviewPrompt.body": "Un court avis sur l'Atlassian Marketplace aide d'autres administrateurs Jira à trouver l'application. Cela prend environ une minute et rien dans AccessRadar n'en dépend.",
   "reviewPrompt.open": "Écrire un avis",
   "reviewPrompt.alreadyDone": "C'est déjà fait",
-  "reviewPrompt.dismiss": "Pas maintenant"
+  "reviewPrompt.dismiss": "Pas maintenant",
+  "reviews.recheck": "À revérifier",
+  "reviews.recheckDetail": "Décision : {decision}. L'accès a changé après l'instantané, désormais : {access}",
+  "reviews.recheckDetailPath": "Décision : {decision}. La façon dont cet accès est accordé a changé après l'instantané.",
+  "reviews.recheckTitle": "{count, plural, one {# décision à revérifier} other {# décisions à revérifier}}",
+  "reviews.recheckBody": "L'accès a changé dans un instantané ultérieur, après ces décisions. Décidez à nouveau en fonction de l'accès actuel. La revue ne peut pas être signée avant.",
+  "reviews.showRecheck": "Afficher les éléments à revérifier",
+  "projectReview.recheckBody": "L'accès a changé dans un instantané ultérieur, après ces décisions. Décidez à nouveau en fonction de l'accès actuel. La revue ne peut pas être soumise avant."
 }

@@ -180,6 +180,12 @@ def('devResetReviewPrompt', async (_p, c) => {
   return svc.resetReviewPrompt();
 });
 
+/** Dev-only E2E hook for Recheck (C5): see simulateAccessChange. Only touches reviews named "E2E C5...". */
+def('devSimulateAccessChange', async (_p, c) => {
+  if (!spikeAllowed(c.environmentType)) throw new svc.BadRequest('Spike disabled');
+  return svc.devSimulateAccessChange();
+});
+
 export const resolverHandler = resolver.getDefinitions();
 
 // ---------- project settings page resolver (not Jira-admin-gated) ----------

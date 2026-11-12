@@ -24,6 +24,8 @@ import {
 import { capAlerts, evaluateAlerts, sanitizeAlertRules } from '../engine/alerts';
 import {
   decide,
+  setAck,
+  simulateAccessChange,
   deleteDraftReview,
   evidenceInput,
   getItems,
@@ -34,6 +36,7 @@ import {
   markSigned,
   nextChainTip,
   type ReviewRow,
+  type ReviewItemRow,
 } from '../db/reviews';
 import { isDuplicateKey, walkChain } from '../engine/chain';
 import { refreshGate } from '../collector/gate';
@@ -48,6 +51,7 @@ import { coverageHash } from '../engine/facts';
 import { getVerifyJob, insertVerifyJob, patchVerifyJob, recomputeSnapshotHash } from '../db/verify';
 import { push } from '../lib/queue';
 import { jiraCall, mapLimit } from '../lib/budget';
+import { findStale, recheckBlockMessage, type StaleItem } from '../engine/recheck';
 import { getSettings, kvGet, kvSet, saveSettings } from '../db/settings';
 import {
   MARKETPLACE_REVIEW_URL,
@@ -86,6 +90,7 @@ import {
   activeSnapshot,
   getSnapshot,
   latestCommitted,
+  latestComplete,
   listSnapshots,
   loadFacts,
   previousCommitted,
@@ -593,6 +598,34 @@ export async function createReview(p: any, accountId: string) {
   return { id, items: items.length };
 }
 
+/**
+ * Recheck (C5): decisions whose access changed in the latest complete snapshot, relative to what the
+ * decision was made on. Only open reviews; a signed review is frozen evidence.
+ */
+async function staleFor(review: ReviewRow, items: ReviewItemRow[]): Promise<StaleItem[]> {
+  if (review.status === 'signed' || !items.some((i) => i.decision)) return [];
+  const latest = await latestComplete();
+  if (!latest || latest.seq <= review.baseSeq) return [];
+  const state = await stateFor(latest.seq);
+  const known = review.scope.type === 'projects' ? state.projects : state.groups;
+  const scope: ReviewScope = {
+    ...review.scope,
+    ids: review.scope.type === 'site' ? [] : review.scope.ids.filter((id) => known.has(id)),
+  };
+  if (review.scope.type !== 'site' && !scope.ids.length) return [];
+  const drafts = buildReviewItems(state, scope, review.keyPermissions);
+  return findStale(items, new Map(drafts.map((d) => [d.itemKey, d])));
+}
+
+export async function devSimulateAccessChange() {
+  return { items: await simulateAccessChange('E2E C5') };
+}
+
+async function assertNoRecheck(review: ReviewRow, items: ReviewItemRow[]) {
+  const stale = await staleFor(review, items);
+  if (stale.length) throw new BadRequest(recheckBlockMessage(stale.length));
+}
+
 async function loadReview(idInput: unknown): Promise<ReviewRow> {
   const id = v.id(idInput, 'review', /^[0-9a-f-]{36}$/);
   const r = await getReview(id);
@@ -617,7 +650,9 @@ export async function reviewDetail(p: any) {
       : null;
   const coverage = baseFull?.coverage ?? [];
   const limitations = limitationsPayload(base?.status, coverage);
+  const stale = new Map((await staleFor(review, items)).map((x) => [x.idx, x]));
   return {
+    recheckCount: stale.size,
     review: {
       ...review,
       createdByName: personName(review.createdBy),
@@ -649,6 +684,9 @@ export async function reviewDetail(p: any) {
         project: i.projectId ? projectView(state, i.projectId) : null,
         groupName: i.groupId ? (state.groups.get(i.groupId)?.name ?? i.groupId) : null,
         decidedByName: personName(i.decidedBy),
+        recheck: stale.has(i.idx)
+          ? { currentPermissions: stale.get(i.idx)!.currentPermissions }
+          : null,
       };
     }),
   };
@@ -691,7 +729,24 @@ export async function decideItems(p: any, accountId: string) {
       throw new BadRequest(String((e as Error).message ?? e));
     }
   }
+  // Items that were stale are confirmed against the access as it is now; clearing a decision resets it.
+  const staleBefore =
+    decision === null
+      ? []
+      : (await staleFor(review, await getItems(review.id))).filter((x) => idxs.includes(x.idx));
   const changed = await decide(review.id, idxs, decision, note, accountId, expiresAt);
+  if (decision === null)
+    await setAck(
+      review.id,
+      idxs.map((idx: number) => ({ idx, fp: null })),
+    );
+  else if (staleBefore.length) {
+    await setAck(
+      review.id,
+      staleBefore.map((x) => ({ idx: x.idx, fp: x.currentFp })),
+    );
+    await audit(accountId, 'review.rechecked', review.id, { count: staleBefore.length });
+  }
   await audit(accountId, 'review.decided', review.id, {
     count: changed,
     decision,
@@ -737,6 +792,7 @@ export async function signReview(p: any, accountId: string, edition: EditionDeci
   const items = await getItems(review.id);
   const pending = items.filter((i) => i.change !== 'removed' && !i.decision).length;
   if (pending) throw new BadRequest(`${pending} items still need a decision`);
+  await assertNoRecheck(review, items);
   const base = await getSnapshot(review.baseSeq, false);
   const compare = review.compareSeq ? await getSnapshot(review.compareSeq, false) : null;
   const baseFull = await getSnapshot(review.baseSeq);
@@ -1749,6 +1805,7 @@ export async function projectSubmitAssignment(
   const items = await getItems(reviewId);
   const pending = items.filter((i) => i.change !== 'removed' && !i.decision).length;
   if (pending) throw new BadRequest(`${pending} items still need a decision`);
+  await assertNoRecheck(review, items);
   if (!(await dbSubmitAssignment(reviewId, accountId)))
     throw new BadRequest('Assignment already submitted');
   await audit(accountId, 'assignment.submitted', reviewId, { projectId });

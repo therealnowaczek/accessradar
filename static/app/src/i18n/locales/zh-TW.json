@@ -941,5 +941,12 @@
   "reviewPrompt.body": "在 Atlassian Marketplace 留下簡短評價，可以幫助其他 Jira 管理員找到這個應用程式。大約只需一分鐘，AccessRadar 的任何功能都不取決於此。",
   "reviewPrompt.open": "撰寫評價",
   "reviewPrompt.alreadyDone": "我已評價",
-  "reviewPrompt.dismiss": "暫不"
+  "reviewPrompt.dismiss": "暫不",
+  "reviews.recheck": "需複查",
+  "reviews.recheckDetail": "先前的決定：{decision}。快照之後存取權限已變更，目前：{access}",
+  "reviews.recheckDetailPath": "先前的決定：{decision}。快照之後授予此存取權限的方式已變更。",
+  "reviews.recheckTitle": "{count, plural, other {# 項決定需要複查}}",
+  "reviews.recheckBody": "這些決定作出之後，較新的快照中存取權限已變更。請根據目前的存取權限重新決定。在此之前無法簽署此審查。",
+  "reviews.showRecheck": "顯示需複查的項目",
+  "projectReview.recheckBody": "這些決定作出之後，較新的快照中存取權限已變更。請根據目前的存取權限重新決定。在此之前無法提交此審查。"
 }

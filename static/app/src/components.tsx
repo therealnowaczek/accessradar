@@ -469,3 +469,22 @@ export function RowMenu({ label, children }: { label: string; children: ReactNod
     </DropdownMenu>
   );
 }
+
+/** One line under the Recheck pill: what was decided and what the access is now. */
+export function recheckDetail(
+  decision: 'keep' | 'revoke' | 'exception' | null,
+  permissions: string[],
+): string {
+  const was =
+    decision === 'revoke'
+      ? t('projectReview.revoke')
+      : decision === 'exception'
+        ? t('reviews.exception2')
+        : t('projectReview.keep');
+  return permissions.length
+    ? t('reviews.recheckDetail', {
+        decision: was,
+        access: permissions.map(permissionLabel).join(', '),
+      })
+    : t('reviews.recheckDetailPath', { decision: was });
+}

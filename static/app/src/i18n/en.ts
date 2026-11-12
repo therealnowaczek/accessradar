@@ -1086,4 +1086,15 @@ export const en = {
   'reviewPrompt.open': 'Write a review',
   'reviewPrompt.alreadyDone': 'I already did',
   'reviewPrompt.dismiss': 'Not now',
+  'reviews.recheck': 'Recheck',
+  'reviews.recheckDetail': 'Was {decision}. Access changed after the snapshot, now: {access}',
+  'reviews.recheckDetailPath':
+    'Was {decision}. The way this access is granted changed after the snapshot.',
+  'reviews.recheckTitle':
+    '{count, plural, one {# decision needs a recheck} other {# decisions need a recheck}}',
+  'reviews.recheckBody':
+    'Access changed in a later snapshot after these decisions were made. Decide them again against the current access. The review cannot be signed until then.',
+  'reviews.showRecheck': 'Show items to recheck',
+  'projectReview.recheckBody':
+    'Access changed in a later snapshot after these decisions were made. Decide them again against the current access. The review cannot be submitted until then.',
 } as const;

@@ -941,5 +941,12 @@
   "reviewPrompt.body": "Eine kurze Bewertung im Atlassian Marketplace hilft anderen Jira-Admins, die App zu finden. Das dauert etwa eine Minute, und nichts in AccessRadar hängt davon ab.",
   "reviewPrompt.open": "Bewertung schreiben",
   "reviewPrompt.alreadyDone": "Bereits erledigt",
-  "reviewPrompt.dismiss": "Nicht jetzt"
+  "reviewPrompt.dismiss": "Nicht jetzt",
+  "reviews.recheck": "Neu prüfen",
+  "reviews.recheckDetail": "Entscheidung: {decision}. Der Zugriff hat sich nach dem Snapshot geändert, jetzt: {access}",
+  "reviews.recheckDetailPath": "Entscheidung: {decision}. Der Weg, auf dem dieser Zugriff gewährt wird, hat sich nach dem Snapshot geändert.",
+  "reviews.recheckTitle": "{count, plural, one {# Entscheidung muss neu geprüft werden} other {# Entscheidungen müssen neu geprüft werden}}",
+  "reviews.recheckBody": "Der Zugriff hat sich in einem späteren Snapshot geändert, nachdem diese Entscheidungen getroffen wurden. Entscheiden Sie erneut anhand des aktuellen Zugriffs. Bis dahin kann die Prüfung nicht signiert werden.",
+  "reviews.showRecheck": "Neu zu prüfende Einträge anzeigen",
+  "projectReview.recheckBody": "Der Zugriff hat sich in einem späteren Snapshot geändert, nachdem diese Entscheidungen getroffen wurden. Entscheiden Sie erneut anhand des aktuellen Zugriffs. Bis dahin kann die Prüfung nicht eingereicht werden."
 }

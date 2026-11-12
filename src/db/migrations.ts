@@ -381,6 +381,8 @@ export const MIGRATIONS: ReadonlyArray<[name: string, ddl: string]> = [
   ['v037_review_chain', `ALTER TABLE review ADD COLUMN chain_seq INT NULL`],
   ['v038_review_prev', `ALTER TABLE review ADD COLUMN prev_review_hash CHAR(64) NULL`],
   ['v039_review_chain_ix', `CREATE UNIQUE INDEX uq_review_chain ON review (chain_seq)`],
+  // Recheck (C5): fingerprint of the access a decision was last confirmed against.
+  ['v040_review_item_ack', `ALTER TABLE review_item ADD COLUMN ack_fp CHAR(64) NULL`],
 ];
 
 let runner: typeof migrationRunner | null = null;

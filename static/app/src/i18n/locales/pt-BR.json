@@ -941,5 +941,12 @@
   "reviewPrompt.body": "Uma avaliação curta no Atlassian Marketplace ajuda outros administradores do Jira a encontrar o app. Leva cerca de um minuto e nada no AccessRadar depende disso.",
   "reviewPrompt.open": "Escrever uma avaliação",
   "reviewPrompt.alreadyDone": "Já fiz isso",
-  "reviewPrompt.dismiss": "Agora não"
+  "reviewPrompt.dismiss": "Agora não",
+  "reviews.recheck": "Reavaliar",
+  "reviews.recheckDetail": "Decisão: {decision}. O acesso mudou após o snapshot, agora: {access}",
+  "reviews.recheckDetailPath": "Decisão: {decision}. A forma como esse acesso é concedido mudou após o snapshot.",
+  "reviews.recheckTitle": "{count, plural, one {# decisão precisa ser reavaliada} other {# decisões precisam ser reavaliadas}}",
+  "reviews.recheckBody": "O acesso mudou em um snapshot posterior a estas decisões. Decida novamente com base no acesso atual. A revisão não pode ser assinada até lá.",
+  "reviews.showRecheck": "Mostrar itens para reavaliar",
+  "projectReview.recheckBody": "O acesso mudou em um snapshot posterior a estas decisões. Decida novamente com base no acesso atual. A revisão não pode ser enviada até lá."
 }
