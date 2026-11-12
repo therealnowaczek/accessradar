@@ -34,7 +34,7 @@ FIELDS = [
 ]
 STATED = {  # counts written in LISTING.md
     "App name": 55, "Tagline": 123,
-    "Tagline short": 91, "Summary": 210, "More details": 990, "H1 title": 39, "H1 description": 201,
+    "Tagline short": 91, "Summary": 210, "More details": 974, "H1 title": 39, "H1 description": 201,
     "H1 caption": 150, "H2 title": 35, "H2 description": 198, "H2 caption": 131, "H3 title": 35,
     "H3 description": 194, "H3 caption": 145, "Release summary": 78,
 }
