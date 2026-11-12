@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import EmptyState from '@atlaskit/empty-state';
 import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import Button from '@atlaskit/button/new';
@@ -141,7 +142,7 @@ export function NoSnapshot({ what, headingSize }: { what: string; headingSize?: 
       description={`Take the first snapshot to see ${what}; it reads permission schemes, roles, groups and application access, and nothing in Jira changes.`}
       primaryAction={
         <Button appearance="primary" isLoading={take.busy} onClick={() => void take.run()}>
-          Take snapshot now
+          {t('shared.takeSnapshotNow')}
         </Button>
       }
     />
@@ -164,7 +165,9 @@ export function PartialBanner({
       headingLevel="h2"
       actions={
         onDetails ? (
-          <SectionMessageAction onClick={onDetails}>What we could not see</SectionMessageAction>
+          <SectionMessageAction onClick={onDetails}>
+            {t('shared.whatWeCouldNotSee')}
+          </SectionMessageAction>
         ) : undefined
       }
     >

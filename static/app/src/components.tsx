@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import type { ReactNode } from 'react';
 import Avatar from '@atlaskit/avatar';
 import Button, { IconButton } from '@atlaskit/button/new';
@@ -82,18 +83,22 @@ export function SubjectCell({
             <Text>{subject.name}</Text>
           )}
           {subject.type === 'user' && subject.active === false ? (
-            <Pill tone="danger">Inactive</Pill>
+            <Pill tone="danger">{t('components.inactive')}</Pill>
           ) : null}
-          {app ? <Pill>App</Pill> : null}
-          {subject.type === 'anonymous' ? <Pill tone="danger">Anonymous</Pill> : null}
-          {subject.type === 'group' ? <Pill tone="warning">Members unknown</Pill> : null}
+          {app ? <Pill>{t('components.app')}</Pill> : null}
+          {subject.type === 'anonymous' ? (
+            <Pill tone="danger">{t('components.anonymous')}</Pill>
+          ) : null}
+          {subject.type === 'group' ? (
+            <Pill tone="warning">{t('components.membersUnknown')}</Pill>
+          ) : null}
           {subject.type === 'conditional' ? (
-            <Pill tone="discovery">Work item-dependent</Pill>
+            <Pill tone="discovery">{t('components.workItemDependent')}</Pill>
           ) : null}
         </Inline>
         {!compact && subject.type === 'group' ? (
           <Text as="p" size="small" color="color.text.subtle">
-            Group members could not be read
+            {t('components.groupMembersCouldNotBeRead')}
           </Text>
         ) : null}
       </Box>
@@ -144,7 +149,7 @@ export function ReasonList({
         <DividedListItem key={perm} loose>
           <Inline space="space.075" alignBlock="center" shouldWrap>
             <Text weight="bold">{permissionLabel(perm)}</Text>
-            {keyPermissions?.includes(perm) ? <Pill tone="info">Key</Pill> : null}
+            {keyPermissions?.includes(perm) ? <Pill tone="info">{t('components.key')}</Pill> : null}
           </Inline>
           <PathList paths={perms[perm].map((r) => (typeof r === 'string' ? r : r.text))} />
         </DividedListItem>
@@ -268,36 +273,36 @@ export function ExportMenu({
       <DropdownItemGroup>
         <DropdownItem
           elemBefore={<SpreadsheetIcon label="" />}
-          description="Spreadsheet, UTF-8"
+          description={t('components.spreadsheetUtf8')}
           onClick={onCsv}
         >
-          CSV
+          {t('components.csv')}
         </DropdownItem>
         {onPdf ? (
           <DropdownItem
             elemBefore={<PdfDocumentIcon label="" />}
-            description="Evidence pack for auditors"
+            description={t('components.evidencePackForAuditors')}
             onClick={onPdf}
           >
-            PDF
+            {t('components.pdf')}
           </DropdownItem>
         ) : null}
         {onMarkdown ? (
           <DropdownItem
             elemBefore={<DocumentIcon label="" />}
-            description="Markdown table for docs and chat"
+            description={t('components.markdownTableForDocsAndChat')}
             onClick={onMarkdown}
           >
-            Markdown
+            {t('components.markdown')}
           </DropdownItem>
         ) : null}
         {onJson ? (
           <DropdownItem
             elemBefore={<DocumentIcon label="" />}
-            description="Structured data, schema v1"
+            description={t('components.structuredDataSchemaV1')}
             onClick={onJson}
           >
-            JSON
+            {t('components.json')}
           </DropdownItem>
         ) : null}
         {extraItems?.map((x) => (
@@ -325,7 +330,8 @@ const COVERAGE_TONE: Record<string, 'warning' | 'neutral' | 'info' | 'danger'> =
 
 /** "What we could not see" – shown wherever data is used, never hidden. */
 export function CoverageList({ coverage }: { coverage: Coverage[] }) {
-  if (!coverage.length) return <Subtle block>Everything AccessRadar reads was readable.</Subtle>;
+  if (!coverage.length)
+    return <Subtle block>{t('components.everythingAccessradarReadsWasReadable')}</Subtle>;
   return (
     <DividedList>
       {coverage.map((c, i) => (
@@ -355,7 +361,7 @@ export function CoverageLimitations({
   return (
     <SectionMessage
       appearance={partial ? 'warning' : 'information'}
-      title="Coverage & limitations"
+      title={t('components.coverageLimitations')}
       headingLevel="h2"
     >
       <Stack space="space.200">

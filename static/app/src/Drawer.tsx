@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Button, { IconButton } from '@atlaskit/button/new';
@@ -193,7 +194,7 @@ export function LevelSidePanel({
                   {nested ? (
                     <IconButton
                       icon={ArrowLeftIcon}
-                      label="Back"
+                      label={t('drawer.back')}
                       appearance="subtle"
                       onClick={onBack}
                     />
@@ -211,7 +212,12 @@ export function LevelSidePanel({
                     </Stack>
                   </Box>
                 </Inline>
-                <IconButton icon={CrossIcon} label="Close" appearance="subtle" onClick={onClose} />
+                <IconButton
+                  icon={CrossIcon}
+                  label={t('adminNav.close')}
+                  appearance="subtle"
+                  onClick={onClose}
+                />
               </Inline>
             </Box>
             <Box key={level.key} xcss={levelStyles}>

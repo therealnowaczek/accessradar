@@ -42,8 +42,8 @@ A pinned header has a 1px separator and a scroll fade. No shadow. All in `static
 
 ## Language and copy
 
-- The UI language follows the Jira user settings (`context.locale` from `view.getContext()`), with English as the fallback. AccessRadar ships English only today.
-- All new user-facing copy for keyed features goes through `t()` in `static/app/src/i18n.ts`. A key missing from the active catalog falls back to English, never to the key.
+- The UI language follows the Jira user settings (`context.locale` from `view.getContext()`), with English as the fallback. AccessRadar ships twelve UI locales (en-US, de-DE, ja-JP, fr-FR, es-ES, pt-BR, pl-PL, ko-KR, it-IT, nl-NL, zh-CN, zh-TW); `zh`, `zh-SG`, `zh-MY` map to zh-CN, `zh-HK`, `zh-MO` to zh-TW, anything else to en-US.
+- All new user-facing copy for keyed features goes through `t()` in `static/app/src/i18n/` (source text in `en.ts`, translations in `locales/<tag>.json`, loaded once in `main.tsx` before the first render; a locale file may omit keys, which fall back to English). A key missing from the active catalog falls back to English, never to the key.
 - Dates and times use the Jira profile time zone (`context.timezone`, set in `main.tsx` with `setContextTimeZone`) and the Jira profile locale (`context.locale`, set once in `main.tsx` with `setFormatLocale`; missing or invalid falls back to US English `en-US`, owner decision 2026-11-11). Typed dates follow the same locale: `DateField` parses with `parseDateInput` (numeric order from the locale, ISO always accepted) and shows an `ErrorMessage` under the field for text that is not a date. Format dates with the helpers in `static/app/src/format.ts` (`formatLocal`, `formatLocalDate`, `formatLocalTime`, `formatIsoDate`, `relative`; exports use `formatLocalExport` and `formatUtc`, which stay fixed). Do not build ad-hoc date formats in views or slice formatted strings (guard rule 19).
 - No language switcher in the sidebar, the header, or anywhere else. The guard test (rule 8) rejects a language or locale picker.
 - New user-facing copy has no em dash, no en dash, and no emoji.

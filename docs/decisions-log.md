@@ -58,3 +58,19 @@ which prints "YYYY-MM-DD HH:mm:ss UTC") because JSON is meant for machines.
 No MCP call has reached the logs. All `[rovo] ok` lines are Rovo agent calls (`agentId` in `ctx`, `surface: rovo`).
 Changing the heuristic without a real MCP context shape would be a guess. Revisit when an MCP call appears in
 `forge logs`.
+
+## 2026-11-12: i18n, 12 UI locales (Claude run)
+
+- Locales: en-US, de-DE, ja-JP, fr-FR, es-ES, pt-BR, pl-PL, ko-KR, it-IT, nl-NL, zh-CN, zh-TW. Locale from the Jira user
+  profile (`context.locale`); `zh`, `zh-SG`, `zh-MY` and `zh-Hans` map to zh-CN, `zh-HK`, `zh-MO`, `zh-TW` and `zh-Hant` to
+  zh-TW; every other locale falls back to en-US. No language switcher.
+- Dictionaries live in the app bundle (`static/app/src/i18n/locales/*.json`, loaded lazily in `main.tsx` before the first
+  render), not in the manifest `translations`, so there is no manifest, scope or permission change. Per-key fallback to
+  English.
+- Dates (display and typed input) already follow the user's locale with en-US fallback (phase 1).
+- Coverage: UI copy where a JSX text node or a title/label/description/placeholder prop is a plain sentence (about 350
+  keys, including navigation). Sentences built from several fragments or interpolated values, exports (CSV/PDF/JSON keep
+  English column names and ISO formats for machine use) and the Rovo agent prompts/skills stay English. Remaining strings
+  are a follow-up (extract with `/workspace/radrly/accessradar/tools/extract.mjs`, then translate).
+- Translations are machine-drafted by Claude and not reviewed by native speakers: Marcin should have de/fr/pl/ja checked
+  before the listing advertises localisation.

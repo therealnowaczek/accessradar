@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import EmptyState from '@atlaskit/empty-state';
 import Tooltip from '@atlaskit/tooltip';
 import DynamicTable from '../Table';
@@ -21,7 +22,11 @@ export function ActivityView() {
     >
       <Stack space="space.300">
         {r.error && !r.data ? (
-          <ErrorState title="Activity unavailable" message={r.error} retry={r.reload} />
+          <ErrorState
+            title={t('activity.activityUnavailable')}
+            message={r.error}
+            retry={r.reload}
+          />
         ) : !r.data ? (
           <SkeletonRoot>
             <SkeletonTable columns={['When', 'Who', 'What', 'Detail']} rows={8} />
@@ -29,7 +34,7 @@ export function ActivityView() {
         ) : !r.data.events.length ? (
           <EmptyState
             header="No activity yet"
-            description="Snapshots, reviews, sign-offs, exports and settings changes appear here."
+            description={t('activity.snapshotsReviewsSignOffsExportsAnd')}
           />
         ) : (
           <DynamicTable

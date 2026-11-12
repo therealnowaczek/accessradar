@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useMemo, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
@@ -95,7 +96,7 @@ export function ProjectsView() {
       description={meta.description}
       actions={
         <ExportMenu
-          label="Export access matrix"
+          label={t('projects.exportAccessMatrix')}
           isDisabled={!snapshot}
           onCsv={() =>
             void exporter('Access matrix CSV', () =>
@@ -125,7 +126,11 @@ export function ProjectsView() {
     <PageFrame notice={staleNotice(list)} header={header}>
       <Stack space="space.300">
         {list.error && !list.data ? (
-          <ErrorState title="Spaces unavailable" message={list.error} retry={list.reload} />
+          <ErrorState
+            title={t('projects.spacesUnavailable')}
+            message={list.error}
+            retry={list.reload}
+          />
         ) : !list.data ? (
           <SkeletonRoot>
             <FilterBarPhantom controls={3} />
@@ -149,9 +154,9 @@ export function ProjectsView() {
               onDetails={() => go('snapshots', { seq: String(snapshot.seq) })}
             />
             <FilterBar>
-              <SearchField value={query} onChange={setQuery} label="Search spaces" />
+              <SearchField value={query} onChange={setQuery} label={t('projects.searchSpaces')} />
               <FilterSelect<Opt>
-                label="Filter spaces"
+                label={t('projects.filterSpaces')}
                 options={FILTERS}
                 value={FILTERS.find((f) => f.value === filter)}
                 onChange={(o) => setFilter(o?.value ?? 'all')}
@@ -197,7 +202,9 @@ export function ProjectsView() {
                   },
                   {
                     key: p.schemeName ?? '',
-                    content: p.schemeName ?? <Text color="color.text.subtle">Per-space</Text>,
+                    content: p.schemeName ?? (
+                      <Text color="color.text.subtle">{t('projects.perSpace')}</Text>
+                    ),
                   },
                   {
                     key: p.people,
@@ -231,11 +238,15 @@ export function ProjectsView() {
                     key: 'flags',
                     content: (
                       <Inline as="span" space="space.050" shouldWrap>
-                        {p.anonymous ? <Pill tone="danger">Anonymous</Pill> : null}
+                        {p.anonymous ? (
+                          <Pill tone="danger">{t('components.anonymous')}</Pill>
+                        ) : null}
                         {p.unexpanded ? (
                           <Pill tone="warning">{p.unexpanded} unread groups</Pill>
                         ) : null}
-                        {p.conditional ? <Pill tone="discovery">Work item-dependent</Pill> : null}
+                        {p.conditional ? (
+                          <Pill tone="discovery">{t('components.workItemDependent')}</Pill>
+                        ) : null}
                       </Inline>
                     ),
                   },
@@ -247,14 +258,12 @@ export function ProjectsView() {
               defaultSortOrder="ASC"
               emptyView={
                 <Text as="p" color="color.text.subtle">
-                  No spaces match.
+                  {t('projects.noSpacesMatch')}
                 </Text>
               }
             />
             <Text as="p" color="color.text.subtle">
-              People and space admin counts include people only. App accounts (bots and
-              integrations) are shown separately; turn on “Show app accounts” in a space to list
-              them.
+              {t('projects.peopleAndSpaceAdminCountsInclude')}
             </Text>
           </>
         )}
@@ -371,7 +380,11 @@ function ProjectDetail({
     <PageFrame notice={staleNotice(detail)} header={header}>
       <Stack space="space.300">
         {detail.error && !detail.data ? (
-          <ErrorState title="Space unavailable" message={detail.error} retry={detail.reload} />
+          <ErrorState
+            title={t('projects.spaceUnavailable')}
+            message={detail.error}
+            retry={detail.reload}
+          />
         ) : !d ? (
           <SkeletonRoot>
             <FilterBarPhantom controls={2} />
@@ -382,7 +395,7 @@ function ProjectDetail({
                 ...keyPerms.map(permissionLabel),
                 'All permissions',
                 'Through',
-                <ActionsHeader key="w" label="Why" />,
+                <ActionsHeader key="w" label={t('projects.why')} />,
               ]}
             />
           </SkeletonRoot>
@@ -390,8 +403,16 @@ function ProjectDetail({
           <>
             <PartialBanner snapshot={detail.data?.snapshot ?? null} />
             <FilterBar>
-              <SearchField value={query} onChange={setQuery} label="Search people and groups" />
-              <ToggleField label="Show app accounts" isChecked={showApps} onChange={setShowApps} />
+              <SearchField
+                value={query}
+                onChange={setQuery}
+                label={t('projects.searchPeopleAndGroups')}
+              />
+              <ToggleField
+                label={t('people.showAppAccounts')}
+                isChecked={showApps}
+                onChange={setShowApps}
+              />
             </FilterBar>
             <DynamicTable
               head={{
@@ -400,7 +421,7 @@ function ProjectDetail({
                   ...keyPerms.map((perm) => ({ key: perm, content: permissionLabel(perm) })),
                   { key: 'all', content: 'All permissions', isSortable: true },
                   { key: 'via', content: 'Through' },
-                  { key: 'why', content: <ActionsHeader label="Why" /> },
+                  { key: 'why', content: <ActionsHeader label={t('projects.why')} /> },
                 ],
               }}
               rows={rows.map((r) => {
@@ -422,7 +443,9 @@ function ProjectDetail({
                     {
                       key: 'why',
                       content: (
-                        <LinkButton onClick={() => why(r.subject, r.perms)}>Why?</LinkButton>
+                        <LinkButton onClick={() => why(r.subject, r.perms)}>
+                          {t('projects.why2')}
+                        </LinkButton>
                       ),
                     },
                   ],
@@ -432,7 +455,7 @@ function ProjectDetail({
               defaultPage={1}
               emptyView={
                 <Text as="p" color="color.text.subtle">
-                  Nobody has access to this space in this snapshot.
+                  {t('projects.nobodyHasAccessToThisSpace')}
                 </Text>
               }
             />

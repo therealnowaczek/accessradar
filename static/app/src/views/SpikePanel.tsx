@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useState } from 'react';
 import Button from '@atlaskit/button/new';
 import { Code } from '@atlaskit/code';
@@ -68,22 +69,26 @@ export function SpikePanel() {
   return (
     <Stack space="space.200">
       <SectionHeader
-        title="Developer spike"
-        description="Which Jira read endpoints work for each call identity. Development only."
+        title={t('spikePanel.developerSpike')}
+        description={t('spikePanel.whichJiraReadEndpointsWorkFor')}
         action={
           <Button appearance="primary" isLoading={busy} onClick={run}>
-            Run probes
+            {t('spikePanel.runProbes')}
           </Button>
         }
       />
       <SectionMessage appearance="discovery">
         <Text as="p">
-          Visible because <Code>ACCESSRADAR_SPIKE=1</Code>. Results contain status codes and counts
-          only, no user data.
+          Visible because <Code>{t('spikePanel.accessradarSpike1')}</Code>. Results contain status
+          codes and counts only, no user data.
         </Text>
       </SectionMessage>
-      {error ? <ErrorState title="Probes failed" message={error} retry={() => void run()} /> : null}
-      {result ? <DynamicTable label="Probe results" head={head} rows={rows} /> : null}
+      {error ? (
+        <ErrorState title={t('spikePanel.probesFailed')} message={error} retry={() => void run()} />
+      ) : null}
+      {result ? (
+        <DynamicTable label={t('spikePanel.probeResults')} head={head} rows={rows} />
+      ) : null}
     </Stack>
   );
 }

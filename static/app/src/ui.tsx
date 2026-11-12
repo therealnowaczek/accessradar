@@ -122,7 +122,7 @@ export class PanelErrorBoundary extends Component<
     if (this.state.error === null) return this.props.children;
     return (
       <ErrorState
-        title="This tab could not be shown"
+        title={t('ui.thisTabCouldNotBeShown')}
         message={this.state.error}
         retry={() => this.setState({ error: null })}
       />
@@ -214,7 +214,7 @@ function MoreHeaderActions({ items }: { items: ReactNode[] }) {
       placement="bottom-end"
       shouldRenderToParent
       trigger={({ triggerRef, ...props }) => (
-        <IconButton {...props} ref={triggerRef} icon={ShowMoreIcon} label="More actions" />
+        <IconButton {...props} ref={triggerRef} icon={ShowMoreIcon} label={t('ui.moreActions')} />
       )}
     >
       <DropdownItemGroup>
@@ -494,7 +494,7 @@ export function ErrorState({
       appearance="error"
       title={title}
       headingLevel={headingLevel}
-      actions={<SectionMessageAction onClick={retry}>Try again</SectionMessageAction>}
+      actions={<SectionMessageAction onClick={retry}>{t('ui.tryAgain')}</SectionMessageAction>}
     >
       <Text as="p">{message}</Text>
     </SectionMessage>

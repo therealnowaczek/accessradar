@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useCallback, useState, type ReactNode } from 'react';
 import Button from '@atlaskit/button/new';
 import ModalDialog, {
@@ -41,7 +42,7 @@ export function useConfirm(): [ReactNode, (request: ConfirmRequest) => void] {
           <ModalFooter>
             {/* Modals follow the Atlaskit default: right-aligned footer, Cancel then the primary. */}
             <Button appearance="subtle" isDisabled={busy} onClick={close}>
-              Cancel
+              {t('confirm.cancel')}
             </Button>
             <Button
               appearance="danger"

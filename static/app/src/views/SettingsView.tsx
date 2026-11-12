@@ -114,7 +114,7 @@ function EditForm({
             }
           }}
         >
-          Save
+          {t('settings.save')}
         </Button>
       </DrawerFooter>
     </>
@@ -190,7 +190,7 @@ function ScheduleForm({
       onCancel={cancel}
       onSave={() => save({ frequency, hourUtc, weekday })}
     >
-      <RadioField label="Frequency">
+      <RadioField label={t('campaigns.frequency')}>
         <RadioGroup
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as Settings['frequency'])}
@@ -205,7 +205,7 @@ function ScheduleForm({
       {frequency !== 'off' ? (
         <>
           {frequency === 'weekly' ? (
-            <FormField label="Day">
+            <FormField label={t('settings.day')}>
               {(id) => (
                 <Select<Opt<number>>
                   menuPosition="fixed"
@@ -219,7 +219,7 @@ function ScheduleForm({
             </FormField>
           ) : null}
           <FormField
-            label="Start time"
+            label={t('settings.startTime')}
             helper="Pick a quiet hour; collection shares the site’s API quota."
           >
             {(id) => (
@@ -258,7 +258,7 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
       }
     >
       <FormField
-        label="Key permissions (up to 20)"
+        label={t('settings.keyPermissionsUpTo20')}
         helper="Used by reviews, change reports, the PDF matrix and space columns. Existing reviews keep the permissions they started with."
       >
         {(id) => (
@@ -273,7 +273,9 @@ function KeyPermissionsForm({ s, save, cancel }: { s: Settings; save: Saver; can
               onChange={(v) => setValue([...v].slice(0, 20))}
             />
             {/* R-9.2: the field's own error sits under the field. */}
-            {!value.length ? <ErrorMessage>Pick at least one permission.</ErrorMessage> : null}
+            {!value.length ? (
+              <ErrorMessage>{t('settings.pickAtLeastOnePermission')}</ErrorMessage>
+            ) : null}
           </>
         )}
       </FormField>
@@ -301,7 +303,7 @@ function RetentionForm({
       onSave={() => save({ retentionDays: days })}
     >
       <NumberField
-        label="Keep snapshots for (days)"
+        label={t('settings.keepSnapshotsForDays')}
         value={days}
         onChange={setDays}
         min={30}
@@ -333,7 +335,7 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
         )
       }
     >
-      <RadioField label="Group members">
+      <RadioField label={t('settings.groupMembers')}>
         <RadioGroup
           value={groupMembers}
           onChange={(e) => setGroupMembers(e.target.value as Settings['groupMembers'])}
@@ -348,7 +350,7 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
         />
       </RadioField>
       <NumberField
-        label="API budget per hour (rate points)"
+        label={t('settings.apiBudgetPerHourRatePoints')}
         value={budget}
         onChange={setBudget}
         min={500}
@@ -356,7 +358,7 @@ function CollectionForm({ v, save, cancel }: { v: SettingsDto; save: Saver; canc
         hint="AccessRadar pauses and resumes the next hour when the budget is used. 500 to 65,000."
       />
       <ToggleField
-        label="Use my account when the app is denied access"
+        label={t('settings.useMyAccountWhenTheApp')}
         isChecked={fallback}
         onChange={setFallback}
         helper={`Some Jira endpoints only answer for administrators. With fallback on, AccessRadar retries those reads on your behalf (read-only).${
@@ -386,7 +388,7 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
       }
     >
       <NumberField
-        label="Large group (members)"
+        label={t('settings.largeGroupMembers')}
         value={large}
         onChange={setLarge}
         min={2}
@@ -394,7 +396,7 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
         hint="Groups this size or bigger that grant access are flagged."
       />
       <NumberField
-        label="Admin of many spaces"
+        label={t('settings.adminOfManySpaces')}
         value={wide}
         onChange={setWide}
         min={1}
@@ -402,7 +404,7 @@ function RiskForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () =>
         hint="People who administer at least this many spaces are flagged."
       />
       <ToggleField
-        label="Include app accounts in risk indicators"
+        label={t('settings.includeAppAccountsInRiskIndicators')}
         isChecked={apps}
         onChange={setApps}
       />
@@ -419,7 +421,7 @@ function ReviewsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: ()
       onSave={() => save({ requireKeepNote })}
     >
       <ToggleField
-        label="Require justification when keeping access"
+        label={t('settings.requireJustificationWhenKeepingAccess')}
         isChecked={requireKeepNote}
         onChange={setRequireKeepNote}
         helper="Revoke and exception already require a justification of at least 10 characters. Turn this on to require the same for Keep."
@@ -452,7 +454,7 @@ function AlertsForm({ s, save, cancel }: { s: Settings; save: Saver; cancel: () 
       onSave={() => save({ alerts })}
     >
       <Text as="p" color="color.text.subtle">
-        Alerts are evaluated when a snapshot commits (Advanced). Delivery is in-app only — no email.
+        {t('settings.alertsAreEvaluatedWhenASnapshot')}
       </Text>
       {ALERT_RULE_LABELS.map((r) => (
         <ToggleField
@@ -533,10 +535,17 @@ export function SettingsView() {
     >
       <Stack space="space.300">
         {r.error && !v ? (
-          <ErrorState title="Settings unavailable" message={r.error} retry={r.reload} />
+          <ErrorState
+            title={t('settings.settingsUnavailable')}
+            message={r.error}
+            retry={r.reload}
+          />
         ) : !v || !s ? (
           <SkeletonRoot>
-            <Section title="Edition" description="Which AccessRadar features this site can use.">
+            <Section
+              title={t('settings.edition')}
+              description={t('settings.whichAccessradarFeaturesThisSiteCan')}
+            >
               <DetailsPhantom terms={['Edition', 'Advanced']} />
             </Section>
             {SETTINGS_SECTIONS.map(([title, description, terms]) => (
@@ -560,16 +569,16 @@ export function SettingsView() {
             {/* Same conditional sections as the loaded page (R-10.1). */}
             {status.data?.edition?.features?.changeAlerts ? (
               <Section
-                title="Change alerts"
-                description="In-app alerts when access changes between snapshots (Advanced)."
+                title={t('settings.changeAlerts')}
+                description={t('settings.inAppAlertsWhenAccessChanges')}
                 action={<Phantom width={48} height={32} />}
               >
                 <LinesPhantom lines={3} />
               </Section>
             ) : null}
             <Section
-              title="Security & data"
-              description="AccessRadar runs on Atlassian and only reads configuration."
+              title={t('settings.securityData')}
+              description={t('settings.accessradarRunsOnAtlassianAndOnly')}
             >
               <DetailsPhantom terms={SECURITY_TERMS} />
             </Section>
@@ -578,11 +587,7 @@ export function SettingsView() {
           <>
             {!s.saved ? (
               <SectionMessage appearance="information">
-                <Text as="p">
-                  You have not changed any settings yet, so AccessRadar uses the defaults shown
-                  below. They are already in effect, including the snapshot schedule. Use Edit on a
-                  section to change it.
-                </Text>
+                <Text as="p">{t('settings.youHaveNotChangedAnySettings')}</Text>
               </SectionMessage>
             ) : null}
             <EditionSection
@@ -593,8 +598,8 @@ export function SettingsView() {
               }}
             />
             <Section
-              title="Snapshot schedule"
-              description="How often AccessRadar records the access picture of this site."
+              title={t('settings.snapshotSchedule')}
+              description={t('settings.howOftenAccessradarRecordsTheAccess')}
               action={
                 <Button
                   onClick={() =>
@@ -610,15 +615,15 @@ export function SettingsView() {
                     )
                   }
                 >
-                  Edit
+                  {t('settings.edit')}
                 </Button>
               }
             >
               <Details rows={[['Schedule', scheduleText(s)]]} />
             </Section>
             <Section
-              title="Key permissions"
-              description="Permissions highlighted in reviews, change reports and exports."
+              title={t('settings.keyPermissions')}
+              description={t('settings.permissionsHighlightedInReviewsChangeReports')}
               action={
                 <Button
                   onClick={() =>
@@ -629,7 +634,7 @@ export function SettingsView() {
                     )
                   }
                 >
-                  Edit
+                  {t('settings.edit')}
                 </Button>
               }
             >
@@ -640,8 +645,8 @@ export function SettingsView() {
               </Inline>
             </Section>
             <Section
-              title="Retention"
-              description="How long snapshots are kept."
+              title={t('settings.retention')}
+              description={t('settings.howLongSnapshotsAreKept')}
               action={
                 <Button
                   onClick={() =>
@@ -657,7 +662,7 @@ export function SettingsView() {
                     )
                   }
                 >
-                  Edit
+                  {t('settings.edit')}
                 </Button>
               }
             >
@@ -669,8 +674,8 @@ export function SettingsView() {
               />
             </Section>
             <Section
-              title="Collection"
-              description="What the collector reads and how much API quota it may use."
+              title={t('settings.collection')}
+              description={t('settings.whatTheCollectorReadsAndHow')}
               action={
                 <Button
                   onClick={() =>
@@ -681,7 +686,7 @@ export function SettingsView() {
                     )
                   }
                 >
-                  Edit
+                  {t('settings.edit')}
                 </Button>
               }
             >
@@ -707,8 +712,8 @@ export function SettingsView() {
               />
             </Section>
             <Section
-              title="Risk indicators"
-              description="Thresholds for the Overview signals."
+              title={t('overview.riskIndicators')}
+              description={t('settings.thresholdsForTheOverviewSignals')}
               action={
                 <Button
                   onClick={() =>
@@ -719,7 +724,7 @@ export function SettingsView() {
                     )
                   }
                 >
-                  Edit
+                  {t('settings.edit')}
                 </Button>
               }
             >
@@ -732,8 +737,8 @@ export function SettingsView() {
               />
             </Section>
             <Section
-              title="Reviews"
-              description="Justification rules for access decisions."
+              title={t('settings.reviews')}
+              description={t('settings.justificationRulesForAccessDecisions')}
               action={
                 <Button
                   onClick={() =>
@@ -744,7 +749,7 @@ export function SettingsView() {
                     )
                   }
                 >
-                  Edit
+                  {t('settings.edit')}
                 </Button>
               }
             >
@@ -760,8 +765,8 @@ export function SettingsView() {
             </Section>
             {v.edition.features.changeAlerts ? (
               <Section
-                title="Change alerts"
-                description="In-app alerts when access changes between snapshots (Advanced)."
+                title={t('settings.changeAlerts')}
+                description={t('settings.inAppAlertsWhenAccessChanges')}
                 action={
                   <Button
                     onClick={() =>
@@ -772,7 +777,7 @@ export function SettingsView() {
                       )
                     }
                   >
-                    Edit
+                    {t('settings.edit')}
                   </Button>
                 }
               >
@@ -785,8 +790,8 @@ export function SettingsView() {
               </Section>
             ) : null}
             <Section
-              title="Security & data"
-              description="AccessRadar runs on Atlassian and only reads configuration."
+              title={t('settings.securityData')}
+              description={t('settings.accessradarRunsOnAtlassianAndOnly')}
             >
               <Details
                 rows={[
@@ -911,7 +916,7 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
         <Select
           menuPosition="fixed"
           inputId="edition-override"
-          aria-label="Edition override"
+          aria-label={t('settings.editionOverride')}
           isSearchable={false}
           isDisabled={busy || edition.envOverride}
           options={options}
@@ -930,9 +935,9 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
           <DividedListItem key={f.key}>
             {f.label}{' '}
             {soon ? (
-              <Pill tone="info">Coming soon</Pill>
+              <Pill tone="info">{t('settings.comingSoon')}</Pill>
             ) : edition.features[f.key] ? (
-              <Pill tone="success">Included</Pill>
+              <Pill tone="success">{t('settings.included')}</Pill>
             ) : (
               <AdvancedBadge />
             )}
@@ -943,7 +948,7 @@ function EditionSection({ edition, onChanged }: { edition: EditionView; onChange
   ]);
   return (
     <Section
-      title="Edition"
+      title={t('settings.edition')}
       description={
         edition.canOverride
           ? 'Which AccessRadar features this site can use. On development and staging you can override the edition to test Standard vs Advanced.'

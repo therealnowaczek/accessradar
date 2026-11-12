@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import EmptyState from '@atlaskit/empty-state';
 import { useState } from 'react';
 import { Box, Stack, Text } from '@atlaskit/primitives';
@@ -76,7 +77,7 @@ export function OverviewView() {
         <>
           <IconButton
             icon={RefreshIcon}
-            label="Refresh"
+            label={t('getStarted.refresh')}
             isLoading={refreshing}
             onClick={() => void refresh()}
           />
@@ -88,7 +89,7 @@ export function OverviewView() {
               isDisabled={Boolean(active)}
               onClick={() => void take.run()}
             >
-              Take snapshot now
+              {t('shared.takeSnapshotNow')}
             </Button>
           )}
         </>
@@ -99,7 +100,11 @@ export function OverviewView() {
   if (ov.error && !ov.data)
     return (
       <PageFrame header={header}>
-        <ErrorState title="Overview unavailable" message={ov.error} retry={ov.reload} />
+        <ErrorState
+          title={t('overview.overviewUnavailable')}
+          message={ov.error}
+          retry={ov.reload}
+        />
       </PageFrame>
     );
   if (!ov.data)
@@ -109,22 +114,22 @@ export function OverviewView() {
           <HeadingPhantom />
           <MetricGridPhantom count={5} />
           <Section
-            title="Risk indicators"
-            description="Signals worth checking in the next review. Select one to see the details."
+            title={t('overview.riskIndicators')}
+            description={t('overview.signalsWorthCheckingInTheNext')}
           >
             <SkeletonTable columns={['Severity', 'Indicator', 'Count']} rows={4} />
           </Section>
           <Section
-            title="Changes since the previous snapshot"
-            description="Key permissions only. Open Changes for every difference."
+            title={t('overview.changesSinceThePreviousSnapshot')}
+            description={t('overview.keyPermissionsOnlyOpenChangesFor')}
             action={<Phantom width={112} height={32} />}
           >
             <MetricGridPhantom count={2} />
           </Section>
           <DigestSectionPhantom />
           <Section
-            title="Access reviews"
-            description="Periodic reviews with sign-off and evidence export."
+            title={t('overview.accessReviews')}
+            description={t('overview.periodicReviewsWithSignOffAnd')}
             action={<Phantom width={112} height={32} />}
           >
             <MetricGridPhantom count={3} />
@@ -149,7 +154,7 @@ export function OverviewView() {
             ) : null}
             {r.partial ? (
               <SectionMessage appearance="warning">
-                <Text as="p">Some related data was incomplete; this list may be partial.</Text>
+                <Text as="p">{t('overview.someRelatedDataWasIncompleteThis')}</Text>
               </SectionMessage>
             ) : null}
             <DividedList>
@@ -169,7 +174,9 @@ export function OverviewView() {
             ) : null}
             {RISK_TARGET[r.id] ? (
               <Box>
-                <Button onClick={() => go(...RISK_TARGET[r.id])}>Open in Explore</Button>
+                <Button onClick={() => go(...RISK_TARGET[r.id])}>
+                  {t('overview.openInExplore')}
+                </Button>
               </Box>
             ) : null}
           </DrawerBody>
@@ -189,7 +196,8 @@ export function OverviewView() {
           >
             <Text as="p">
               New admins, anonymous grants, or inactive accounts with access were detected since a
-              recent snapshot. <LinkButton onClick={() => go('alerts')}>Open alerts</LinkButton>
+              recent snapshot.{' '}
+              <LinkButton onClick={() => go('alerts')}>{t('overview.openAlerts')}</LinkButton>
             </Text>
           </SectionMessage>
         ) : null}
@@ -234,42 +242,44 @@ export function OverviewView() {
               description={
                 <>
                   {formatLocal(d.snapshot.startedAt)} ({relative(d.snapshot.startedAt)}) ·{' '}
-                  <LinkButton onClick={() => go('snapshots')}>Snapshot history</LinkButton>
+                  <LinkButton onClick={() => go('snapshots')}>
+                    {t('overview.snapshotHistory')}
+                  </LinkButton>
                 </>
               }
             />
             {d.metrics ? (
               <MetricGrid>
                 <Metric
-                  label="Spaces"
+                  label={t('campaigns.spaces')}
                   value={d.metrics.projects}
                   hint={`${d.metrics.teamManaged} team-managed`}
                 />
                 <Metric
-                  label="People"
+                  label={t('changes.people')}
                   value={d.metrics.people}
                   hint={`Excl. ${plural(d.metrics.appAccounts, 'app account')} · ${d.metrics.inactivePeople} inactive`}
                 />
                 <Metric
-                  label="Groups"
+                  label={t('changes.groups')}
                   value={d.metrics.groups}
                   hint={`${d.metrics.groupsRead} with members read`}
                 />
                 <Metric
-                  label="Permission grants"
+                  label={t('overview.permissionGrants')}
                   value={d.metrics.grants}
                   hint={plural(d.metrics.schemes, 'scheme')}
                 />
                 <Metric
-                  label="Access entries"
+                  label={t('overview.accessEntries')}
                   value={d.metrics.accessEntries}
                   hint="Who × space × permission"
                 />
               </MetricGrid>
             ) : null}
             <Section
-              title="Risk indicators"
-              description="Signals worth checking in the next review. Select one to see the details."
+              title={t('overview.riskIndicators')}
+              description={t('overview.signalsWorthCheckingInTheNext')}
             >
               {d.risks && d.risks.some((r) => r.count || r.partial) ? (
                 <DynamicTable
@@ -313,31 +323,31 @@ export function OverviewView() {
                 />
               ) : (
                 <Text as="p" color="color.text.subtle">
-                  No risk indicators in this snapshot.
+                  {t('overview.noRiskIndicatorsInThisSnapshot')}
                 </Text>
               )}
             </Section>
             <Section
-              title="Changes since the previous snapshot"
-              description="Key permissions only. Open Changes for every difference."
-              action={<Button onClick={() => go('changes')}>Open Changes</Button>}
+              title={t('overview.changesSinceThePreviousSnapshot')}
+              description={t('overview.keyPermissionsOnlyOpenChangesFor')}
+              action={<Button onClick={() => go('changes')}>{t('overview.openChanges')}</Button>}
             >
               {d.changes ? (
                 <MetricGrid>
                   <Metric
-                    label="Access granted"
+                    label={t('overview.accessGranted')}
                     value={d.changes.granted}
                     hint={`Since snapshot #${d.changes.fromSeq}`}
                   />
                   <Metric
-                    label="Access revoked"
+                    label={t('overview.accessRevoked')}
                     value={d.changes.revoked}
                     hint={`Since snapshot #${d.changes.fromSeq}`}
                   />
                 </MetricGrid>
               ) : (
                 <Text as="p" color="color.text.subtle">
-                  The next snapshot will show what changed since this one.
+                  {t('overview.theNextSnapshotWillShowWhat')}
                 </Text>
               )}
             </Section>
@@ -345,16 +355,16 @@ export function OverviewView() {
         )}
         <DigestCard />
         <Section
-          title="Access reviews"
-          description="Periodic reviews with sign-off and evidence export."
-          action={<Button onClick={() => go('reviews')}>Open Reviews</Button>}
+          title={t('overview.accessReviews')}
+          description={t('overview.periodicReviewsWithSignOffAnd')}
+          action={<Button onClick={() => go('reviews')}>{t('overview.openReviews')}</Button>}
         >
           {d.reviews.open || d.reviews.signed ? (
             <Stack space="space.200">
               <MetricGrid>
-                <Metric label="Open" value={d.reviews.open} />
+                <Metric label={t('overview.open')} value={d.reviews.open} />
                 <Metric
-                  label="Signed"
+                  label={t('overview.signed')}
                   value={d.reviews.signed}
                   hint={
                     d.reviews.lastSigned
@@ -363,7 +373,7 @@ export function OverviewView() {
                   }
                 />
                 <Metric
-                  label="Open remediations"
+                  label={t('overview.openRemediations')}
                   value={d.remediation?.open ?? 0}
                   hint={
                     d.remediation?.stillPresent
@@ -386,14 +396,16 @@ export function OverviewView() {
             <EmptyState
               headingSize="xsmall"
               header="No reviews yet"
-              description="Start a review of the latest snapshot: reviewers mark each access as keep or revoke and sign off."
+              description={t('overview.startAReviewOfTheLatest')}
               primaryAction={
-                <Button onClick={() => go('reviews', { create: '1' })}>Start a review</Button>
+                <Button onClick={() => go('reviews', { create: '1' })}>
+                  {t('overview.startAReview')}
+                </Button>
               }
             />
           ) : (
             <Text as="p" color="color.text.subtle">
-              Reviews start from a snapshot.
+              {t('overview.reviewsStartFromASnapshot')}
             </Text>
           )}
         </Section>

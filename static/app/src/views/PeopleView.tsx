@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useEffect, useMemo, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
 import Button from '@atlaskit/button/new';
@@ -101,7 +102,11 @@ export function PeopleView() {
     >
       <Stack space="space.300">
         {list.error && !list.data ? (
-          <ErrorState title="People unavailable" message={list.error} retry={list.reload} />
+          <ErrorState
+            title={t('people.peopleUnavailable')}
+            message={list.error}
+            retry={list.reload}
+          />
         ) : !list.data ? (
           <SkeletonRoot>
             <FilterBarPhantom controls={4} />
@@ -111,7 +116,7 @@ export function PeopleView() {
                 'Spaces',
                 'Admin of',
                 'Groups',
-                <ActionsHeader key="f" label="Flags" />,
+                <ActionsHeader key="f" label={t('people.flags')} />,
               ]}
             />
           </SkeletonRoot>
@@ -124,14 +129,22 @@ export function PeopleView() {
               onDetails={() => go('snapshots', { seq: String(snapshot.seq) })}
             />
             <FilterBar>
-              <SearchField value={query} onChange={setQuery} label="Search by name or account ID" />
+              <SearchField
+                value={query}
+                onChange={setQuery}
+                label={t('people.searchByNameOrAccountId')}
+              />
               <FilterSelect<Opt>
-                label="Filter people"
+                label={t('people.filterPeople')}
                 options={FILTERS}
                 value={FILTERS.find((f) => f.value === filter)}
                 onChange={(o) => setFilter(o?.value ?? 'all')}
               />
-              <ToggleField label="Show app accounts" isChecked={showApps} onChange={setShowApps} />
+              <ToggleField
+                label={t('people.showAppAccounts')}
+                isChecked={showApps}
+                onChange={setShowApps}
+              />
               <SnapshotPicker
                 snapshots={snaps.data?.snapshots ?? []}
                 value={seq}
@@ -145,7 +158,7 @@ export function PeopleView() {
                   { key: 'projects', content: 'Spaces', isSortable: true },
                   { key: 'admin', content: 'Admin of', isSortable: true },
                   { key: 'groups', content: 'Groups', isSortable: true },
-                  { key: 'flags', content: <ActionsHeader label="Flags" /> },
+                  { key: 'flags', content: <ActionsHeader label={t('people.flags')} /> },
                 ],
               }}
               rows={rows.map((p) => ({
@@ -180,7 +193,9 @@ export function PeopleView() {
                   { key: p.groups, content: p.groups },
                   {
                     key: 'flags',
-                    content: p.jiraAdmin ? <Pill tone="danger">Jira admin</Pill> : null,
+                    content: p.jiraAdmin ? (
+                      <Pill tone="danger">{t('people.jiraAdmin')}</Pill>
+                    ) : null,
                   },
                 ],
               }))}
@@ -190,7 +205,7 @@ export function PeopleView() {
               defaultSortOrder="ASC"
               emptyView={
                 <Text as="p" color="color.text.subtle">
-                  Nobody matches.
+                  {t('people.nobodyMatches')}
                 </Text>
               }
             />
@@ -228,7 +243,7 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
   if (r.error && !r.data)
     return (
       <DrawerBody>
-        <ErrorState title="Person unavailable" message={r.error} retry={r.reload} />
+        <ErrorState title={t('people.personUnavailable')} message={r.error} retry={r.reload} />
       </DrawerBody>
     );
   const d = r.data?.data;
@@ -240,17 +255,17 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
           <SubjectPhantom />
           <DetailsPhantom terms={['Account ID', 'Account type', 'Status', 'Jira administrator']} />
           <Section
-            title="Global permissions"
-            description="Jira cannot list global permission holders, so this is checked live for this person."
+            title={t('people.globalPermissions')}
+            description={t('people.jiraCannotListGlobalPermissionHolders')}
           >
             <Phantom width={96} height={32} />
           </Section>
-          <Section title="Groups">
+          <Section title={t('changes.groups')}>
             <Phantom width={200} height={20} radius="full" />
           </Section>
           <Section
-            title="Spaces"
-            description="Permissions in each space, with the path that grants them."
+            title={t('campaigns.spaces')}
+            description={t('people.permissionsInEachSpaceWithThe')}
           >
             <LinesPhantom lines={4} />
           </Section>
@@ -264,7 +279,14 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
         rows={[
           ['Account ID', <Hash key="id" value={d.person.id} />],
           ['Account type', d.person.accountType ?? 'unknown'],
-          ['Status', d.person.active === false ? <Pill tone="danger">Inactive</Pill> : 'Active'],
+          [
+            'Status',
+            d.person.active === false ? (
+              <Pill tone="danger">{t('components.inactive')}</Pill>
+            ) : (
+              'Active'
+            ),
+          ],
           [
             'Jira administrator',
             d.adminVia.length
@@ -274,11 +296,11 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
         ]}
       />
       <Section
-        title="Global permissions"
-        description="Jira cannot list global permission holders, so this is checked live for this person."
+        title={t('people.globalPermissions')}
+        description={t('people.jiraCannotListGlobalPermissionHolders')}
         action={
           <Button isLoading={global.busy} onClick={() => void check()}>
-            Check now
+            {t('people.checkNow')}
           </Button>
         }
       >
@@ -287,9 +309,9 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
             {global.data.checked.map((p) => (
               <DividedListItem key={p}>
                 {global.data!.granted.includes(p) ? (
-                  <Pill tone="warning">Granted</Pill>
+                  <Pill tone="warning">{t('changes.granted')}</Pill>
                 ) : (
-                  <Pill>No</Pill>
+                  <Pill>{t('people.no')}</Pill>
                 )}
                 {permissionLabel(p)}
               </DividedListItem>
@@ -301,18 +323,18 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
         ) : null}
       </Section>
       {d.changes && (d.changes.granted.length || d.changes.revoked.length) ? (
-        <Section title="Changes" description={`Since snapshot #${d.changes.fromSeq}`}>
+        <Section title={t('people.changes')} description={`Since snapshot #${d.changes.fromSeq}`}>
           <DividedList>
             {d.changes.granted.map((c, i) => (
               <DividedListItem key={`g${i}`}>
-                <Pill tone="success">Granted</Pill>
+                <Pill tone="success">{t('changes.granted')}</Pill>
                 {permissionLabel(c.permission)} in {c.project.key}
                 <Text color="color.text.subtle"> — {c.reasons[0]}</Text>
               </DividedListItem>
             ))}
             {d.changes.revoked.map((c, i) => (
               <DividedListItem key={`r${i}`}>
-                <Pill tone="danger">Revoked</Pill>
+                <Pill tone="danger">{t('changes.revoked')}</Pill>
                 {permissionLabel(c.permission)} in {c.project.key}
               </DividedListItem>
             ))}
@@ -330,13 +352,13 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
           </Inline>
         ) : (
           <Text as="p" color="color.text.subtle">
-            Not a member of any group.
+            {t('people.notAMemberOfAnyGroup')}
           </Text>
         )}
       </Section>
       <Section
         title={`Spaces (${d.projects.length})`}
-        description="Permissions in each space, with the path that grants them."
+        description={t('people.permissionsInEachSpaceWithThe')}
       >
         {d.projects.length ? (
           <DividedList>
@@ -354,7 +376,7 @@ function PersonDrawer({ accountId, seq }: { accountId: string; seq: number | nul
           </DividedList>
         ) : (
           <Text as="p" color="color.text.subtle">
-            No space access.
+            {t('people.noSpaceAccess')}
           </Text>
         )}
       </Section>

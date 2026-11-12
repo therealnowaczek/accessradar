@@ -78,7 +78,11 @@ export function AlertsView() {
   if (list.error && !list.data)
     return (
       <PageFrame header={header}>
-        <ErrorState title="Alerts unavailable" message={list.error} retry={list.reload} />
+        <ErrorState
+          title={t('alerts.alertsUnavailable')}
+          message={list.error}
+          retry={list.reload}
+        />
       </PageFrame>
     );
   if (!list.data)
@@ -113,7 +117,7 @@ export function AlertsView() {
       <Stack space="space.300">
         <FilterBar>
           <FilterSelect
-            label="Alert status"
+            label={t('alerts.alertStatus')}
             inputId="alert-status"
             options={STATUS_OPTS}
             value={STATUS_OPTS.find((o) => o.value === filter) ?? STATUS_OPTS[0]}
@@ -124,7 +128,7 @@ export function AlertsView() {
           <EmptyState
             headingSize="xsmall"
             header="No alerts"
-            description="When a snapshot detects new admins, anonymous access, or inactive accounts with access, alerts appear here, with a detection latency that follows your snapshot schedule (typically ≤24h on Advanced daily)."
+            description={t('alerts.whenASnapshotDetectsNewAdmins')}
           />
         ) : (
           <DynamicTable
@@ -181,7 +185,7 @@ export function AlertsView() {
                   key: 'act',
                   content: !a.dismissedAt ? (
                     <LinkButton isDisabled={busy} onClick={() => void dismiss([a.id])}>
-                      Dismiss
+                      {t('alerts.dismiss')}
                     </LinkButton>
                   ) : (
                     'Dismissed'
