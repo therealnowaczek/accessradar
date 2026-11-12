@@ -13,6 +13,7 @@ import {
 } from '../db/exceptions';
 import { computeRisks } from '../engine/risk';
 import { sharedItems } from '../lib/exposure';
+import { seatReport } from '../engine/seats';
 import { buildState, type AccessState } from '../engine/state';
 import { audit, listAudit } from '../db/audit';
 import {
@@ -423,6 +424,7 @@ export async function setGroupTracked(p: any, accountId: string) {
   await audit(accountId, p.tracked === true ? 'group.tracked' : 'group.untracked', groupId, {});
   return { tracked: set.has(groupId), count: set.size };
 }
+export const exploreSeats = (p: any) => withState(p.seq, (s) => seatReport(s, resolveAll(s)));
 export const explorePeople = (p: any) => withState(p.seq, (s) => peopleList(s));
 
 export async function projectDetail(p: any) {

@@ -113,3 +113,8 @@ Dev only, one branch and one PR per item, nothing merged, no production deploy (
 - False-positive guards: groups whose members were not collected are never flagged; schemes not assigned to a space are ignored; app accounts are not counted as people; team-managed spaces are skipped. When filters and dashboards cannot be read (no consent, Jira error), the three sharing rules show "partial", never "none found".
 - Overview now reads filters and dashboards once per load for these rules (the same read as Sharing and security). The sharing rules always reflect the live state, also when an older snapshot is selected.
 - Two existing learn-more texts lost an em dash.
+
+### C2: seat view (no activity claim)
+- New page Seats (Explore) from data already collected: application roles, the groups that grant them, memberships, effective space access (scopes `read:application-role`, `read:group` already held). No new scope, no snapshot change.
+- Seat holder = distinct active Atlassian account in a group that grants a product; customers and app accounts are not counted. Review candidates: seat holders with no effective space access, and holders of several products. The page says plainly that these are candidates, not a statement about use, and that Jira gives apps no last-login or last-active data. Deactivated accounts are shown as the account flag only; no claim about how Atlassian bills them. No `read:jira-work` or other scope was added to proxy activity.
+- Unread groups make the product count "may be too low" and unresolved access flags the no-space-access count as possibly incomplete.
