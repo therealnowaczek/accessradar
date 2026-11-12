@@ -2,7 +2,18 @@ import { t } from '../i18n';
 import { useMemo, useState } from 'react';
 import { Inline, Stack, Text } from '@atlaskit/primitives';
 import DynamicTable from '../Table';
-import type { GroupDetail, GroupRow, SettingsView, WithSnapshot } from '../api';
+import Button from '@atlaskit/button/new';
+import {
+  call,
+  errorText,
+  type GroupDetail,
+  type GroupRow,
+  type SettingsView,
+  type WeeklyDigest,
+  type WithSnapshot,
+} from '../api';
+import { useToast } from '../Toast';
+import { TrackedGroupChanges, trackedChangeLines } from './TrackedGroups';
 import { ReasonList, SearchField, Section, SnapshotPicker, SubjectCell } from '../components';
 import { useCall } from '../data';
 import { DrawerBody, LevelDrawer, type DrawerLevel } from '../Drawer';
@@ -62,6 +73,12 @@ const FILTERS: Opt[] = [
     },
     value: 'unread',
   },
+  {
+    get label() {
+      return t('groups.trackedFilter');
+    },
+    value: 'tracked',
+  },
 ];
 
 const ACCESS_LABEL: Record<string, string> = {
@@ -84,6 +101,7 @@ export function GroupsView() {
   const latest = status.data?.latest?.seq ?? 0;
   const list = useCall<WithSnapshot<GroupRow[]>>('exploreGroups', { seq, latest });
   const settings = useCall<SettingsView>('getSettings');
+  const digest = useCall<{ digest: WeeklyDigest | null }>('getWeeklyDigest');
   const large = settings.data?.settings.largeGroupThreshold ?? 50;
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState(params.filter ?? 'all');
@@ -99,7 +117,8 @@ export function GroupsView() {
           (filter === 'admin' && g.access.some((a) => a !== 'user')) ||
           (filter === 'app-access' && g.applications.length > 0) ||
           (filter === 'large' && (g.members ?? 0) >= large) ||
-          (filter === 'unread' && g.membersStatus !== 'collected')),
+          (filter === 'unread' && g.membersStatus !== 'collected') ||
+          (filter === 'tracked' && g.tracked)),
     );
   }, [list.data, query, filter, large]);
 
@@ -109,7 +128,15 @@ export function GroupsView() {
         key: g.id,
         title: g.name,
         description: t('groups.group'),
-        content: <GroupDrawer groupId={g.id} seq={seq} />,
+        content: (
+          <GroupDrawer
+            groupId={g.id}
+            seq={seq}
+            tracked={Boolean(g.tracked)}
+            digest={digest.data?.digest ?? null}
+            onTracked={list.reload}
+          />
+        ),
       },
     ]);
 
@@ -147,6 +174,14 @@ export function GroupsView() {
               snapshot={snapshot}
               onDetails={() => go('snapshots', { seq: String(snapshot.seq) })}
             />
+            {digest.data?.digest?.trackedGroups?.tracked ? (
+              <Section
+                title={t('groups.trackedTitle')}
+                description={t('groups.trackedDescription')}
+              >
+                <TrackedGroupChanges summary={digest.data.digest.trackedGroups} />
+              </Section>
+            ) : null}
             <FilterBar>
               <SearchField value={query} onChange={setQuery} label={t('groups.searchGroups')} />
               <FilterSelect<Opt>
@@ -176,7 +211,12 @@ export function GroupsView() {
                 cells: [
                   {
                     key: g.name.toLowerCase(),
-                    content: <LinkButton onClick={() => open(g)}>{g.name}</LinkButton>,
+                    content: (
+                      <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
+                        <LinkButton onClick={() => open(g)}>{g.name}</LinkButton>
+                        {g.tracked ? <Pill tone="info">{t('groups.tracked')}</Pill> : null}
+                      </Inline>
+                    ),
                   },
                   {
                     key: g.members ?? -1,
@@ -244,8 +284,37 @@ export function GroupsView() {
   );
 }
 
-function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) {
+function GroupDrawer({
+  groupId,
+  seq,
+  tracked,
+  digest,
+  onTracked,
+}: {
+  groupId: string;
+  seq: number | null;
+  tracked: boolean;
+  digest: WeeklyDigest | null;
+  onTracked: () => Promise<boolean>;
+}) {
   const { go } = useApp();
+  const toast = useToast();
+  const [isTracked, setIsTracked] = useState(tracked);
+  const [busy, setBusy] = useState(false);
+  const toggle = async (next: boolean, name: string) => {
+    setBusy(true);
+    try {
+      await call('setGroupTracked', { groupId, tracked: next });
+      setIsTracked(next);
+      toast.success(t(next ? 'groups.trackedToast' : 'groups.untrackedToast', { name }));
+      void onTracked();
+    } catch (e) {
+      toast.error(t('groups.trackingNotSaved'), errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const change = digest?.trackedGroups?.changes.find((c) => c.groupId === groupId);
   const r = useCall<WithSnapshot<GroupDetail>>('groupDetail', { groupId, seq });
   if (r.error && !r.data)
     return (
@@ -259,6 +328,9 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
       <DrawerBody>
         {/* The loaded level's own sections with placeholder content (R-10.1). */}
         <SkeletonRoot>
+          <Section title={t('groups.tracking')} description={t('groups.trackedHint')}>
+            <Phantom width={140} height={32} />
+          </Section>
           <Section
             title={t('groups.access')}
             description={t('groups.applicationAndAdministrationAccessFromThis')}
@@ -279,6 +351,24 @@ function GroupDrawer({ groupId, seq }: { groupId: string; seq: number | null }) 
     );
   return (
     <DrawerBody>
+      <Section title={t('groups.tracking')} description={t('groups.trackedHint')}>
+        <Stack space="space.100">
+          {isTracked && change ? (
+            <Stack space="space.050">
+              {trackedChangeLines(change).map((l, i) => (
+                <Text key={i} color="color.text.subtle">
+                  {l}
+                </Text>
+              ))}
+            </Stack>
+          ) : null}
+          <Inline>
+            <Button isLoading={busy} onClick={() => void toggle(!isTracked, g.name)}>
+              {isTracked ? t('groups.untrack') : t('groups.track')}
+            </Button>
+          </Inline>
+        </Stack>
+      </Section>
       <Section
         title={t('groups.access')}
         description={t('groups.applicationAndAdministrationAccessFromThis')}
