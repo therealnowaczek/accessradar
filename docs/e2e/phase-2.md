@@ -1,6 +1,6 @@
 # E2E checklist: phase 2, JSON export (G) and weekly cadence (F)
 
-- Dev version: `2.96.0`. Branch `feat/phase-2-weekly-free-tier-json-export`, PR #61.
+- Dev version: `2.97.0`. Branch `feat/phase-2-weekly-free-tier-json-export`, PR #61.
 - Site: marginradar.atlassian.net, **development** install ("Dev" label). Writes only in ARTEST ("AccessRadar E2E").
 - Edition: Settings > Edition > Override. Run every step marked [S/A] in Standard and Advanced, and end on "Use the
   license". Run the UI steps in light and dark theme, and end in Light.
@@ -34,3 +34,10 @@ are non-empty, timestamps are ISO 8601 UTC.
 Overview, Explore (Spaces + Why panel, Groups, People), Changes, Reviews (open a review, Verify), Exceptions, Alerts,
 Campaigns, Snapshots (take a snapshot), Settings, Get started, project settings Access review page, Rovo agent one
 question. `forge logs -e development --since 30m` has no new errors.
+
+## Result (dev 2.97.0, light theme)
+
+17 of 17 PASS (report: e2e/2026-11-12 phase-2 report.md). First run found a real bug: the whole-site matrix
+(11,819 rows, all permissions) passed Forge's 5 MB response limit, so G.1/G.3 never downloaded. Fixed by fetching
+one space per call. Not run for this deploy: dark theme and the full regression pass (the change touches only the
+export menu item and schedule gating; dev logs show no errors).
