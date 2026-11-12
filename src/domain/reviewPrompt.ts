@@ -5,7 +5,7 @@
 export const REVIEW_PROMPT_KV = 'review-prompt';
 
 export const MARKETPLACE_REVIEW_URL =
-  'https://marketplace.atlassian.com/apps/3691498947/accessradar-access-review-permission-audit-for-jira?tab=reviews';
+  'https://marketplace.atlassian.com/apps/3691498947/accessradar-access-review-permission-audit-for-jira?tab=reviews&hosting=cloud';
 
 export type ReviewPromptChoice = 'dismissed' | 'done';
 

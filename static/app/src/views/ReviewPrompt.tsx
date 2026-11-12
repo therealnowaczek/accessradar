@@ -6,15 +6,60 @@ import { call, errorText } from '../api';
 import { t } from '../i18n';
 import { useToast } from '../Toast';
 
+export const APP_NAME = 'AccessRadar';
+
+type Answer = 'dismissed' | 'done';
+
 /**
- * One-time, dismissible request for a Marketplace review, shown to a site admin after first value.
- * A plain link: no tracking, no incentive, never blocks a review, remediation or sign-off.
+ * Radrly standard Marketplace review request: one discovery SectionMessage, no X, no link in the
+ * body, three labelled actions. The parent owns the trigger and the persistence.
  */
+export function ReviewPromptMessage({
+  url,
+  onAnswer,
+  open = (u: string) => void router.open(u),
+}: {
+  url: string;
+  onAnswer: (answer: Answer) => void;
+  open?: (url: string) => void;
+}) {
+  const appName = APP_NAME;
+  return (
+    <SectionMessage
+      appearance="discovery"
+      title={t('reviewPrompt.title', { appName })}
+      headingLevel="h2"
+      actions={[
+        <SectionMessageAction
+          key="open"
+          href={url}
+          onClick={(event) => {
+            event.preventDefault();
+            onAnswer('done');
+            open(url);
+          }}
+        >
+          {t('reviewPrompt.open')}
+        </SectionMessageAction>,
+        <SectionMessageAction key="done" onClick={() => onAnswer('done')}>
+          {t('reviewPrompt.alreadyDone')}
+        </SectionMessageAction>,
+        <SectionMessageAction key="dismiss" onClick={() => onAnswer('dismissed')}>
+          {t('reviewPrompt.dismiss')}
+        </SectionMessageAction>,
+      ]}
+    >
+      <Text as="p">{t('reviewPrompt.body', { appName })}</Text>
+    </SectionMessage>
+  );
+}
+
+/** Stores the answer once per site and hides the request at once, for good. No tracking. */
 export function ReviewPrompt({ url }: { url: string }) {
   const toast = useToast();
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
-  const answer = async (choice: 'dismissed' | 'done') => {
+  const answer = async (choice: Answer) => {
     setHidden(true);
     try {
       await call('answerReviewPrompt', { choice });
@@ -23,30 +68,5 @@ export function ReviewPrompt({ url }: { url: string }) {
       toast.error(errorText(e));
     }
   };
-  return (
-    <SectionMessage
-      appearance="discovery"
-      title={t('reviewPrompt.title')}
-      headingLevel="h2"
-      actions={[
-        <SectionMessageAction
-          key="open"
-          onClick={() => {
-            void router.open(url);
-            void answer('done');
-          }}
-        >
-          {t('reviewPrompt.open')}
-        </SectionMessageAction>,
-        <SectionMessageAction key="done" onClick={() => void answer('done')}>
-          {t('reviewPrompt.alreadyDone')}
-        </SectionMessageAction>,
-        <SectionMessageAction key="dismiss" onClick={() => void answer('dismissed')}>
-          {t('reviewPrompt.dismiss')}
-        </SectionMessageAction>,
-      ]}
-    >
-      <Text as="p">{t('reviewPrompt.body')}</Text>
-    </SectionMessage>
-  );
+  return <ReviewPromptMessage url={url} onAnswer={(choice) => void answer(choice)} />;
 }
