@@ -103,3 +103,7 @@ Dev only, one branch and one PR per item, nothing merged, no production deploy (
 
 ### C3: group reach and tracked groups
 - Reach per group already existed in the group panel; C3 adds tracking: up to 50 groups per site (setting `trackedGroups`, server side limit), a Tracked pill and filter on Groups, and a weekly diff (spaces added or removed, permission changes, members joined or left) built from the two snapshots the weekly digest already compares. It appears on Groups, Overview digest and the digest export path. Available on Standard and Advanced like Groups. No scope, no egress. Audit events group.tracked and group.untracked.
+
+### C7: sample review campaign
+- The sample is a fixed set of 8 invented items (fictional people, groups, spaces) stored in one key-value entry (`sample-campaign`). It never reads or writes Jira users, groups or spaces, and creates no snapshot, review, campaign, audit entry, export row or evidence chain link. So it cannot be mistaken for, or leak into, real evidence. Every row carries a Sample label and a banner says so.
+- One click on Campaigns ("Try a sample campaign", also offered from the Overview empty state) creates it; Keep, Revoke or Exception per item; Finish needs all items decided and only shows a summary ("nothing was changed in Jira, nothing was signed"); Delete removes it. Available on Standard and Advanced (Standard sees it beside the plan note, with a line that real campaigns are Advanced). Jira admins only, like every resolver. No scope, no egress. The demo seed from docs/demo-data-plan.md was not run.
