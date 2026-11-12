@@ -420,6 +420,11 @@ export function OverviewView() {
                   {t('overview.startAReview')}
                 </Button>
               }
+              secondaryAction={
+                <Button appearance="subtle" onClick={() => go('campaigns')}>
+                  {t('sample.try')}
+                </Button>
+              }
             />
           ) : (
             <Text as="p" color="color.text.subtle">

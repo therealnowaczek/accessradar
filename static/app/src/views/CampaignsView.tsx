@@ -34,6 +34,7 @@ import {
   staleNotice,
 } from '../ui';
 import { Phantom, SkeletonRoot } from '../skeletons';
+import { SampleCampaign } from './SampleCampaign';
 import { ActionsHeader, SkeletonTable } from '../skeletonTable';
 
 type Campaign = {
@@ -291,7 +292,10 @@ export function CampaignsView() {
   if (status.data && advanced === false) {
     return (
       <PageFrame header={header}>
-        <PlanNote benefit={t('planGate.campaigns')} />
+        <Stack space="space.300">
+          <PlanNote benefit={t('planGate.campaigns')} />
+          <SampleCampaign advanced={false} />
+        </Stack>
       </PageFrame>
     );
   }
@@ -386,6 +390,7 @@ export function CampaignsView() {
         <SectionMessage appearance="information">
           <Text as="p">{t('campaigns.delegatesAreRemindedInTheApp')}</Text>
         </SectionMessage>
+        <SampleCampaign advanced />
         {!items.length ? (
           <EmptyState
             header={t('campaigns.scheduleYourFirstRecurringReview')}
