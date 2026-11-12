@@ -1030,5 +1030,14 @@
   "projectReview.startSelf": "Rozpocznij przegląd tej przestrzeni",
   "projectReview.startSelfDescription": "Przejrzyj, kto ma dostęp do tej przestrzeni, i zdecyduj, czy go zachować, czy odebrać. W Jirze nic nie zostanie zmienione.",
   "projectReview.selfStarted": "Przegląd rozpoczęty",
-  "projectReview.couldNotStart": "Nie udało się rozpocząć przeglądu"
+  "projectReview.couldNotStart": "Nie udało się rozpocząć przeglądu",
+  "reviews.aiSuggest": "Zasugeruj kolejność przeglądu (AI)",
+  "reviews.aiTitle": "Sugestie AI",
+  "reviews.aiBody": "Tylko wskazówka, oparta na rolach, nazwach grup i istniejących wskaźnikach ryzyka. Nie są wysyłane imiona, e-maile ani identyfikatory kont, a model działa w Atlassian (Forge LLMs). Każdą pozycję rozstrzygasz Ty.",
+  "reviews.aiClear": "Wyczyść sugestie",
+  "reviews.aiDone": "Sugestie gotowe dla {count} pozycji",
+  "reviews.aiFailed": "Sugestie AI niedostępne",
+  "reviews.aiPriority.high": "AI: zobacz najpierw",
+  "reviews.aiPriority.medium": "AI: zobacz w drugiej kolejności",
+  "reviews.aiPriority.low": "AI: niższy priorytet"
 }

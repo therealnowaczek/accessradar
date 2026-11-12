@@ -129,6 +129,7 @@ def('accessMatrix', (p) => svc.matrix(p));
 def('listReviews', () => svc.reviews());
 def('createReview', (p, c) => svc.createReview(p, c.accountId));
 def('getReview', (p) => svc.reviewDetail(p));
+def('presortReview', (p, c) => svc.reviewPresort(p, c.accountId, c.edition));
 def('decideItems', (p, c) => svc.decideItems(p, c.accountId));
 def('signReview', (p, c) => svc.signReview(p, c.accountId, c.edition));
 def('verifyReview', (p, c) => svc.verifyReview(p, c.accountId, c.edition));

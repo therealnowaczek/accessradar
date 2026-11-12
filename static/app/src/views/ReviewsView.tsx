@@ -7,7 +7,7 @@ import { DropdownItem } from '@atlaskit/dropdown-menu';
 import DynamicTable from '../Table';
 import ProgressBar from '@atlaskit/progress-bar';
 import { RadioGroup } from '@atlaskit/radio';
-import SectionMessage from '@atlaskit/section-message';
+import SectionMessage, { SectionMessageAction } from '@atlaskit/section-message';
 import Select from '@atlaskit/select';
 import Textarea from '@atlaskit/textarea';
 import Textfield from '@atlaskit/textfield';
@@ -51,7 +51,7 @@ import {
   type EvidencePackPayload,
 } from '../export/evidencePack';
 import { formatLocal, formatLocalDate, formatUtc, permissionLabel, timeZone } from '../format';
-import { t } from '../i18n';
+import { t, type MessageKey } from '../i18n';
 import {
   deriveRemediation,
   revokeDecisions,
@@ -602,6 +602,8 @@ const CHANGES: Opt[] = [
   },
 ];
 
+type AiSuggestion = { priority: 'high' | 'medium' | 'low'; reason: string };
+
 function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   const { siteUrl, status } = useApp();
   const toast = useToast();
@@ -615,13 +617,37 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
   const [decision, setDecision] = useState('');
   const [change, setChange] = useState('');
   const [busy, setBusy] = useState(false);
+  const [suggest, setSuggest] = useState<Record<number, AiSuggestion>>({});
+  const [suggesting, setSuggesting] = useState(false);
   const exporter = useExporter();
   const d = r.data;
   const signed = d?.review.status === 'signed';
+  const hasSuggestions = Object.keys(suggest).length > 0;
+  const runPresort = async () => {
+    setSuggesting(true);
+    try {
+      const res = await call<{ suggestions: Record<string, AiSuggestion>; considered: number }>(
+        'presortReview',
+        { id },
+      );
+      setSuggest(
+        Object.fromEntries(Object.entries(res.suggestions).map(([k, v]) => [Number(k), v])),
+      );
+      toast.success(t('reviews.aiDone', { count: Object.keys(res.suggestions).length }));
+    } catch (e) {
+      toast.error(t('reviews.aiFailed'), errorText(e));
+    } finally {
+      setSuggesting(false);
+    }
+  };
 
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (d?.items ?? []).filter(
+    const rank = (idx: number) => {
+      const p = suggest[idx]?.priority;
+      return p === 'high' ? 0 : p === 'medium' ? 1 : p === 'low' ? 2 : 3;
+    };
+    const filtered = (d?.items ?? []).filter(
       (i) =>
         (!decision ||
           (decision === 'none'
@@ -635,7 +661,10 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             .toLowerCase()
             .includes(q)),
     );
-  }, [d, query, decision, change]);
+    return Object.keys(suggest).length
+      ? filtered.slice().sort((a, b) => rank(a.idx) - rank(b.idx))
+      : filtered;
+  }, [d, query, decision, change, suggest]);
 
   const decidable = (d?.items ?? []).filter((i) => i.change !== 'removed');
   const recheck = decidable.filter((i) => i.recheck).length;
@@ -1029,6 +1058,20 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
             hint={t('reviews.removeManuallyInJira')}
           />
         </MetricGrid>
+        {hasSuggestions ? (
+          <SectionMessage
+            appearance="discovery"
+            title={t('reviews.aiTitle')}
+            headingLevel="h2"
+            actions={
+              <SectionMessageAction onClick={() => setSuggest({})}>
+                {t('reviews.aiClear')}
+              </SectionMessageAction>
+            }
+          >
+            <Text as="p">{t('reviews.aiBody')}</Text>
+          </SectionMessage>
+        ) : null}
         <FilterBar>
           <SearchField
             value={query}
@@ -1052,6 +1095,15 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
           ))}
           {!signed ? (
             <>
+              {!chainLocked ? (
+                <Button
+                  isLoading={suggesting}
+                  isDisabled={busy || !decidable.some((i) => !i.decision)}
+                  onClick={() => void runPresort()}
+                >
+                  {t('reviews.aiSuggest')}
+                </Button>
+              ) : null}
               <Button
                 isDisabled={busy || !filteredOpen.length}
                 onClick={() => void decide(filteredOpen, 'keep')}
@@ -1122,12 +1174,22 @@ function ReviewDetailView({ id, onBack }: { id: string; onBack: () => void }) {
               {
                 key: 'why',
                 content: (
-                  <WrapAnywhere>
-                    <Text color="color.text.subtle">
-                      {i.reasons[0]}
-                      {i.reasons.length > 1 ? ` (+${i.reasons.length - 1})` : ''}
-                    </Text>
-                  </WrapAnywhere>
+                  <Stack as="span" space="space.050">
+                    <WrapAnywhere>
+                      <Text color="color.text.subtle">
+                        {i.reasons[0]}
+                        {i.reasons.length > 1 ? ` (+${i.reasons.length - 1})` : ''}
+                      </Text>
+                    </WrapAnywhere>
+                    {suggest[i.idx] ? (
+                      <Inline as="span" space="space.100" alignBlock="center" shouldWrap>
+                        <Pill tone={suggest[i.idx].priority === 'high' ? 'danger' : 'discovery'}>
+                          {t(`reviews.aiPriority.${suggest[i.idx].priority}` as MessageKey)}
+                        </Pill>
+                        <Text color="color.text.subtle">{suggest[i.idx].reason}</Text>
+                      </Inline>
+                    ) : null}
+                  </Stack>
                 ),
               },
               {

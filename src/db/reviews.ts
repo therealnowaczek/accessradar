@@ -370,7 +370,10 @@ export async function markSigned(
 
 export async function deleteDraftReview(id: string): Promise<boolean> {
   const n = await exec("DELETE FROM review WHERE id = ? AND status <> 'signed'", id);
-  if (n) await exec('DELETE FROM review_item WHERE review_id = ?', id);
+  if (n) {
+    await exec('DELETE FROM review_item WHERE review_id = ?', id);
+    await exec('DELETE FROM review_assignment WHERE review_id = ?', id);
+  }
   return n > 0;
 }
 

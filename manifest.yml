@@ -65,6 +65,11 @@ modules:
       title: AccessRadar
       icon: resource:icons;accessradar-apps-nav-tight.png
       layout: blank
+  # AI pre-sort for reviewers (Advanced, C6). Forge LLMs only: runs on Atlassian, no egress, no remote.
+  llm:
+    - key: accessradar-presort
+      model:
+        - claude
   # Read-only Rovo agent (Advanced). No egress / remotes / Connect — keeps Runs on Atlassian.
   rovo:agent:
     - key: accessradar-agent-tight

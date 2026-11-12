@@ -1030,5 +1030,14 @@
   "projectReview.startSelf": "このスペースのレビューを開始",
   "projectReview.startSelfDescription": "このスペースに誰がアクセスできるかを確認し、維持するか取り消すかを判断します。Jira では何も変更されません。",
   "projectReview.selfStarted": "レビューを開始しました",
-  "projectReview.couldNotStart": "レビューを開始できませんでした"
+  "projectReview.couldNotStart": "レビューを開始できませんでした",
+  "reviews.aiSuggest": "レビューの順序を提案 (AI)",
+  "reviews.aiTitle": "AI の提案",
+  "reviews.aiBody": "ロール、グループ名、既存のリスクフラグに基づく助言のみです。名前、メールアドレス、アカウント ID は送信されず、モデルは Atlassian 上で実行されます (Forge LLMs)。各項目はあなたが判断します。",
+  "reviews.aiClear": "提案をクリア",
+  "reviews.aiDone": "{count} 件の項目の提案を準備しました",
+  "reviews.aiFailed": "AI の提案を利用できません",
+  "reviews.aiPriority.high": "AI: 最優先で確認",
+  "reviews.aiPriority.medium": "AI: 次に確認",
+  "reviews.aiPriority.low": "AI: 優先度低"
 }

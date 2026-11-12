@@ -396,9 +396,10 @@ export async function findOpenAssignmentForProject(
   projectId: string,
 ): Promise<AssignmentRow | null> {
   const rows = await q(
-    `SELECT * FROM review_assignment
-      WHERE project_id = ? AND status = 'open'
-      ORDER BY due_at ASC LIMIT 1`,
+    `SELECT a.* FROM review_assignment a
+      JOIN review r ON r.id = a.review_id
+      WHERE a.project_id = ? AND a.status = 'open'
+      ORDER BY a.due_at ASC LIMIT 1`,
     projectId,
   );
   return rows[0] ? toAssignment(rows[0]) : null;

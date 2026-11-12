@@ -72,6 +72,7 @@
     "@forge/api": "^8.2.0",
     "@forge/bridge": "^7.1.0",
     "@forge/events": "^3.0.7",
+    "@forge/llm": "^1.0.10",
     "@forge/resolver": "^2.0.0",
     "@forge/sql": "^4.0.7",
     "@pdf-lib/fontkit": "^1.1.1",

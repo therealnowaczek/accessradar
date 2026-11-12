@@ -1030,5 +1030,14 @@
   "projectReview.startSelf": "Review van deze ruimte starten",
   "projectReview.startSelfDescription": "Bekijk wie toegang heeft tot deze ruimte en beslis of je die behoudt of intrekt. Er wordt niets gewijzigd in Jira.",
   "projectReview.selfStarted": "Review gestart",
-  "projectReview.couldNotStart": "Review kon niet worden gestart"
+  "projectReview.couldNotStart": "Review kon niet worden gestart",
+  "reviews.aiSuggest": "Reviewvolgorde voorstellen (AI)",
+  "reviews.aiTitle": "AI-suggesties",
+  "reviews.aiBody": "Alleen advies, gebaseerd op rollen, groepsnamen en bestaande risicovlaggen. Er worden geen namen, e-mailadressen of account-id's verzonden en het model draait bij Atlassian (Forge LLMs). Jij beslist over elk item.",
+  "reviews.aiClear": "Suggesties wissen",
+  "reviews.aiDone": "Suggesties klaar voor {count} items",
+  "reviews.aiFailed": "AI-suggesties niet beschikbaar",
+  "reviews.aiPriority.high": "AI: eerst bekijken",
+  "reviews.aiPriority.medium": "AI: daarna bekijken",
+  "reviews.aiPriority.low": "AI: lagere prioriteit"
 }

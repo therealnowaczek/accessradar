@@ -1030,5 +1030,14 @@
   "projectReview.startSelf": "開始審查此空間",
   "projectReview.startSelfDescription": "查看誰可以存取此空間，並決定保留或撤銷。不會變更 Jira 中的任何內容。",
   "projectReview.selfStarted": "審查已開始",
-  "projectReview.couldNotStart": "無法開始審查"
+  "projectReview.couldNotStart": "無法開始審查",
+  "reviews.aiSuggest": "建議審查順序 (AI)",
+  "reviews.aiTitle": "AI 建議",
+  "reviews.aiBody": "僅為建議，依據角色、群組名稱和現有風險標記。不會傳送姓名、電子郵件或帳戶 ID，模型在 Atlassian 上執行 (Forge LLMs)。每一項由您決定。",
+  "reviews.aiClear": "清除建議",
+  "reviews.aiDone": "已為 {count} 項產生建議",
+  "reviews.aiFailed": "AI 建議無法使用",
+  "reviews.aiPriority.high": "AI: 優先查看",
+  "reviews.aiPriority.medium": "AI: 其次查看",
+  "reviews.aiPriority.low": "AI: 優先順序較低"
 }
