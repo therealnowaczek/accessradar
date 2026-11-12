@@ -936,5 +936,10 @@
   "ui.actionN": "操作 {n}",
   "ui.moreActions": "更多操作",
   "ui.thisTabCouldNotBeShown": "无法显示此选项卡",
-  "ui.tryAgain": "重试"
+  "ui.tryAgain": "重试",
+  "reviewPrompt.title": "AccessRadar 对您有帮助吗？",
+  "reviewPrompt.body": "在 Atlassian Marketplace 上留下简短评价，可以帮助其他 Jira 管理员找到这款应用。大约只需一分钟，AccessRadar 的任何功能都不依赖于此。",
+  "reviewPrompt.open": "撰写评价",
+  "reviewPrompt.alreadyDone": "我已评价",
+  "reviewPrompt.dismiss": "暂不"
 }

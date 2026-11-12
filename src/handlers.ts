@@ -103,6 +103,7 @@ def('getStatus', async (_p, c) => ({
   edition: svc.editionView(c.edition),
 }));
 def('getOverview', (p) => svc.overview(p));
+def('answerReviewPrompt', (p) => svc.answerReviewPrompt(p));
 def('listSnapshots', () => svc.snapshots());
 def('getSnapshot', (p) => svc.snapshotDetail(p));
 def('startSnapshot', (p, c) =>
@@ -171,6 +172,12 @@ def('runSpike', async (_p, c) => {
   // Dev-only: needs the ACCESSRADAR_SPIKE=1 variable AND the development environment.
   if (!spikeAllowed(c.environmentType)) throw new svc.BadRequest('Spike disabled');
   return runSpikeResolver(c.accountId);
+});
+
+/** Dev-only E2E hook: clears the stored answer of the review request so it can be shown again. */
+def('devResetReviewPrompt', async (_p, c) => {
+  if (!spikeAllowed(c.environmentType)) throw new svc.BadRequest('Spike disabled');
+  return svc.resetReviewPrompt();
 });
 
 export const resolverHandler = resolver.getDefinitions();

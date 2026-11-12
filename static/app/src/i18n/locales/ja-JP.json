@@ -936,5 +936,10 @@
   "ui.actionN": "アクション {n}",
   "ui.moreActions": "その他の操作",
   "ui.thisTabCouldNotBeShown": "このタブを表示できませんでした",
-  "ui.tryAgain": "再試行"
+  "ui.tryAgain": "再試行",
+  "reviewPrompt.title": "AccessRadar はお役に立っていますか？",
+  "reviewPrompt.body": "Atlassian Marketplace に短いレビューを投稿いただくと、他の Jira 管理者がこのアプリを見つけやすくなります。1 分ほどで完了し、AccessRadar の機能には影響しません。",
+  "reviewPrompt.open": "レビューを書く",
+  "reviewPrompt.alreadyDone": "投稿済み",
+  "reviewPrompt.dismiss": "今はしない"
 }

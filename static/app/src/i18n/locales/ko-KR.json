@@ -936,5 +936,10 @@
   "ui.actionN": "작업 {n}",
   "ui.moreActions": "더 많은 작업",
   "ui.thisTabCouldNotBeShown": "이 탭을 표시할 수 없습니다",
-  "ui.tryAgain": "다시 시도"
+  "ui.tryAgain": "다시 시도",
+  "reviewPrompt.title": "AccessRadar가 도움이 되고 있나요?",
+  "reviewPrompt.body": "Atlassian Marketplace에 짧은 리뷰를 남겨 주시면 다른 Jira 관리자가 앱을 찾는 데 도움이 됩니다. 약 1분이 걸리며 AccessRadar의 어떤 기능도 이에 좌우되지 않습니다.",
+  "reviewPrompt.open": "리뷰 작성",
+  "reviewPrompt.alreadyDone": "이미 작성했습니다",
+  "reviewPrompt.dismiss": "나중에"
 }

@@ -936,5 +936,10 @@
   "ui.actionN": "Action {n}",
   "ui.moreActions": "Plus d'actions",
   "ui.thisTabCouldNotBeShown": "Impossible d'afficher cet onglet",
-  "ui.tryAgain": "Réessayer"
+  "ui.tryAgain": "Réessayer",
+  "reviewPrompt.title": "AccessRadar vous est utile ?",
+  "reviewPrompt.body": "Un court avis sur l'Atlassian Marketplace aide d'autres administrateurs Jira à trouver l'application. Cela prend environ une minute et rien dans AccessRadar n'en dépend.",
+  "reviewPrompt.open": "Écrire un avis",
+  "reviewPrompt.alreadyDone": "C'est déjà fait",
+  "reviewPrompt.dismiss": "Pas maintenant"
 }
