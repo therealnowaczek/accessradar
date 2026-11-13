@@ -1,0 +1,14 @@
+C-items batch finished 2026-11-12 (Claude Sonnet 5.5).
+
+Items, branches, PRs, dev versions, E2E:
+- C11 feat/c11-review-prompt  #67  dev 3.6.0   8/8   (shipped to prod 3.2.0 earlier)
+- C5  feat/c5-recheck         #68  dev 3.9.0   11/11 (shipped to prod 3.2.0 earlier)
+- C1  feat/c1-control-mapping #69  dev 3.11.0  3/3   (shipped to prod 3.3.0 earlier)
+- C3  feat/c3-group-reach     #70  dev 3.13.0  7/7   ready for prod
+- C7  feat/c7-sample-campaign #71  dev 3.14.0  8/8   ready for prod
+- C4  feat/c4-risk-rules      #72  dev 3.15.0  6/6   ready for prod
+- C2  feat/c2-seat-view       #73  dev 3.16.0  6/6   ready for prod
+- C8  feat/c8-project-self-review #74 dev 3.17.0 7/7 ready for prod
+- C6  feat/c6-forge-llm-presort #75 not deployed     needs Marcin tak + privacy/P&S
+
+Blocked/skipped: C6 dev deploy and E2E (llm module = major version, needs forge install --upgrade which was not run; check stops at forge lint MAJOR_VERSION_RULE). No production deploy, no merges to main by this run, no new scopes or egress in any item.

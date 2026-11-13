@@ -1,0 +1,10 @@
+import { open, openApp, nav, dismissCookies, OUT } from './lib.mjs';
+const { browser, page } = await open();
+const fr = await openApp(page);
+await dismissCookies(page);
+await nav(page, fr, 'Snapshots');
+await fr.getByRole('button', { name: /Export access matrix/ }).first().click().catch(e=>console.log('noexp', e.message.slice(0,80)));
+await page.waitForTimeout(800);
+await page.screenshot({ path: OUT + '/00-snap-export.png' });
+console.log((await fr.locator('body').innerText()).slice(0, 900));
+await browser.close();

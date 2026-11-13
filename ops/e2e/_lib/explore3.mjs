@@ -1,0 +1,13 @@
+import { open, openApp, nav, dismissCookies, OUT, setEdition } from './lib.mjs';
+const { browser, page } = await open();
+const fr = await openApp(page);
+await dismissCookies(page);
+await setEdition(page, fr, 'Standard');
+await page.screenshot({ path: OUT + '/00-standard.png' });
+console.log((await fr.locator('body').innerText()).slice(0, 400));
+await fr.getByRole('button', { name: 'Edit' }).first().click();
+await page.waitForTimeout(1500);
+await page.screenshot({ path: OUT + '/00-standard-sched.png' });
+console.log('---');
+console.log(await fr.locator('body').innerText().then(t=>t.slice(-700)));
+await browser.close();

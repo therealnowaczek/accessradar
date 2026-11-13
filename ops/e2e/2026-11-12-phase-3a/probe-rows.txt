@@ -1,0 +1,25 @@
+GET myself	 | 200 | 	 | 200
+GET mypermissions (global)	 | 200 | 	 | 200
+GET project/search	 | 200 | 13 | 	 | 200 | 13
+GET project/{key}/permissionscheme	 | 200 | 	 | 200
+GET project/{key}/role	 | 200 | 5 | 	 | 200 | 5
+GET project/{key}/role/{id}	 | 200 | 23 | 	 | 200 | 23
+GET permissionscheme?expand=all	 | 200 | 9 | 	 | 200 | 9
+GET permissions (catalog)	 | 200 | 62 | 	 | 200 | 62
+GET filter/search (sharePermissions)	 | 200 | 11 | 	 | 200 | 10
+GET filter/{id}/permission	 | 200 | 1 | 	 | 200 | 1
+GET dashboard/search	 | 200 | 3 | 	 | 200 | 1
+GET auditing/record	 | 403 | 	 | 403
+GET issuesecurityschemes	 | 200 | 1 | 	 | 200 | 1
+GET issuesecurityschemes/level	 | 200 | 0 | 	 | 200 | 0
+GET issuesecurityschemes/level/member	 | 200 | 0 | 	 | 200 | 0
+GET project/{key}/issuesecuritylevelscheme	 | 404 | 	 | 404
+GET role (all)	 | 200 | 18 | 	 | 200 | 18
+GET group/bulk	 | 200 | 50 | 	 | 200 | 50
+GET group/bulk?accessType=admin	 | 200 | 2 | 	 | 200 | 2
+GET group/bulk?accessType=site-admin	 | 200 | 1 | 	 | 200 | 1
+GET group/member	 | 200 | 26 | 	 | 200 | 26
+GET applicationrole	 | 200 | 3 | 	 | 200 | 3
+POST permissions/check (self, global)	 | 200 | 	 | 200
+GET users/search	 | 200 | 50 | 	 | 200 | 50
+GET search/jql (negative control)	 | Error | 	 | 401

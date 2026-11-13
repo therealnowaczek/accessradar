@@ -1,0 +1,14 @@
+| # | Case | Result |
+|---|---|---|
+| 1 | Advanced light suggest | PASS |
+| 2 | No names/ids/activity claims, counts-only audit | PASS |
+| 3 | Advanced dark | PASS |
+| 4 | Standard light, no button (server refusal by unit test only) | PASS |
+| 5 | Standard dark | PASS |
+| 6 | LLM failure path | N/A (unit tests) |
+| 7 | Regression | PASS |
+| 8 | forge logs clean | PASS |
+| 9 | Runs on Atlassian eligible | PASS |
+
+8 PASS / 0 FAIL (1 N/A). One FAIL in first run (orphaned assignment after review delete) fixed, dev redeployed as 4.1.0, rerun green.
+RESULT: GREEN

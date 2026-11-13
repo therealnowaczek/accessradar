@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import { open, openApp, nav, dismissCookies } from './lib.mjs';
+const DIR = '/workspace/radrly/accessradar/e2e/2026-11-12-phase-3a';
+const { browser, page } = await open();
+const fr = await openApp(page); await dismissCookies(page);
+await nav(page, fr, 'Settings');
+const b = fr.getByRole('button', { name: /Run probes/ });
+await b.scrollIntoViewIfNeeded();
+await b.click();
+await fr.getByText('GET filter/search').first().waitFor({ timeout: 120000 });
+await page.waitForTimeout(3000);
+const rows = await fr.locator('table tbody tr').allInnerTexts();
+fs.writeFileSync(DIR + '/probe-rows.txt', rows.map((r) => r.replace(/\n+/g, ' | ')).join('\n'));
+await page.screenshot({ path: DIR + '/probe.png', fullPage: false });
+console.log(rows.length);
+await browser.close();

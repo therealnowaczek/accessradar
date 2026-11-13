@@ -1,0 +1,14 @@
+import { open, openApp, nav, dismissCookies, OUT } from './lib.mjs';
+const { browser, page } = await open();
+const fr = await openApp(page);
+await dismissCookies(page);
+await nav(page, fr, 'Spaces');
+console.log((await fr.locator('body').innerText()).slice(0, 700));
+await fr.getByRole('button', { name: /Export access matrix/ }).first().click();
+await page.waitForTimeout(600);
+await page.screenshot({ path: OUT + '/00-spaces-menu.png' });
+console.log(await fr.getByRole('menuitem').allInnerTexts());
+await page.keyboard.press('Escape');
+await nav(page, fr, 'Reviews');
+console.log((await fr.locator('body').innerText()).slice(0, 900));
+await browser.close();

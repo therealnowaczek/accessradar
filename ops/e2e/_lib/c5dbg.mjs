@@ -1,0 +1,10 @@
+import { open, openApp, dismissCookies } from './lib.mjs';
+const { browser, page } = await open();
+let fr = await openApp(page); await dismissCookies(page);
+await fr.getByRole('button', { name: /^Reviews/ }).first().click(); await page.waitForTimeout(4000);
+await fr.getByRole('button', { name: 'Start a review' }).first().click(); await page.waitForTimeout(2500);
+const lab = fr.getByLabel('Base snapshot'); console.log('count', await lab.count());
+await lab.first().click().catch(e => console.log('click fail', e.message.slice(0,100))); await page.waitForTimeout(1500);
+console.log(JSON.stringify(await fr.getByRole('option').allInnerTexts()));
+await page.screenshot({ path: '/tmp/d3.png' });
+await browser.close();
